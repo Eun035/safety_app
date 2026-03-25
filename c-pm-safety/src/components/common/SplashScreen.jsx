@@ -64,7 +64,7 @@ const SplashScreen = ({ isDataLoading, onComplete }) => {
                 <div className="absolute inset-0 rounded-full animate-in zoom-in duration-1000 relative flex flex-col items-center justify-center overflow-hidden">
                     {/* User-provided Video Asset */}
                     <video controls
-                        src="/helmet_video.mp4"
+                        src="./helmet_video.mp4"
                         autoPlay
                         loop
                         muted
