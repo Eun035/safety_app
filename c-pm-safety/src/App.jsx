@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import {
   Shield, Cloud, AlertTriangle, MapPin, Moon, Activity,
   Layers, Play, Camera, Navigation, Search, Star,
-  Calendar, Phone, Zap, TrendingUp, RefreshCw, Download
+  Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
+  Database
 } from 'lucide-react';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import MapContainer from './components/map/MapContainer';
@@ -14,7 +15,7 @@ import DisclaimerModal from './components/common/DisclaimerModal';
 import SOSButton from './components/common/SOSButton';
 import EmergencyModal from './components/common/EmergencyModal';
 import ParkingVerification from './components/common/ParkingVerification';
-import SafetyDashboard from './components/common/SafetyDashboard';
+import PersonalInsights from './components/common/PersonalInsights';
 import QRScanner from './components/common/QRScanner';
 import CouponBox from './components/common/CouponBox';
 import VibeRouteSelector from './components/map/VibeRouteSelector';
@@ -482,10 +483,10 @@ function App() {
             <Shield size={24} />
           </button>
           <button
-            onClick={() => setShowHeatmap(!showHeatmap)}
-            className={`w-12 h-12 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center active:scale-90 transition-all border ${showHeatmap ? 'bg-red-500/50 text-white border-red-400' : 'bg-cyber-panel/80 text-red-400 border-white/10'}`}
+            onClick={() => setIsDashboardOpen(true)}
+            className={`w-12 h-12 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'bg-purple-500/50 text-white border-purple-400' : 'bg-purple-900/20 text-purple-400 border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]'}`}
           >
-            <Activity size={24} />
+            <Database size={24} />
           </button>
           <button
             onClick={() => setIsAROpen(true)}
@@ -696,10 +697,10 @@ function App() {
         />
         <EmergencyModal isOpen={isSOSOpen} onClose={() => setIsSOSOpen(false)} />
         <ParkingVerification isOpen={isParkingOpen} onClose={() => setIsParkingOpen(false)} speak={speak} onComplete={handleParkingComplete} />
-        <SafetyDashboard
+        <PersonalInsights
           isOpen={isDashboardOpen}
           onClose={() => setIsDashboardOpen(false)}
-          profile={userProfile}
+          history={JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')}
         />
         <QRScanner
           isOpen={isQRScannerOpen}
