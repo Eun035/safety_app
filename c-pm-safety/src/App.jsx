@@ -645,7 +645,10 @@ function App() {
               <TrendingUp size={24} className="bg-transparent" />
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Activity")}</span>
             </button>
-            <button className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent">
+            <button 
+              onClick={() => setIsDigitalTwinOpen(true)}
+              className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
+            >
               <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center -mt-6 border border-white/10 shadow-glass backdrop-blur-xl outline-none ring-0">
                 <Shield size={24} className="bg-transparent" />
               </div>
