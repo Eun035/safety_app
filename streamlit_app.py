@@ -16,7 +16,7 @@ st.set_page_config(
 
 # --- App Build Path ---
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BUILD_DIR = os.path.join(CURRENT_DIR, "dist")
+BUILD_DIR = os.path.join(CURRENT_DIR, "c-pm-safety", "dist")
 PORT = 8000
 
 # --- Helper: Start Static Server in Background ---
