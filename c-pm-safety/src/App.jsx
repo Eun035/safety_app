@@ -16,6 +16,7 @@ import SOSButton from './components/common/SOSButton';
 import EmergencyModal from './components/common/EmergencyModal';
 import ParkingVerification from './components/common/ParkingVerification';
 import PersonalInsights from './components/common/PersonalInsights';
+import RideSettings from './components/common/RideSettings';
 import QRScanner from './components/common/QRScanner';
 import CouponBox from './components/common/CouponBox';
 import VibeRouteSelector from './components/map/VibeRouteSelector';
@@ -155,6 +156,17 @@ function App() {
   const [isESGDashboardOpen, setIsESGDashboardOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
   const [simSpeed, setSimSpeed] = useState(15);
+  const [rideConfig, setRideConfig] = useState({
+    speedLimit: 15,
+    isNightMode: false,
+    brandFilters: ['G-Bike', 'Swing', 'Dear']
+  });
+  const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
+
+  // Sync simulation speed with ride config
+  useEffect(() => {
+    setSimSpeed(rideConfig.speedLimit);
+  }, [rideConfig.speedLimit]);
 
   // Phase 26: PWA Manual Install Prompt
   // Phase 26: PWA Manual Install Prompt
@@ -483,6 +495,12 @@ function App() {
             <Shield size={24} />
           </button>
           <button
+            onClick={() => setIsRideSettingsOpen(true)}
+            className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-gray-400 active:scale-90 transition-all border border-gray-100"
+          >
+            <Sliders size={20} />
+          </button>
+          <button
             onClick={() => setIsDashboardOpen(true)}
             className={`w-12 h-12 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'bg-purple-500/50 text-white border-purple-400' : 'bg-purple-900/20 text-purple-400 border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]'}`}
           >
@@ -566,6 +584,7 @@ function App() {
           <div className="absolute inset-0 z-10">
             <MapContainer
               data={locations}
+              rideConfig={rideConfig}
               tagoPms={tagoPms}
               showHeatmap={showHeatmap}
               selectedLocation={selectedLocation}
@@ -824,6 +843,13 @@ function App() {
             safetyStreak: historyMetrics.safetyStreak || 1
           }}
           history={JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')}
+        />
+
+        <RideSettings
+          isOpen={isRideSettingsOpen}
+          onClose={() => setIsRideSettingsOpen(false)}
+          config={rideConfig}
+          setConfig={setRideConfig}
         />
 
         {/* Carbon Saved / Eco Badge Modal (New Engagement Feature) */}
