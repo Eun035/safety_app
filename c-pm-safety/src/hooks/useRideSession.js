@@ -16,18 +16,39 @@ export const useRideSession = create((set, get) => ({
         const pastRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
         if (pastRides.length === 0) return;
 
+        // Calculate Safety Streak
+        const dates = [...new Set(pastRides.map(ride => ride.date))].sort((a, b) => new Date(b) - new Date(a));
+        let streak = 0;
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        for (let i = 0; i < dates.length; i++) {
+            const rideDate = new Date(dates[i]);
+            rideDate.setHours(0, 0, 0, 0);
+            
+            // Check if it's today or consecutive day
+            const diffDays = Math.floor((today - rideDate) / (1000 * 60 * 60 * 24));
+            if (diffDays === streak || diffDays === streak + 1) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+
+        const totalHazardReports = parseInt(localStorage.getItem('csafe_hazard_reports') || '3');
+
         // 임의의 계산 로직: 급정거 횟수가 적을수록 반응 속도가 좋다고 가정 (데모용)
-        // 실제로는 센서 데이터 기반으로 저장된 값을 평균내야 함
         const totalSuddenBrakes = pastRides.reduce((acc, ride) => acc + (ride.suddenBrakeCount || 0), 0);
         const avgBrakes = totalSuddenBrakes / pastRides.length;
         
-        // 반응 속도 계산 기믹: 기본 1.0s에서 급정거가 적으면 0.1s씩 단축 (최소 0.6s)
         const calculatedReaction = Math.max(0.6, 1.0 - (pastRides.length * 0.05) + (avgBrakes * 0.1));
 
         set({
             historyMetrics: {
                 avgReactionTime: +calculatedReaction.toFixed(1),
-                totalRides: pastRides.length
+                totalRides: pastRides.length,
+                safetyStreak: streak || 1,
+                hazardReports: totalHazardReports
             }
         });
     },

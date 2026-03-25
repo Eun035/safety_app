@@ -819,9 +819,10 @@ function App() {
           metrics={{
             carbonSaved: userProfile.carbon_saved,
             safetyScore: userProfile.safety_score,
-            hazardReports: 3,
-            safetyStreak: 32
+            hazardReports: historyMetrics.hazardReports || 0,
+            safetyStreak: historyMetrics.safetyStreak || 1
           }}
+          history={JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')}
         />
 
         {/* Carbon Saved / Eco Badge Modal (New Engagement Feature) */}

@@ -4,29 +4,38 @@ import { Shield, Leaf, TrendingUp, Calendar, AlertTriangle, X, Share2, Award, Za
 const ESGDashboard = ({ isOpen, onClose, metrics, history = [] }) => {
     const [isShareOpen, setIsShareOpen] = useState(false);
 
-    // Mock data if metrics are missing
+    // Dynamic data from props
     const data = useMemo(() => ({
-        carbonSaved: metrics?.carbonSaved || 4.2,
-        safetyScore: metrics?.safetyScore || 94,
-        hazardReports: metrics?.hazardReports || 3,
-        safetyStreak: metrics?.safetyStreak || 32,
-        riskReduction: 78 // % lower risk
+        carbonSaved: metrics?.carbonSaved || 0,
+        safetyScore: metrics?.safetyScore || 0,
+        hazardReports: metrics?.hazardReports || 0,
+        safetyStreak: metrics?.safetyStreak || 1,
+        riskReduction: metrics?.safetyScore ? Math.min(99, metrics.safetyScore - 15) : 75
     }), [metrics]);
 
-    // Calculate trees (1 tree per 10kg CO2)
-    const treesCount = (data.carbonSaved / 10).toFixed(1);
-    const progressToNextTree = (data.carbonSaved % 10) * 10;
+    // Calculate trees (1 tree per 2kg CO2 saved as per better engagement)
+    const treesCount = (data.carbonSaved / 2).toFixed(1);
+    const progressToNextTree = (data.carbonSaved % 2) * 50;
 
-    // Generate Heatmap Data (12 weeks x 7 days)
+    // Generate Heatmap Data from real history if possible
     const heatmap = useMemo(() => {
         const weeks = 12;
         const days = 7;
-        return Array.from({ length: weeks * days }).map((_, i) => ({
-            active: Math.random() > 0.3,
-            safe: Math.random() > 0.2, // Some days might have a minor event
-            level: Math.floor(Math.random() * 4) // 0 to 3 intensity
-        }));
-    }, []);
+        const totalCells = weeks * days;
+        const historyDates = new Set(history.map(r => r.date));
+
+        return Array.from({ length: totalCells }).map((_, i) => {
+            // Mocking backfill for demo, but checking real history for recent days
+            const isRecent = i > totalCells - 14; 
+            const hasRide = isRecent ? historyDates.has(new Date(Date.now() - (totalCells - 1 - i) * 86400000).toLocaleDateString()) : Math.random() > 0.4;
+            
+            return {
+                active: hasRide,
+                safe: true, 
+                level: hasRide ? Math.floor(Math.random() * 3) + 1 : 0
+            };
+        });
+    }, [history]);
 
     if (!isOpen) return null;
 
