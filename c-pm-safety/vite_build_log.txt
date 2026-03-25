@@ -1,0 +1,41 @@
+﻿
+> c-pm-safety@0.0.0 build
+> vite build
+
+node.exe : [31mfailed to load config from C:\Users\ComHolic
+\pm_onaj\c-pm-safety\vite.config.js[39m
+위치 줄:1 문자:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nod
+ejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([31mfailed to 
+    ....config.js[39m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[31merror during build:
+TypeError: obfuscator is not a function
+    at file:///C:/Users/ComHolic/pm_onaj/c-pm-safety/node_mo
+dules/.vite-temp/vite.config.js.timestamp-1771898844480-1b60
+62659c50c8.mjs:91:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:4
+13:25)
+    at onImport.tracePromise.__proto__ (node:internal/module
+s/esm/loader:660:26)
+    at loadConfigFromBundledFile (file:///C:/Users/ComHolic/
+pm_onaj/c-pm-safety/node_modules/vite/dist/node/chunks/fetch
+ableEnvironments.js:34504:12)
+    at bundleAndLoadConfigFile (file:///C:/Users/ComHolic/pm
+_onaj/c-pm-safety/node_modules/vite/dist/node/chunks/fetchab
+leEnvironments.js:34365:17)
+    at loadConfigFromFile (file:///C:/Users/ComHolic/pm_onaj
+/c-pm-safety/node_modules/vite/dist/node/chunks/fetchableEnv
+ironments.js:34332:42)
+    at resolveConfig (file:///C:/Users/ComHolic/pm_onaj/c-pm
+-safety/node_modules/vite/dist/node/chunks/fetchableEnvironm
+ents.js:33948:22)
+    at createBuilder (file:///C:/Users/ComHolic/pm_onaj/c-pm
+-safety/node_modules/vite/dist/node/chunks/fetchableEnvironm
+ents.js:33143:17)
+    at CAC.<anonymous> (file:///C:/Users/ComHolic/pm_onaj/c-
+pm-safety/node_modules/vite/dist/node/cli.js:630:19)[39m

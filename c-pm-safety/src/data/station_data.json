@@ -1,0 +1,50 @@
+[
+    {
+        "id": "s1",
+        "name": "GS25 청수하늘본점",
+        "type": "convenience",
+        "lat": 36.78248958,
+        "lng": 127.15291289,
+        "discountOffer": "핫식스 1+1 쿠폰"
+    },
+    {
+        "id": "s2",
+        "name": "CU 신불당스타점",
+        "type": "convenience",
+        "lat": 36.81241766,
+        "lng": 127.10830157,
+        "discountOffer": "아메리카노 500원 할인"
+    },
+    {
+        "id": "s3",
+        "name": "세븐일레븐 두정역점",
+        "type": "convenience",
+        "lat": 36.83244518,
+        "lng": 127.15144458,
+        "discountOffer": "생수 500ml 증정"
+    },
+    {
+        "id": "s4",
+        "name": "하이카페 터미널점",
+        "type": "cafe",
+        "lat": 36.84171093,
+        "lng": 127.18189517,
+        "discountOffer": "모든 제조음료 10% 할인"
+    },
+    {
+        "id": "s5",
+        "name": "이마트24 호반로데오점",
+        "type": "convenience",
+        "lat": 36.80177795,
+        "lng": 127.10478668,
+        "discountOffer": "단백질 바 2+1 쿠폰"
+    },
+    {
+        "id": "s6",
+        "name": "미니스톱 쌍용수산점",
+        "type": "convenience",
+        "lat": 36.79071576,
+        "lng": 127.11598456,
+        "discountOffer": "소프트콘 무료 증정"
+    }
+]
