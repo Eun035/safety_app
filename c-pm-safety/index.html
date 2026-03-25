@@ -26,6 +26,36 @@
       }
     }
   </script>
+  <script>
+    // --- Streamlit Component Handshake ---
+    function sendToStreamlit(type, data) {
+      window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: type,
+        ...data
+      }, "*");
+    }
+
+    // Identify as a Streamlit component
+    sendToStreamlit("streamlit:componentReady", { apiVersion: 1 });
+
+    // Set frame height to fill the screen
+    function updateHeight() {
+      sendToStreamlit("streamlit:setFrameHeight", { height: window.innerHeight });
+    }
+
+    window.addEventListener("resize", updateHeight);
+    window.addEventListener("load", updateHeight);
+    // Continuous height sync for dynamic content
+    setInterval(updateHeight, 1000);
+
+    // Optional: listen for render events (not strictly needed for simple wrappers)
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "streamlit:render") {
+        // App is rendered!
+      }
+    });
+  </script>
 </head>
 
 <body>
