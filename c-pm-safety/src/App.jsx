@@ -24,6 +24,7 @@ import RideCameraModal from './components/common/RideCameraModal';
 import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
 import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
+import ESGDashboard from './components/common/ESGDashboard';
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -150,6 +151,7 @@ function App() {
 
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
+  const [isESGDashboardOpen, setIsESGDashboardOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
   const [simSpeed, setSimSpeed] = useState(15);
 
@@ -474,7 +476,7 @@ function App() {
         {/* Map Control Buttons (Left Side) */}
         <div className="absolute left-4 top-28 z-[45] flex flex-col gap-3 pointer-events-auto items-center">
           <button
-            onClick={() => setIsDashboardOpen(true)}
+            onClick={() => setIsESGDashboardOpen(true)}
             className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10"
           >
             <Shield size={24} />
@@ -532,7 +534,7 @@ function App() {
               <button
                 onClick={() => {
                   speak(''); // TTS 권한 획득 겸용
-                  setIsDigitalTwinOpen(true);
+                  setIsESGDashboardOpen(true);
                 }}
                 className={`bg-cyber-panel/80 backdrop-blur-lg py-2 px-5 rounded-full shadow-glass border transition-all duration-500 flex items-center gap-3 active:scale-95 outline-none ${
                   digitalTwinData?.riskLevel === 'danger' ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
@@ -646,7 +648,7 @@ function App() {
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Activity")}</span>
             </button>
             <button 
-              onClick={() => setIsDigitalTwinOpen(true)}
+              onClick={() => setIsESGDashboardOpen(true)}
               className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
             >
               <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center -mt-6 border border-white/10 shadow-glass backdrop-blur-xl outline-none ring-0">
@@ -808,6 +810,18 @@ function App() {
           isOpen={isDigitalTwinOpen} 
           onClose={() => setIsDigitalTwinOpen(false)}
           data={digitalTwinData}
+        />
+
+        {/* ESG Dashboard Modal */}
+        <ESGDashboard
+          isOpen={isESGDashboardOpen}
+          onClose={() => setIsESGDashboardOpen(false)}
+          metrics={{
+            carbonSaved: userProfile.carbon_saved,
+            safetyScore: userProfile.safety_score,
+            hazardReports: 3,
+            safetyStreak: 32
+          }}
         />
 
         {/* Carbon Saved / Eco Badge Modal (New Engagement Feature) */}
