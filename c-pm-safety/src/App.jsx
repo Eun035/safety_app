@@ -487,6 +487,20 @@ function App() {
         )}
 
         {/* Map Control Buttons (Left Side) */}
+        {/* Phase 35: Domain Debug Overlay for Kakao Map Registration */}
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[9999] bg-red-600 text-white text-xs px-3 py-1 rounded-full shadow-lg font-mono flex items-center gap-2">
+          <span>Kakao Domain: {window.location.origin}</span>
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.origin);
+              alert('도메인이 복사되었습니다! 카카오 플랫폼 Web 사이트에 추가하세요.');
+            }}
+            className="bg-white/20 hover:bg-white/40 px-2 py-0.5 rounded cursor-pointer"
+          >
+            복사
+          </button>
+        </div>
+
         <div className="absolute left-4 top-28 z-[45] flex flex-col gap-3 pointer-events-auto items-center">
           <button
             onClick={() => setIsESGDashboardOpen(true)}
