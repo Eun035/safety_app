@@ -2,13 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Shield, Cloud, AlertTriangle, MapPin, Moon, Activity,
-  Layers, Play, Camera, Navigation, Search,
-  Calendar,
-  Database,
-  User,
-  RefreshCw,
-  Map as MapIcon,
-  Sliders
+  Layers, Play, Camera, Navigation, Search, Star,
+  Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
+  Database, User, Map as MapIcon, Sliders
 } from 'lucide-react';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import MapContainer from './components/map/MapContainer';
