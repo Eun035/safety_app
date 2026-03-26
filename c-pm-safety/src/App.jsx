@@ -510,10 +510,10 @@ function App() {
           </button>
           <button
             onClick={() => setShowHeatmap(prev => !prev)}
-            className={`w-12 h-12 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${
+            className={`w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center active:scale-90 transition-all border ${
               showHeatmap
-                ? 'bg-red-500 text-white border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.6)]'
-                : 'bg-red-500/20 text-red-500/70 border-red-500/30'
+                ? 'text-red-500 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
+                : 'text-red-900/60 border-white/10'
             }`}
           >
             <Activity size={20} />
