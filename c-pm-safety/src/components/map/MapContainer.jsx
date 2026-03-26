@@ -19,6 +19,7 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
     const [mapCenter, setMapCenter] = useState({ lat: 36.833, lng: 127.179 });
     const [isFollowMode, setIsFollowMode] = useState(true);
     const [highlightedStationId, setHighlightedStationId] = useState(null);
+    const [selectedDangerZone, setSelectedDangerZone] = useState(null);
 
     // 0. Filter PMs by active brands
     const filteredTagoPms = useMemo(() => {
@@ -298,18 +299,59 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                         </CustomOverlayMap>
                     ))}
 
-                    {showHeatmap && accidentData.map((acc) => (
-                        <Circle
-                            key={`acc-${acc.id}`}
-                            center={{ lat: acc.lat, lng: acc.lng }}
-                            radius={acc.radius}
-                            strokeWeight={2}
-                            strokeColor="#FF0000"
-                            strokeOpacity={0.8}
-                            fillColor="#FF0000"
-                            fillOpacity={0.4}
-                        />
-                    ))}
+                    {/* ⚠️ Danger Zones: always visible, inline on-map labels */}
+                    {accidentData.map((acc) => {
+                        const isSelected = selectedDangerZone?.id === acc.id;
+                        const color = acc.intensity === 'HIGH' ? '#ef4444' : acc.intensity === 'MEDIUM' ? '#f97316' : '#eab308';
+                        return (
+                            <React.Fragment key={`danger-${acc.id}`}>
+                                <Circle
+                                    center={{ lat: acc.lat, lng: acc.lng }}
+                                    radius={acc.radius}
+                                    strokeWeight={isSelected ? 3 : 2}
+                                    strokeColor={color}
+                                    strokeOpacity={0.9}
+                                    fillColor={color}
+                                    fillOpacity={isSelected ? 0.35 : 0.2}
+                                    onClick={() => setSelectedDangerZone(isSelected ? null : acc)}
+                                />
+                                {/* Small badge label always visible */}
+                                {!isSelected && (
+                                    <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={0.5} zIndex={20}>
+                                        <div
+                                            onClick={() => setSelectedDangerZone(acc)}
+                                            className="pointer-events-auto cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-white text-[10px] font-black shadow-lg border border-white/20"
+                                            style={{ background: `${color}dd` }}
+                                        >
+                                            ⚠️ {acc.intensity === 'HIGH' ? '위험' : acc.intensity === 'MEDIUM' ? '주의' : '유의'}
+                                        </div>
+                                    </CustomOverlayMap>
+                                )}
+                                {/* Expanded info card inline on map */}
+                                {isSelected && (
+                                    <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={1.1} zIndex={50}>
+                                        <div
+                                            className="pointer-events-auto w-52 rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                                            style={{ background: 'rgba(10,10,20,0.92)', backdropFilter: 'blur(16px)' }}
+                                        >
+                                            <div className="px-3 pt-2.5 pb-1 flex items-center gap-2 border-b border-white/10" style={{ borderLeft: `4px solid ${color}` }}>
+                                                <span className="text-sm">⚠️</span>
+                                                <span className="text-white text-[11px] font-black tracking-tight leading-tight">{acc.desc}</span>
+                                            </div>
+                                            <div className="px-3 py-2">
+                                                <p className="text-gray-300 text-[10px] leading-tight">{acc.detourGuide}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setSelectedDangerZone(null)}
+                                                className="w-full py-1.5 text-[9px] font-black tracking-widest uppercase"
+                                                style={{ color, background: `${color}22` }}
+                                            >닫기</button>
+                                        </div>
+                                    </CustomOverlayMap>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </Map>
             </div>
 
