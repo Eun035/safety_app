@@ -509,8 +509,12 @@ function App() {
             <Shield size={24} />
           </button>
           <button
-            onClick={() => setIsDigitalTwinOpen(true)}
-            className="w-12 h-12 bg-red-500/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-white active:scale-90 transition-all border border-red-400"
+            onClick={() => setShowHeatmap(prev => !prev)}
+            className={`w-12 h-12 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${
+              showHeatmap
+                ? 'bg-red-500 text-white border-red-400 shadow-[0_0_18px_rgba(239,68,68,0.7)]'
+                : 'bg-red-500/20 text-red-400 border-red-500/30'
+            }`}
           >
             <Activity size={20} />
           </button>

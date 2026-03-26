@@ -299,8 +299,8 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                         </CustomOverlayMap>
                     ))}
 
-                    {/* ⚠️ Danger Zones: always visible, inline on-map labels */}
-                    {accidentData.map((acc) => {
+                    {/* ⚠️ Danger Zones: visible only when showHeatmap is active */}
+                    {showHeatmap && accidentData.map((acc) => {
                         const isSelected = selectedDangerZone?.id === acc.id;
                         const color = acc.intensity === 'HIGH' ? '#ef4444' : acc.intensity === 'MEDIUM' ? '#f97316' : '#eab308';
                         return (
@@ -312,10 +312,10 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                                     strokeColor={color}
                                     strokeOpacity={0.9}
                                     fillColor={color}
-                                    fillOpacity={isSelected ? 0.35 : 0.2}
+                                    fillOpacity={isSelected ? 0.45 : 0.3}
                                     onClick={() => setSelectedDangerZone(isSelected ? null : acc)}
                                 />
-                                {/* Small badge label always visible */}
+                                {/* Small badge label */}
                                 {!isSelected && (
                                     <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={0.5} zIndex={20}>
                                         <div
@@ -327,9 +327,9 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                                         </div>
                                     </CustomOverlayMap>
                                 )}
-                                {/* Expanded info card inline on map */}
+                                {/* Inline info card on click */}
                                 {isSelected && (
-                                    <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={1.1} zIndex={50}>
+                                    <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={1.15} zIndex={50}>
                                         <div
                                             className="pointer-events-auto w-52 rounded-2xl overflow-hidden shadow-2xl border border-white/10"
                                             style={{ background: 'rgba(10,10,20,0.92)', backdropFilter: 'blur(16px)' }}
