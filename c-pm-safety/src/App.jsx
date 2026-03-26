@@ -509,10 +509,10 @@ function App() {
             <Shield size={24} />
           </button>
           <button
-            onClick={() => setIsRideSettingsOpen(true)}
-            className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-gray-400 active:scale-90 transition-all border border-gray-100"
+            onClick={() => setIsDigitalTwinOpen(true)}
+            className="w-12 h-12 bg-red-500/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-white active:scale-90 transition-all border border-red-400"
           >
-            <Sliders size={20} />
+            <Activity size={20} />
           </button>
           <button
             onClick={() => setIsDashboardOpen(true)}
@@ -555,9 +555,15 @@ function App() {
           )}
         </div>
 
-        {/* Independent SOS Button (Top Right) */}
-        <div className="absolute top-28 right-4 z-[55] pointer-events-auto">
+        {/* Independent SOS Button & Settings (Top Right) */}
+        <div className="absolute top-28 right-4 z-[55] pointer-events-auto flex flex-col gap-3 items-center">
           <SOSButton />
+          <button
+            onClick={() => setIsRideSettingsOpen(true)}
+            className="w-12 h-12 bg-white/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-gray-600 active:scale-90 transition-all border border-gray-100"
+          >
+            <Sliders size={20} />
+          </button>
         </div>
 
         <header className="p-4 transition-all duration-300 z-50 pt-4">
