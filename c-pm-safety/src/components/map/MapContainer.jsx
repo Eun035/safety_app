@@ -302,16 +302,16 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                     {/* ⚠️ Danger Zones: visible only when showHeatmap is active */}
                     {showHeatmap && accidentData.map((acc) => {
                         const isSelected = selectedDangerZone?.id === acc.id;
-                        const color = acc.intensity === 'HIGH' ? '#ef4444' : acc.intensity === 'MEDIUM' ? '#f97316' : '#eab308';
+                        const color = acc.intensity === 'HIGH' ? '#ef4444' : acc.intensity === 'MEDIUM' ? '#f87171' : '#fca5a5';
                         return (
                             <React.Fragment key={`danger-${acc.id}`}>
                                 <Circle
                                     center={{ lat: acc.lat, lng: acc.lng }}
                                     radius={acc.radius}
                                     strokeWeight={isSelected ? 3 : 2}
-                                    strokeColor={color}
+                                    strokeColor="#ef4444"
                                     strokeOpacity={0.9}
-                                    fillColor={color}
+                                    fillColor="#ef4444"
                                     fillOpacity={isSelected ? 0.45 : 0.3}
                                     onClick={() => setSelectedDangerZone(isSelected ? null : acc)}
                                 />
