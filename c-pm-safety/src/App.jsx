@@ -573,7 +573,7 @@ function App() {
               <button
                 onClick={() => {
                   speak(''); // TTS 권한 획득 겸용
-                  setIsESGDashboardOpen(true);
+                  setIsDigitalTwinOpen(true);
                 }}
                 className={`bg-cyber-panel/80 backdrop-blur-lg py-2 px-5 rounded-full shadow-glass border transition-all duration-500 flex items-center gap-3 active:scale-95 outline-none ${
                   digitalTwinData?.riskLevel === 'danger' ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
