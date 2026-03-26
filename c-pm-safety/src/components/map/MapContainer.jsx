@@ -31,7 +31,7 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
 
     // 1. 카카오맵 SDK 로딩
     const [loading, error] = useKakaoLoader({
-        appkey: import.meta.env.VITE_KAKAO_API_KEY,
+        appkey: '40e6d1b5e849c283027335cbba22bf32', // Hardcoded to bypass env var missing issues
         libraries: ['services', 'clusterer', 'drawing'],
     });
 
