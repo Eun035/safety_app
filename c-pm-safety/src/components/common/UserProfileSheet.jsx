@@ -5,7 +5,7 @@ import { Shield, Star, Zap, Award, TrendingUp, Gift } from 'lucide-react';
 
 // Radar Chart (Spider Web) component using SVG
 const RadarChart = ({ data }) => {
-    const size = 120;
+    const size = 100;
     const center = size / 2;
     const levels = 4;
     const labels = data.map(d => d.label);
@@ -23,7 +23,7 @@ const RadarChart = ({ data }) => {
 
     // Generate web background lines
     const webLines = Array.from({ length: levels }, (_, lvl) => {
-        const r = (center - 10) * ((lvl + 1) / levels);
+        const r = (center - 8) * ((lvl + 1) / levels);
         const points = Array.from({ length: numAxes }, (_, i) => {
             const p = getPoint(i * angleStep, r);
             return `${p.x},${p.y}`;
@@ -33,13 +33,13 @@ const RadarChart = ({ data }) => {
 
     // Axis lines
     const axisLines = Array.from({ length: numAxes }, (_, i) => {
-        const p = getPoint(i * angleStep, center - 10);
+        const p = getPoint(i * angleStep, center - 8);
         return p;
     });
 
     // Data polygon
     const dataPoints = values.map((v, i) => {
-        const p = getPoint(i * angleStep, v * (center - 10));
+        const p = getPoint(i * angleStep, v * (center - 8));
         return `${p.x},${p.y}`;
     }).join(' ');
 
@@ -63,15 +63,15 @@ const RadarChart = ({ data }) => {
             />
             {/* Data dots */}
             {values.map((v, i) => {
-                const p = getPoint(i * angleStep, v * (center - 10));
-                return <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#a855f7" />;
+                const p = getPoint(i * angleStep, v * (center - 8));
+                return <circle key={i} cx={p.x} cy={p.y} r="2" fill="#a855f7" />;
             })}
             {/* Labels */}
             {labels.map((label, i) => {
-                const p = getPoint(i * angleStep, center + 2);
+                const p = getPoint(i * angleStep, center + 1);
                 return (
                     <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-                        fontSize="7" fill="rgba(255,255,255,0.55)" fontWeight="bold">
+                        fontSize="6" fill="rgba(255,255,255,0.55)" fontWeight="bold">
                         {label}
                     </text>
                 );
@@ -82,7 +82,7 @@ const RadarChart = ({ data }) => {
 
 // Hexagonal avatar border using SVG clip
 const HexAvatar = ({ src, name }) => (
-    <div className="relative w-16 h-16 shrink-0">
+    <div className="relative w-14 h-14 shrink-0">
         <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
             <defs>
                 <clipPath id="hex-clip">
@@ -101,7 +101,7 @@ const HexAvatar = ({ src, name }) => (
             <rect x="0" y="0" width="100" height="100" fill="#1a1f2e" clipPath="url(#hex-clip)" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xl font-black text-cyber-cyan">{name?.[0] || 'K'}</span>
+            <span className="text-lg font-black text-cyber-cyan">{name?.[0] || 'K'}</span>
         </div>
     </div>
 );
@@ -157,34 +157,34 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                             {/* Drag Handle (Click to close) */}
                             <div
                                 onClick={onClose}
-                                className="w-full pt-4 pb-2 flex justify-center cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors"
+                                className="w-full pt-3 pb-1.5 flex justify-center cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors"
                             >
-                                <div className="w-12 h-1.5 bg-gray-600 rounded-full opacity-60 pointer-events-none" />
+                                <div className="w-10 h-1 bg-gray-600 rounded-full opacity-60 pointer-events-none" />
                             </div>
 
                             {/* Header */}
-                            <div className="px-6 pb-3 pt-1 flex flex-col">
-                                <h2 className="text-[22px] font-black italic tracking-tighter text-white uppercase leading-none">
+                            <div className="px-6 pb-2 pt-1 flex flex-col">
+                                <h2 className="text-[20px] font-black italic tracking-tighter text-white uppercase leading-none">
                                     MY PROFILE
                                 </h2>
-                                <p className="text-[10px] font-bold text-cyber-cyan tracking-wider uppercase mt-1">
+                                <p className="text-[9px] font-bold text-cyber-cyan tracking-wider uppercase mt-1">
                                     나의 안전 정체성 & 리워드
                                 </p>
                             </div>
 
                             {/* Scrollable content */}
-                            <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-4 scrollbar-hide">
+                            <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-2.5 scrollbar-hide">
 
                                 {/* === Section 1: Safety Identity === */}
-                                <div className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl">
-                                    <div className="flex items-center gap-4">
+                                <div className="bg-gradient-to-br from-[#12161b] to-black p-3 rounded-[1.5rem] border border-white/5 shadow-xl">
+                                    <div className="flex items-center gap-3">
                                         <HexAvatar name={userName || '사용자 K'} />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-0.5">Safety Identity</p>
-                                            <p className="text-lg font-black text-white truncate">{userName || '사용자 K'}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 py-0.5 rounded-full">상위 5%</span>
-                                                <span className="text-[10px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-2 py-0.5 rounded-full">🏅 Gold Rider</span>
+                                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-0.5">Safety Identity</p>
+                                            <p className="text-base font-black text-white truncate">{userName || '사용자 K'}</p>
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                <span className="text-[9px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1.5 py-0.5 rounded-full">상위 5%</span>
+                                                <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded-full">🏅 Gold Rider</span>
                                             </div>
                                         </div>
                                         {/* Radar chart */}
@@ -193,9 +193,9 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                         </div>
                                     </div>
                                     {/* Score bar */}
-                                    <div className="mt-3 flex items-center gap-3">
-                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest shrink-0">안전점수</span>
-                                        <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="mt-2 flex items-center gap-3">
+                                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest shrink-0">안전점수</span>
+                                        <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
                                             <motion.div
                                                 className="h-full bg-gradient-to-r from-cyber-cyan to-purple-400 rounded-full"
                                                 initial={{ width: 0 }}
@@ -203,74 +203,75 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                                 transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
                                             />
                                         </div>
-                                        <span className="text-sm font-black text-cyber-cyan shrink-0">{userScore}</span>
+                                        <span className="text-xs font-black text-cyber-cyan shrink-0">{userScore}</span>
                                     </div>
                                 </div>
 
                                 {/* === Section 2: Reward Wallet === */}
-                                <div className="bg-gradient-to-br from-[#0d1a1a] to-[#0a0c0f] p-4 rounded-[2rem] border border-cyber-cyan/20 shadow-[0_0_30px_rgba(64,255,220,0.05)]">
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                        <Gift size={12} className="text-cyber-cyan" /> 나의 리워드 자산
+                                <div className="bg-gradient-to-br from-[#0d1a1a] to-[#0a0c0f] p-3 rounded-[1.5rem] border border-cyber-cyan/20 shadow-[0_0_30px_rgba(64,255,220,0.05)]">
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                        <Gift size={10} className="text-cyber-cyan" /> 나의 리워드 자산
                                     </p>
                                     <motion.p
-                                        className="text-4xl font-black text-cyber-cyan drop-shadow-[0_0_12px_rgba(64,255,220,0.6)] mb-3 tracking-tight"
+                                        className="text-3xl font-black text-cyber-cyan drop-shadow-[0_0_10px_rgba(64,255,220,0.5)] mb-2.5 tracking-tight"
                                         initial={{ opacity: 0, scale: 0.8 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ duration: 0.5, delay: 0.4 }}
                                     >
-                                        {userPoints.toLocaleString()} <span className="text-lg font-black text-cyber-cyan/70">PTS</span>
+                                        {userPoints.toLocaleString()} <span className="text-base font-black text-cyber-cyan/70">PTS</span>
                                     </motion.p>
-                                    <button className="w-full bg-cyber-cyan text-black py-3 rounded-xl font-black text-xs shadow-[0_0_20px_rgba(64,255,220,0.4)] active:scale-95 transition-all uppercase tracking-[0.15em] flex items-center justify-center gap-2">
-                                        <Award size={16} /> 제휴 상점 쿠폰 교환
+                                    <button className="w-full bg-cyber-cyan text-black py-2.5 rounded-lg font-black text-[10px] shadow-[0_0_15px_rgba(64,255,220,0.3)] active:scale-95 transition-all uppercase tracking-[0.15em] flex items-center justify-center gap-2">
+                                        <Award size={14} /> 제휴 상점 쿠폰 교환
                                     </button>
                                 </div>
 
                                 {/* === Section 3: Crew Leaderboard === */}
-                                <div className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5">
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                        <TrendingUp size={12} className="text-purple-400" /> 크루 랭킹
+                                <div className="bg-gradient-to-br from-[#12161b] to-black p-3 rounded-[1.5rem] border border-white/5">
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                        <TrendingUp size={10} className="text-purple-400" /> 크루 랭킹
                                     </p>
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         {leaderboard.map((item) => (
                                             <div
                                                 key={item.rank}
-                                                className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all ${item.highlight
+                                                className={`flex items-center gap-3 px-2.5 py-1.5 rounded-lg transition-all ${item.highlight
                                                     ? 'bg-cyber-cyan/10 border border-cyber-cyan/30 shadow-[0_0_10px_rgba(64,255,220,0.1)]'
                                                     : 'bg-white/3'
                                                     }`}
                                             >
-                                                <span className={`text-xs font-black w-5 text-center ${item.rank === 1 ? 'text-amber-400' : item.rank === 2 ? 'text-gray-300' : item.rank === 3 ? 'text-amber-600' : 'text-gray-600'}`}>
+                                                <span className={`text-[10px] font-black w-5 text-center ${item.rank === 1 ? 'text-amber-400' : item.rank === 2 ? 'text-gray-300' : item.rank === 3 ? 'text-amber-600' : 'text-gray-600'}`}>
                                                     {item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `#${item.rank}`}
                                                 </span>
-                                                <span className={`flex-1 text-xs font-bold ${item.highlight ? 'text-white' : 'text-gray-400'}`}>{item.name}</span>
-                                                <span className={`text-sm font-black ${item.highlight ? 'text-cyber-cyan drop-shadow-[0_0_6px_rgba(64,255,220,0.8)]' : 'text-gray-500'}`}>{item.score}</span>
+                                                <span className={`flex-1 text-[10px] font-bold ${item.highlight ? 'text-white' : 'text-gray-400'}`}>{item.name}</span>
+                                                <span className={`text-[11px] font-black ${item.highlight ? 'text-cyber-cyan drop-shadow-[0_0_6px_rgba(64,255,220,0.8)]' : 'text-gray-500'}`}>{item.score}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* === Section 4: Achievement Badges === */}
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 px-1 flex items-center gap-1.5">
-                                        <Zap size={12} className="text-amber-400" /> 업적 배지
+                                <div className="pt-0.5">
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 px-1 flex items-center gap-1.5">
+                                        <Zap size={10} className="text-amber-400" /> 업적 배지
                                     </p>
-                                    <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                                    <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
                                         {badges.map((badge, i) => (
                                             <motion.div
                                                 key={i}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.1 * i }}
-                                                className={`flex-shrink-0 w-20 bg-gradient-to-br ${badge.color} border ${badge.border} rounded-2xl p-3 flex flex-col items-center gap-1 shadow-lg`}
+                                                className={`flex-shrink-0 w-18 bg-gradient-to-br ${badge.color} border ${badge.border} rounded-xl p-2.5 flex flex-col items-center gap-1 shadow-lg`}
                                             >
-                                                <span className="text-2xl">{badge.icon}</span>
-                                                <span className={`text-[9px] font-black ${badge.text} text-center leading-tight uppercase tracking-tight`}>{badge.name}</span>
+                                                <span className="text-xl">{badge.icon}</span>
+                                                <span className={`text-[8px] font-black ${badge.text} text-center leading-tight uppercase tracking-tight`}>{badge.name}</span>
                                             </motion.div>
                                         ))}
                                     </div>
                                 </div>
 
                             </div>
+
                         </motion.div>
                     </div>
                 </>
