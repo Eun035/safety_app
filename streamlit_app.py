@@ -13,7 +13,7 @@ st.set_page_config(
 
 # --- App Build Path ---
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BUILD_DIR = os.path.join(CURRENT_DIR, "c-pm-safety", "dist")
+BUILD_DIR = os.path.join(CURRENT_DIR, "c-pm-safety", "dist_v2")
 
 # --- UI / Layout ---
 st.markdown("""

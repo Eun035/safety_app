@@ -73,6 +73,7 @@ export default defineConfig({
     host: true, // 로컬 네트워크(휴대폰) 접속 허용
   },
   build: {
+    outDir: 'dist_v2',
     target: 'esnext',
     minify: 'terser',
     terserOptions: {
