@@ -77,7 +77,13 @@ const resources = {
             "qr_scanner_title_helmet": "안전 헬멧/스테이션 QR 스캔",
             "qr_scanner_desc_helmet": "안전 헬멧의 QR 코드나 스테이션 바코드를 스캔해 주세요.",
             "qr_scanner_title_station": "헬멧 스테이션 스캔",
-            "qr_scanner_desc_station": "스테이션에 부착된 QR 코드를 스캔하세요."
+            "qr_scanner_desc_station": "스테이션에 부착된 QR 코드를 스캔하세요.",
+            "shadow_impact_title": "나의 섀도우 임팩트 & Vibe.Route 리플레이",
+            "shadow_map_title": "도시 데이터 섀도우 맵",
+            "vibe_replay_title": "Vibe.Route 리플레이",
+            "helmet_verified": "헬멧 인증 완료!",
+            "esg_secured": "ESG 0.5kg 확보!",
+            "share_ride": "공유하기"
         }
     },
     ja: {

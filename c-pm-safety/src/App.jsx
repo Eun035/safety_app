@@ -27,6 +27,7 @@ import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
 import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
 import ESGDashboard from './components/common/ESGDashboard';
+import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -88,6 +89,7 @@ function App() {
   const [isParkingOpen, setIsParkingOpen] = useState(false);
   const [isAROpen, setIsAROpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   // Serverless Phase 1: O2O & SOS
@@ -665,7 +667,7 @@ function App() {
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Explore")}</span>
             </button>
             <button 
-              onClick={() => setIsDashboardOpen(true)}
+              onClick={() => setIsShadowSheetOpen(true)}
               className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
             >
               <TrendingUp size={24} className="bg-transparent" />
@@ -724,6 +726,11 @@ function App() {
           isOpen={isDashboardOpen}
           onClose={() => setIsDashboardOpen(false)}
           history={JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')}
+        />
+        <ShadowImpactSheet
+          isOpen={isShadowSheetOpen}
+          onClose={() => setIsShadowSheetOpen(false)}
+          userName={profile?.nickname || "J"}
         />
         <QRScanner
           isOpen={isQRScannerOpen}
