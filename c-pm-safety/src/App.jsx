@@ -216,12 +216,22 @@ function App() {
   }, []);
 
   const handleInstallClick = async () => {
+    // Detect if inside an iframe (Streamlit wrapper)
+    const isIframe = window.self !== window.top;
+
     if (!deferredPrompt) {
+      if (isIframe) {
+        if (confirm("현재 Streamlit 내 환경에서는 직접적인 앱 설치가 제한됩니다.\n설치를 위해 별도 새 창에서 앱을 여시겠습니까? (새 창에서 INSTALL 을 눌러보세요!)")) {
+          window.open(window.location.href, '_blank');
+        }
+        return;
+      }
+
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (isIOS) {
         alert("iOS 기기에서는 Safari 브라우저의 '공유' 아이콘을 누른 후 '홈 화면에 추가'를 클릭하여 설치해 주세요.");
       } else {
-        alert("현재 브라우저에서는 자동 설치를 지원하지 않거나 이미 설치되어 있습니다. 브라우저 메뉴에서 '설정' 또는 '앱 설치'를 확인해 주세요.\n(Streamlit 앱 내에서는 '직접 접속' 시에만 자동 설치 버튼이 활성화됩니다.)");
+        alert("현재 브라우저에서는 자동 설치를 지원하지 않거나 이미 설치되어 있습니다. 브라우저 메뉴에서 '설정' 또는 '앱 설치'를 확인해 주세요.");
       }
       return;
     }
