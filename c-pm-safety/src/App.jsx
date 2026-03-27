@@ -89,7 +89,6 @@ function App() {
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isParkingOpen, setIsParkingOpen] = useState(false);
-  const [isAROpen, setIsAROpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
@@ -519,12 +518,7 @@ function App() {
           >
             <Layers size={21} />
           </button>
-          <button
-            onClick={() => setIsAROpen(true)}
-            className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-purple-400 active:scale-90 transition-all border border-white/10"
-          >
-            <Box size={22} className="bg-transparent" />
-          </button>
+
           <button
             className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-full shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10 outline-none ring-0 overflow-hidden bg-transparent"
           >
@@ -912,22 +906,7 @@ function App() {
           </div>
         )}
 
-        {/* AR View Placeholder Modal */}
-        {isAROpen && (
-          <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
-            <div className="w-20 h-20 bg-cyber-cyan/20 rounded-3xl flex items-center justify-center mb-6 shadow-neon-cyan border border-cyber-cyan/50">
-              <Zap size={40} className="text-cyber-cyan fill-cyber-cyan" />
-            </div>
-            <h2 className="text-3xl font-black text-white mb-2 tracking-tighter">AR Vision</h2>
-            <p className="text-cyan-100 mb-10 font-medium">카메라를 통해 실시간으로 네온 주차 구역과<br />안전 경로를 안내하는 비전입니다.</p>
-            <button
-              onClick={() => setIsAROpen(false)}
-              className="w-full max-w-xs bg-cyber-cyan text-black py-4 rounded-2xl font-black text-lg active:scale-95 transition-transform shadow-neon-cyan"
-            >
-              돌아가기
-            </button>
-          </div>
-        )}
+
 
         {/* 주차 검증(Geofencing) 모달 */}
         {parkingGeofenceModal.isOpen && (
