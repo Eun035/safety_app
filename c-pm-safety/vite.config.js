@@ -21,19 +21,15 @@ export default defineConfig({
         name: 'C-Safe: 전동킥보드 안전 가이드',
         short_name: 'C-Safe',
         description: '천안 캠퍼스 PM 안전 주행 및 주차 가이드',
-        theme_color: '#2563eb',
-        background_color: '#ffffff',
+        theme_color: '#0A0E14',
+        background_color: '#0A0E14',
         display: 'standalone',
         icons: [
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png',
+            src: 'pwa-icon-512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },
