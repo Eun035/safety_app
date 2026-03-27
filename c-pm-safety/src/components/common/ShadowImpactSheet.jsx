@@ -47,22 +47,22 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                             </div>
 
                             {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20 scrollbar-hide">
+                            <div className="flex-1 overflow-y-auto p-5 space-y-3 pb-8 scrollbar-hide">
                             
                             {/* Card 1: City Data Shadow Map */}
                             <section className="relative group">
-                                <div className="flex justify-between items-end mb-4">
+                                <div className="flex justify-between items-end mb-2">
                                     <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                         <MapIcon size={14} className="text-cyber-cyan" /> {t("shadow_map_title")}
                                     </h3>
                                     <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 px-2 py-0.5 rounded tracking-widest">LIVE AI SYNC</span>
                                 </div>
 
-                                <div className="bg-gradient-to-br from-[#12161b] to-black p-6 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden">
+                                <div className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl relative overflow-hidden">
                                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-cyber-cyan/5 rounded-full blur-3xl pointer-events-none"></div>
                                     
                                     {/* Mock Mini Map Visualization */}
-                                    <div className="h-48 rounded-2xl bg-[#080a0f] border border-white/5 relative overflow-hidden mb-6 shadow-inner">
+                                    <div className="h-32 rounded-2xl bg-[#080a0f] border border-white/5 relative overflow-hidden mb-4 shadow-inner">
                                         {/* Map Grid Lines */}
                                         <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-10">
                                             {[...Array(36)].map((_, i) => (
@@ -92,13 +92,13 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                                     </div>
 
                                     {/* Insight Callout */}
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-start gap-4 backdrop-blur-md">
-                                        <div className="w-12 h-12 bg-cyber-cyan/10 rounded-xl flex items-center justify-center border border-cyber-cyan/30 shrink-0">
-                                            <TrendingUp size={20} className="text-cyber-cyan shadow-neon-cyan" />
+                                    <div className="bg-white/5 p-3 rounded-2xl border border-white/10 flex items-start gap-3 backdrop-blur-md">
+                                        <div className="w-10 h-10 bg-cyber-cyan/10 rounded-xl flex items-center justify-center border border-cyber-cyan/30 shrink-0">
+                                            <TrendingUp size={18} className="text-cyber-cyan shadow-neon-cyan" />
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-sm font-black text-white mb-1">{userName}님의 데이터 기여</p>
-                                            <p className="text-xs font-bold text-gray-400">신부동 위험 알고리즘 <span className="text-cyber-cyan">{t("0.02% 기여!") || "0.02% 기여!"}</span></p>
+                                            <p className="text-[10px] font-bold text-gray-400">신부동 위험 알고리즘 <span className="text-cyber-cyan">{t("0.02% 기여!") || "0.02% 기여!"}</span></p>
                                         </div>
                                     </div>
                                 </div>
@@ -106,18 +106,18 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
 
                             {/* Card 2: 3D Replay Scene */}
                             <section className="relative group">
-                                <div className="flex justify-between items-end mb-4">
+                                <div className="flex justify-between items-end mb-2">
                                     <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                         <Zap size={14} className="text-purple-400" /> {t("vibe_replay_title")}
                                     </h3>
                                     <span className="text-[10px] font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded tracking-widest italic">3D VISION</span>
                                 </div>
 
-                                <div className="bg-gradient-to-br from-[#12161b] to-black p-6 rounded-[2.5rem] border border-white/5 shadow-xl relative overflow-hidden">
+                                <div className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl relative overflow-hidden">
                                     <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
 
                                     {/* 3D-like Animation Area */}
-                                    <div className="bg-black/40 rounded-3xl h-56 relative border border-white/5 overflow-hidden flex flex-col items-center justify-center mb-6">
+                                    <div className="bg-black/40 rounded-3xl h-36 relative border border-white/5 overflow-hidden flex flex-col items-center justify-center mb-4">
                                         {/* Winding Road Line */}
                                         <svg className="absolute inset-0 w-full h-full opacity-30">
                                             <path 
@@ -132,14 +132,14 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                                         {/* Helmet Mockup (Icon with Glow) */}
                                         <motion.div 
                                             animate={{ 
-                                                y: [0, -10, 0],
+                                                y: [0, -5, 0],
                                                 scale: [1, 1.05, 1]
                                             }}
                                             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                             className="relative z-20"
                                         >
-                                            <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                                                <Shield size={48} className="text-white drop-shadow-lg" />
+                                            <div className="w-16 h-16 bg-white/5 backdrop-blur-md rounded-full border border-white/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                                                <Shield size={32} className="text-white drop-shadow-lg" />
                                             </div>
                                             {/* Milestone Floating Tags */}
                                             <motion.div 
@@ -163,7 +163,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
 
                                     {/* Share Button (ESG Style) */}
                                     <button 
-                                        className="w-full bg-cyber-cyan text-black py-4 rounded-2xl font-black text-xs shadow-neon-cyan active:scale-95 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2"
+                                        className="w-full bg-cyber-cyan text-black py-3 rounded-xl font-black text-xs shadow-neon-cyan active:scale-95 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2"
                                         onClick={() => {}}
                                     >
                                         <Share2 size={16} /> {t("share_ride")}
