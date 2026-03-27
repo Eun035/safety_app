@@ -207,21 +207,17 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                     </div>
                                 </div>
 
-                                {/* === Section 2: Reward Wallet === */}
-                                <div className="bg-gradient-to-br from-[#0d1a1a] to-[#0a0c0f] p-3 rounded-[1.5rem] border border-cyber-cyan/20 shadow-[0_0_30px_rgba(64,255,220,0.05)]">
-                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                                        <Gift size={10} className="text-cyber-cyan" /> 나의 리워드 자산
+                                {/* === Section 2: Insurance Ad === */}
+                                <div className="bg-gradient-to-br from-[#0d131a] to-[#0a0c0f] p-3 rounded-[1.5rem] border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.05)]">
+                                    <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                        <Shield size={10} className="text-blue-400" /> 보험 가입 안내
                                     </p>
-                                    <motion.p
-                                        className="text-3xl font-black text-cyber-cyan drop-shadow-[0_0_10px_rgba(64,255,220,0.5)] mb-2.5 tracking-tight"
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.5, delay: 0.4 }}
-                                    >
-                                        {userPoints.toLocaleString()} <span className="text-base font-black text-cyber-cyan/70">PTS</span>
-                                    </motion.p>
-                                    <button className="w-full bg-cyber-cyan text-black py-2.5 rounded-lg font-black text-[10px] shadow-[0_0_15px_rgba(64,255,220,0.3)] active:scale-95 transition-all uppercase tracking-[0.15em] flex items-center justify-center gap-2">
-                                        <Award size={14} /> 제휴 상점 쿠폰 교환
+                                    <div className="mb-2.5">
+                                        <h3 className="text-sm font-black text-white tracking-tight">천안시민 전용 안전 보험</h3>
+                                        <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">라이딩 중 사고 발생 시 보장 내역을 확인하고<br />무료로 혜택을 누리세요.</p>
+                                    </div>
+                                    <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-black text-[10px] shadow-[0_0_15px_rgba(37,99,235,0.3)] active:scale-95 transition-all uppercase tracking-[0.1em] flex items-center justify-center gap-2">
+                                        무료 보험 확인하기
                                     </button>
                                 </div>
 

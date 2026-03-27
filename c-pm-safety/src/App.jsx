@@ -4,7 +4,7 @@ import {
   Shield, Cloud, AlertTriangle, MapPin, Moon, Activity,
   Layers, Play, Camera, Navigation, Search, Star,
   Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
-  Database, User, Map as MapIcon, Sliders, Box
+  Database, User, Map as MapIcon, Sliders, Box, Wallet
 } from 'lucide-react';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import MapContainer from './components/map/MapContainer';
@@ -29,6 +29,7 @@ import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
 import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import UserProfileSheet from './components/common/UserProfileSheet';
+import RewardWalletSheet from './components/common/RewardWalletSheet';
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -92,6 +93,7 @@ function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
+  const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   // Serverless Phase 1: O2O & SOS
@@ -676,11 +678,11 @@ function App() {
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Activity")}</span>
             </button>
             <button 
-              onClick={() => setIsESGDashboardOpen(true)}
-              className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
+              onClick={() => setIsWalletSheetOpen(true)}
+              className="flex flex-col items-center gap-1 text-amber-400 hover:text-amber-300 transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
             >
-              <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center -mt-6 border border-white/10 shadow-glass backdrop-blur-xl outline-none ring-0">
-                <Shield size={24} className="bg-transparent" />
+              <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center -mt-6 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.3)] backdrop-blur-xl outline-none ring-0">
+                <Wallet size={24} className="bg-transparent text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
               </div>
             </button>
             <button
@@ -740,6 +742,13 @@ function App() {
           userName={profile?.nickname || "사용자 K"}
           userPoints={userProfile?.points || 12350}
           userScore={userProfile?.safety_score || 92}
+        />
+        <RewardWalletSheet
+          isOpen={isWalletSheetOpen}
+          onClose={() => setIsWalletSheetOpen(false)}
+          userPoints={userProfile?.points || 12350}
+          coupons={coupons}
+          setCoupons={setCoupons}
         />
         <QRScanner
           isOpen={isQRScannerOpen}
