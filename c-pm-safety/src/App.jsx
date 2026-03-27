@@ -519,33 +519,32 @@ function App() {
             <Layers size={21} />
           </button>
 
-          <button
-            className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-full shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10 outline-none ring-0 overflow-hidden bg-transparent"
-          >
-            <Navigation size={22} className="fill-cyber-cyan bg-transparent" />
-          </button>
-
-          {/* Phase 26: Debug 버튼 - 온보딩(퀴즈) 초기화 */}
-          <button
-            onClick={resetOnboarding}
-            className="w-12 h-12 bg-red-900/60 backdrop-blur-md rounded-full mt-4 shadow-glass flex flex-col items-center justify-center text-white active:scale-90 transition-all border border-red-500/50"
-            title="온보딩 초기화 (퀴즈 다시보기)"
-          >
-            <RefreshCw size={18} />
-            <span className="text-[8px] font-bold mt-1">RESET</span>
-          </button>
-
-          {/* Phase 26: PWA 수동 설치 버튼 (Samsung Internet 등 지원) */}
-          {showInstallBtn && (
+          {/* Phase 26: PWA 수동 설치 버튼 (Samsung Internet / Chrome 등 지원) */}
+          {showInstallBtn ? (
             <button
               onClick={handleInstallClick}
-              className="w-12 h-12 bg-blue-600/80 backdrop-blur-md rounded-full mt-2 shadow-glass flex flex-col items-center justify-center text-white active:scale-90 transition-all border border-blue-400"
+              className="w-12 h-12 bg-cyber-cyan text-black rounded-full shadow-neon-cyan flex flex-col items-center justify-center active:scale-90 transition-all border border-cyber-cyan mt-2"
               title="홈 화면에 앱 설치"
             >
               <Download size={20} className="animate-bounce" />
               <span className="text-[8px] font-black tracking-tighter mt-1 leading-none">INSTALL</span>
             </button>
+          ) : (
+            /* 설치가 불가능하거나 이미 설치된 경우 내비게이션 아이콘 대신 로고/장식 요소 배치 (사용자 요청으로 기존 버튼 제거) */
+            <div className="w-12 h-12 bg-cyber-panel/40 backdrop-blur-md rounded-full shadow-glass flex items-center justify-center text-cyber-cyan/30 border border-white/5">
+              <Shield size={20} />
+            </div>
           )}
+
+          {/* Phase 26: Debug 버튼 - 온보딩(퀴즈) 초기화 */}
+          <button
+            onClick={resetOnboarding}
+            className="w-12 h-12 bg-red-900/40 backdrop-blur-md rounded-full mt-4 shadow-glass flex flex-col items-center justify-center text-white/50 active:scale-90 transition-all border border-red-500/20"
+            title="온보딩 초기화 (퀴즈 다시보기)"
+          >
+            <RefreshCw size={14} />
+            <span className="text-[7px] font-bold mt-1 text-gray-500">RESET</span>
+          </button>
         </div>
 
 
