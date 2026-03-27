@@ -28,6 +28,7 @@ import PaymentReceiptModal from './components/common/PaymentReceiptModal';
 import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
 import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
+import UserProfileSheet from './components/common/UserProfileSheet';
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -90,6 +91,7 @@ function App() {
   const [isAROpen, setIsAROpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
+  const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   // Serverless Phase 1: O2O & SOS
@@ -689,10 +691,10 @@ function App() {
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Saved")}</span>
             </button>
             <button
-              onClick={() => setIsDashboardOpen(true)}
-              className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent bg-transparent"
+              onClick={() => setIsProfileSheetOpen(true)}
+              className="flex flex-col items-center gap-1 text-cyber-cyan outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent bg-transparent"
             >
-              <div className="w-6 h-6 rounded-full bg-gray-700/50 mb-0.5 overflow-hidden border border-gray-600 outline-none ring-0 bg-transparent flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full bg-cyber-cyan/20 mb-0.5 overflow-hidden border border-cyber-cyan/50 outline-none ring-0 bg-transparent flex items-center justify-center shadow-[0_0_8px_rgba(64,255,220,0.4)]">
                 {profile?.profile_image ? (
                   <img
                     src={profile.profile_image}
@@ -702,10 +704,10 @@ function App() {
                     title="Double click to reset onboarding"
                   />
                 ) : (
-                  <span onDoubleClick={resetOnboarding} className="text-gray-400 text-xs font-bold leading-none select-none">Me</span>
+                  <span onDoubleClick={resetOnboarding} className="text-cyber-cyan text-xs font-bold leading-none select-none">Me</span>
                 )}
               </div>
-              <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{profile?.nickname || t("Profile")}</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent text-cyber-cyan">{profile?.nickname || t("Profile")}</span>
             </button>
           </div>
         </footer>
@@ -731,6 +733,13 @@ function App() {
           isOpen={isShadowSheetOpen}
           onClose={() => setIsShadowSheetOpen(false)}
           userName={profile?.nickname || "J"}
+        />
+        <UserProfileSheet
+          isOpen={isProfileSheetOpen}
+          onClose={() => setIsProfileSheetOpen(false)}
+          userName={profile?.nickname || "사용자 K"}
+          userPoints={userProfile?.points || 12350}
+          userScore={userProfile?.safety_score || 92}
         />
         <QRScanner
           isOpen={isQRScannerOpen}
