@@ -53,3 +53,12 @@ body {
   background: #cbd5e1;
   border-radius: 10px;
 }
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
