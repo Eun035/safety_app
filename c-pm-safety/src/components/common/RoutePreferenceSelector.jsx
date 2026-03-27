@@ -14,16 +14,19 @@ const RoutePreferenceSelector = ({ selectedMode, onModeChange }) => {
                 <div className="w-1 h-1 rounded-full bg-cyber-cyan/50 animate-pulse"></div>
                 Select Preference
             </h3>
-            <div className="flex flex-nowrap gap-2 overflow-x-auto hide-scrollbar pb-2 snap-x">
+            <div 
+                className="flex flex-nowrap gap-1.5 overflow-x-auto hide-scrollbar pb-1 snap-x"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
                 {routeOptions.map((option) => {
                     const isActive = selectedMode === option.id;
                     return (
                         <button
                             key={option.id}
                             onClick={() => onModeChange && onModeChange(option.id)}
-                            className={`snap-start shrink-0 px-2 py-1 rounded-xl text-[9.5px] font-black transition-all duration-200 ease-in-out border ${isActive
-                                    ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-[0_0_15px_rgba(64,255,220,0.4)] scale-105'
-                                    : 'bg-black/40 text-gray-400 border-white/10 hover:border-cyber-cyan/30 hover:bg-white/5'
+                            className={`snap-start shrink-0 px-[7px] py-[3.5px] rounded-lg text-[9px] font-black transition-all duration-200 ease-in-out border ${isActive
+                                    ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-[0_0_12px_rgba(64,255,220,0.4)]'
+                                    : 'bg-black/40 text-gray-400 border-white/5 hover:border-cyber-cyan/30 hover:bg-white/5'
                                 }`}
                         >
                             {option.label}
