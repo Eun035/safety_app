@@ -19,40 +19,35 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
                     />
 
-                    {/* Bottom Sheet */}
-                    <motion.div
-                        initial={{ y: "100%" }}
-                        animate={{ y: 0 }}
-                        exit={{ y: "100%" }}
-                        transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-[2500] bg-[#0a0c0f] rounded-t-[3rem] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] border-t border-white/10 overflow-hidden flex flex-col max-h-[92vh]"
-                    >
-                        {/* Drag Handle */}
-                        <div className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mt-4 mb-2 pointer-events-none opacity-40" />
+                    {/* Bottom Sheet Wrapper for Mobile Constraint */}
+                    <div className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
+                        <motion.div
+                            initial={{ y: "100%" }}
+                            animate={{ y: 0 }}
+                            exit={{ y: "100%" }}
+                            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                            className="pointer-events-auto w-full max-w-md bg-[#0a0c0f] rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] border-t border-cyber-cyan/30 overflow-hidden flex flex-col max-h-[92vh]"
+                        >
+                            {/* Drag Handle Area (Click to close) */}
+                            <div 
+                                onClick={onClose}
+                                className="w-full pt-4 pb-2 flex justify-center cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors"
+                            >
+                                <div className="w-12 h-1.5 bg-gray-600 rounded-full opacity-60 pointer-events-none" />
+                            </div>
 
-                        {/* Neon Header */}
-                        <div className="sticky top-0 z-20 bg-[#0a0c0f]/80 backdrop-blur-xl px-8 pt-6 pb-4 border-b border-white/5 flex items-center justify-between">
-                            <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                    <div className="w-2 h-2 rounded-full bg-cyber-cyan shadow-neon-cyan animate-pulse"></div>
-                                    <h2 className="text-2xl font-black italic tracking-tighter text-white uppercase leading-none">
-                                        Shadow Impact
-                                    </h2>
-                                </div>
-                                <p className="text-[10px] font-bold text-gray-500 tracking-[0.3em] uppercase">
+                            {/* Header styling matching screenshot */}
+                            <div className="sticky top-0 z-20 bg-[#0a0c0f]/80 backdrop-blur-xl px-8 pb-4 pt-2 flex flex-col">
+                                <h2 className="text-[22px] font-black italic tracking-tighter text-white uppercase leading-none">
+                                    SHADOW IMPACT
+                                </h2>
+                                <p className="text-[10px] font-bold text-cyber-cyan tracking-wider uppercase mt-1.5">
                                     {t("shadow_impact_title")}
                                 </p>
                             </div>
-                            <button 
-                                onClick={onClose}
-                                className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10 active:scale-90 transition-all text-gray-400 hover:text-white"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
 
-                        {/* Content Area */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20 scrollbar-hide">
+                            {/* Content Area */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20 scrollbar-hide">
                             
                             {/* Card 1: City Data Shadow Map */}
                             <section className="relative group">
@@ -176,7 +171,8 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                                 </div>
                             </section>
                         </div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
                 </>
             )}
         </AnimatePresence>
