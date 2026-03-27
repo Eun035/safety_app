@@ -4,7 +4,7 @@ import {
   Shield, Cloud, AlertTriangle, MapPin, Moon, Activity,
   Layers, Play, Camera, Navigation, Search, Star,
   Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
-  Database, User, Map as MapIcon, Sliders
+  Database, User, Map as MapIcon, Sliders, Box
 } from 'lucide-react';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import MapContainer from './components/map/MapContainer';
@@ -488,18 +488,7 @@ function App() {
 
         {/* Map Control Buttons (Left Side) */}
         {/* Phase 35: Domain Debug Overlay for Kakao Map Registration */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[9999] bg-red-600 text-white text-xs px-3 py-1 rounded-full shadow-lg font-mono flex items-center gap-2">
-          <span>Kakao Domain: {window.location.origin}</span>
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.origin);
-              alert('도메인이 복사되었습니다! 카카오 플랫폼 Web 사이트에 추가하세요.');
-            }}
-            className="bg-white/20 hover:bg-white/40 px-2 py-0.5 rounded cursor-pointer"
-          >
-            복사
-          </button>
-        </div>
+
 
         <div className="absolute left-4 top-28 z-[45] flex flex-col gap-3 pointer-events-auto items-center">
           <button
@@ -520,15 +509,15 @@ function App() {
           </button>
           <button
             onClick={() => setIsDashboardOpen(true)}
-            className={`w-12 h-12 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'bg-purple-500/50 text-white border-purple-400' : 'bg-purple-900/20 text-purple-400 border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.2)]'}`}
+            className={`w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'text-purple-400 border-white/10'}`}
           >
-            <Database size={24} />
+            <Layers size={21} />
           </button>
           <button
             onClick={() => setIsAROpen(true)}
             className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-purple-400 active:scale-90 transition-all border border-white/10"
           >
-            <Layers size={21} className="bg-transparent" />
+            <Box size={22} className="bg-transparent" />
           </button>
           <button
             className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-full shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10 outline-none ring-0 overflow-hidden bg-transparent"
