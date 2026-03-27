@@ -71,7 +71,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                                         </div>
                                         
                                         {/* Glowing Path (Polylines) */}
-                                        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                                        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet">
                                             <motion.path 
                                                 d="M 50 150 L 120 120 L 180 160 L 260 100 L 320 130"
                                                 fill="none"
@@ -160,14 +160,6 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                                             </motion.div>
                                         </motion.div>
                                     </div>
-
-                                    {/* Share Button (ESG Style) */}
-                                    <button 
-                                        className="w-full bg-cyber-cyan text-black py-3 rounded-xl font-black text-xs shadow-neon-cyan active:scale-95 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2"
-                                        onClick={() => {}}
-                                    >
-                                        <Share2 size={16} /> {t("share_ride")}
-                                    </button>
                                 </div>
                             </section>
                         </div>
