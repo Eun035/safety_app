@@ -191,7 +191,15 @@ function App() {
   }, []);
 
   useEffect(() => {
+    console.log("PWA: Initializing Install Prompt listener...");
+    
+    // Check if already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      console.log("PWA: App is already running in standalone mode.");
+    }
+
     const handleBeforeInstallPrompt = (e) => {
+      console.log("PWA: beforeinstallprompt event fired!");
       // Chrome 등 브라우저에서 기본으로 띄우는 설치 프롬프트 방지
       e.preventDefault();
       // 이벤트를 보관하여 나중에 트리거할 수 있게 함
@@ -208,13 +216,23 @@ function App() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        alert("iOS 기기에서는 Safari 브라우저의 '공유' 아이콘을 누른 후 '홈 화면에 추가'를 클릭하여 설치해 주세요.");
+      } else {
+        alert("현재 브라우저에서는 자동 설치를 지원하지 않거나 이미 설치되어 있습니다. 브라우저 메뉴에서 '설정' 또는 '앱 설치'를 확인해 주세요.\n(Streamlit 앱 내에서는 '직접 접속' 시에만 자동 설치 버튼이 활성화됩니다.)");
+      }
+      return;
+    }
 
     // 설치 프롬프트 표시
     deferredPrompt.prompt();
 
     // 사용자의 응답 대기
     const { outcome } = await deferredPrompt.userChoice;
+    console.log(`PWA: User choice outcome: ${outcome}`);
+    
     if (outcome === 'accepted') {
       console.log('사용자가 PWA 설치를 수락했습니다.');
     } else {
@@ -524,11 +542,10 @@ function App() {
             {/* PWA 수동 설치 버튼: 남색/파랑색 디자인으로 변경 및 RESET과 밀착 */}
             <button
               onClick={handleInstallClick}
-              disabled={!showInstallBtn}
               className={`w-12 h-12 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
                 showInstallBtn 
                   ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-pulse' 
-                  : 'bg-slate-800/40 text-gray-500 border-white/5 opacity-50'
+                  : 'bg-blue-900/60 text-blue-400 border-blue-500/30'
               }`}
               title="홈 화면에 앱 설치"
             >
