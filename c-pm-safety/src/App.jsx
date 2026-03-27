@@ -519,32 +519,32 @@ function App() {
             <Layers size={21} />
           </button>
 
-          {/* Phase 26: PWA 수동 설치 버튼 (Samsung Internet / Chrome 등 지원) */}
-          {showInstallBtn ? (
+          {/* Phase 26: Debug 버튼 - 온보딩(퀴즈) 초기화 & PWA 수동 설치 세트 */}
+          <div className="mt-8 flex flex-col gap-1.5 items-center">
+            {/* PWA 수동 설치 버튼: 남색/파랑색 디자인으로 변경 및 RESET과 밀착 */}
             <button
               onClick={handleInstallClick}
-              className="w-12 h-12 bg-cyber-cyan text-black rounded-full shadow-neon-cyan flex flex-col items-center justify-center active:scale-90 transition-all border border-cyber-cyan mt-2"
+              disabled={!showInstallBtn}
+              className={`w-12 h-12 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
+                showInstallBtn 
+                  ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-pulse' 
+                  : 'bg-slate-800/40 text-gray-500 border-white/5 opacity-50'
+              }`}
               title="홈 화면에 앱 설치"
             >
-              <Download size={20} className="animate-bounce" />
-              <span className="text-[8px] font-black tracking-tighter mt-1 leading-none">INSTALL</span>
+              <Download size={20} />
+              <span className="text-[7px] font-black tracking-tighter mt-1 leading-none uppercase">Install</span>
             </button>
-          ) : (
-            /* 설치가 불가능하거나 이미 설치된 경우 내비게이션 아이콘 대신 로고/장식 요소 배치 (사용자 요청으로 기존 버튼 제거) */
-            <div className="w-12 h-12 bg-cyber-panel/40 backdrop-blur-md rounded-full shadow-glass flex items-center justify-center text-cyber-cyan/30 border border-white/5">
-              <Shield size={20} />
-            </div>
-          )}
 
-          {/* Phase 26: Debug 버튼 - 온보딩(퀴즈) 초기화 */}
-          <button
-            onClick={resetOnboarding}
-            className="w-12 h-12 bg-red-900/40 backdrop-blur-md rounded-full mt-4 shadow-glass flex flex-col items-center justify-center text-white/50 active:scale-90 transition-all border border-red-500/20"
-            title="온보딩 초기화 (퀴즈 다시보기)"
-          >
-            <RefreshCw size={14} />
-            <span className="text-[7px] font-bold mt-1 text-gray-500">RESET</span>
-          </button>
+            <button
+              onClick={resetOnboarding}
+              className="w-12 h-12 bg-red-900/40 backdrop-blur-md rounded-full shadow-glass flex flex-col items-center justify-center text-white/50 animate-in fade-in active:scale-90 transition-all border border-red-500/20"
+              title="온보딩 초기화 (퀴즈 다시보기)"
+            >
+              <RefreshCw size={14} />
+              <span className="text-[7px] font-bold mt-1 text-gray-500">RESET</span>
+            </button>
+          </div>
         </div>
 
 
