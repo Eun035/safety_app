@@ -47,7 +47,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist_v2',
-    target: 'esnext',
+    target: 'es2020',
     minify: 'terser',
     terserOptions: {
       compress: {
