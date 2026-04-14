@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-bg: #0a1118;
+  --color-cyber-panel: #12232a;
+  --color-cyber-teal: #1c3d42;
+  --color-cyber-cyan: #40ffdc;
+  --color-cyber-green: #38ef7d;
+
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+
+  --shadow-neon-cyan: 0 0 15px rgba(64, 255, 220, 0.4), 0 0 30px rgba(64, 255, 220, 0.2);
+  --shadow-neon-green: 0 0 15px rgba(56, 239, 125, 0.4), 0 0 30px rgba(56, 239, 125, 0.2);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.5rem;
+}
+
+:root {
+  font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+  background-color: #0a1118;
+  /* Cyberpunk Dark Teal Background */
+  color: #e2e8f0;
+  /* Default Text Color */
+}
+
+body {
+  margin: 0;
+  display: block;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+}
+
+/* Custom scrollbar for mobile feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

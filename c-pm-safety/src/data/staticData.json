@@ -1,0 +1,52 @@
+[
+    {
+        "id": 1,
+        "title": "단국대 호수 진입로",
+        "lat": 36.833,
+        "lng": 127.179,
+        "type": "SLOPE",
+        "riskLevel": "HIGH",
+        "description": "경사도 15도! 브레이크 파열 주의. 반드시 서행하세요.",
+        "safetyTip": "내리막길에서는 킥보드에서 내려서 끌고 가는 것이 가장 안전합니다."
+    },
+    {
+        "id": 2,
+        "title": "상명대 정문 언덕 구간",
+        "lat": 36.834,
+        "lng": 127.171,
+        "type": "SLOPE",
+        "riskLevel": "HIGH",
+        "description": "가파른 오르막 및 내리막이 반복되는 구간입니다.",
+        "safetyTip": "무게 중심을 뒤로 하고 뒷브레이크를 먼저 사용하여 속도를 조절하세요."
+    },
+    {
+        "id": 3,
+        "title": "두정역 앞 어린이 보호구역",
+        "lat": 36.8337,
+        "lng": 127.1488,
+        "type": "SCHOOL",
+        "riskLevel": "MEDIUM",
+        "description": "등하교 시간 보행자가 매우 많습니다.",
+        "safetyTip": "스쿨존 내 사고 시 가중 처벌되므로 반드시 시속 20km 이하로 서행하세요."
+    },
+    {
+        "id": 4,
+        "title": "천안역 서부광장 PM 주차장",
+        "lat": 36.8118,
+        "lng": 127.1465,
+        "type": "PARKING",
+        "riskLevel": "LOW",
+        "description": "안전하게 주차 가능한 전용 구역입니다.",
+        "safetyTip": "주차 후 앱에서 주차 완료 사진을 찍어 반납을 마무리하세요."
+    },
+    {
+        "id": 5,
+        "title": "호서대 천안캠퍼스 진입교량",
+        "lat": 36.831,
+        "lng": 127.185,
+        "type": "SLOPE",
+        "riskLevel": "MEDIUM",
+        "description": "교량 진입 시 노면 결빙 및 미끄럼 주의.",
+        "safetyTip": "비나 눈이 온 뒤에는 선회 시 미끄러질 수 있으니 각도를 크게 잡으세요."
+    }
+]
