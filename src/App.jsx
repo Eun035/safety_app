@@ -449,9 +449,13 @@ function App() {
 
   const handleCameraConfirm = async (photoData) => {
     if (cameraAction === 'start') {
+      if (!photoData) {
+        speak("헬멧 미착용 개인 주행 모드를 시작합니다. 이동 데이터만 집계됩니다.");
+      } else {
+        speak(t("Zen Mode"));
+      }
       await startRide(); // 기기 제어 타이머 등 비동기 대기
       startTracking();   // 시작 즉시 GPS 수집
-      speak(t("Zen Mode"));
     }
     setCameraAction(null);
   };

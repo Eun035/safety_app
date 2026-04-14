@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Check, X, Info, QrCode } from 'lucide-react';
+import { Camera, Check, X, Info, QrCode, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const RideCameraModal = ({ isOpen, onClose, onConfirm, mode, onQRScanRequest, onAIScanRequest }) => {
@@ -133,8 +133,19 @@ const RideCameraModal = ({ isOpen, onClose, onConfirm, mode, onQRScanRequest, on
                         </p>
                     </div>
 
+                    {/* Header Action: Skip for Individual/Personal Ride */}
+                    {isStart && !photoPreview && (
+                        <button
+                            onClick={() => onConfirm(null)}
+                            className="w-full mb-2 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95"
+                        >
+                            <Play size={14} className="fill-current" />
+                            인증 없이 주행 데이터 누적 시작
+                        </button>
+                    )}
+
                     {/* Action Button */}
-                    <div className="w-full mt-6">
+                    <div className="w-full mt-4">
                         <button
                             onClick={handleConfirm}
                             disabled={!photoPreview}
