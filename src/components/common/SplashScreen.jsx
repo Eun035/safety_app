@@ -63,13 +63,14 @@ const SplashScreen = ({ isDataLoading, onComplete }) => {
                 {/* Visual Container */}
                 <div className="absolute inset-0 rounded-full animate-in zoom-in duration-1000 relative flex flex-col items-center justify-center overflow-hidden">
                     {/* User-provided Video Asset */}
-                    <video controls
+                    <video 
                         src="./helmet_video.mp4"
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="w-full h-full object-cover mix-blend-screen contrast-[1.4] brightness-[0.9] saturate-[1.3] drop-shadow-[0_0_20px_rgba(64,255,220,0.3)]"
+                        webkit-playsinline="true"
+                        className="w-full h-full object-cover mix-blend-screen contrast-[1.4] brightness-[0.9] saturate-[1.3] drop-shadow-[0_0_20px_rgba(64,255,220,0.3)] pointer-events-none"
                     >
                         Your browser does not support the video tag.
                     </video>

@@ -381,6 +381,19 @@ function App() {
   // Phase 20: Splash Screen state management
   const [showSplash, setShowSplash] = useState(true);
 
+  // Phase Mobile: Force skip splash after 10s if hung (Safety Guard)
+  useEffect(() => {
+    if (showSplash) {
+      const timer = setTimeout(() => {
+        if (showSplash) {
+          console.warn("[C-Safe] Splash timeout: forcing main screen mount.");
+          setShowSplash(false);
+        }
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSplash]);
+
   // Phase 26: Pocket App Camera Modal State
   const [cameraAction, setCameraAction] = useState(null);
   const [rideSummaryPhoto, setRideSummaryPhoto] = useState(null);
