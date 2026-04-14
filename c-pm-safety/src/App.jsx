@@ -30,6 +30,7 @@ import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import UserProfileSheet from './components/common/UserProfileSheet';
 import RewardWalletSheet from './components/common/RewardWalletSheet';
+import AdminDashboard from './components/admin/AdminDashboard';
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -105,18 +106,9 @@ function App() {
   const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useLocalStorage('csafe_disclaimer_agreed_v7', false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useLocalStorage('csafe_onboarding_completed_v7', false);
 
-  // Phase 8: Mock Profile & Ride Tracker (Carbon Tracker Added)
-  const [userProfile, setUserProfile] = useState({
-    id: 'test-user-uuid',
-    nickname: "에코라이더",
-    safety_score: 92,
-    total_distance: 15.8,
-    points: 2450,
-    carbon_saved: 4.2 // kg CO2 saved
-  });
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
-  const { isRiding, startRide, endRideSession, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory } = useRideSession();
+  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, currentPath } = useRideSession();
 
   // Static location fallback for testing / permissions denied
   const DEFAULT_LAT = 36.833;
@@ -159,6 +151,7 @@ function App() {
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
   const [isESGDashboardOpen, setIsESGDashboardOpen] = useState(false);
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
   const [simSpeed, setSimSpeed] = useState(15);
   const [rideConfig, setRideConfig] = useState({
@@ -182,10 +175,12 @@ function App() {
   useEffect(() => {
     const initAuth = async () => {
       await loadUser();
-      if (!useUserStore.getState().user) {
+      const currentUser = useUserStore.getState().user;
+      if (!currentUser) {
         await signInAnonymously();
       }
-      loadHistory(); // 주행 기록 기반 지표 로드
+      const finalUser = useUserStore.getState().user;
+      loadHistory(finalUser?.id); // 주행 기록 기반 지표 로드
     };
     initAuth();
   }, []);
@@ -253,6 +248,28 @@ function App() {
     setDeferredPrompt(null);
     setShowInstallBtn(false);
   };
+
+  // Phase 45: Real-time Coordinate & Path Bridge
+  const lastLocationRef = React.useRef(null);
+  useEffect(() => {
+    if (isRiding && location?.lat && location?.lng) {
+      let distanceDelta = 0;
+      if (lastLocationRef.current) {
+        distanceDelta = calculateDistance(
+          lastLocationRef.current.lat, 
+          lastLocationRef.current.lng, 
+          location.lat, 
+          location.lng
+        );
+      }
+      
+      // Update global ride state (Path tracking included)
+      updateMetrics(distanceDelta, location.speed || 0, false, location);
+      lastLocationRef.current = location;
+    } else if (!isRiding) {
+      lastLocationRef.current = null;
+    }
+  }, [isRiding, location]);
 
   // 야간/날씨 등 위험 감지 시 음성 경고
   useEffect(() => {
@@ -333,6 +350,21 @@ function App() {
       return;
     }
 
+    // Supabase 연동 (QR 제휴 장소 보너스 300P)
+    if (user?.id) {
+      const earnedPoints = 300;
+      supabase.from('profiles').select('points').eq('id', user.id).single()
+        .then(({ data }) => {
+          if (data) {
+            supabase.from('profiles').update({ points: (data.points || 0) + earnedPoints }).eq('id', user.id)
+              .then(() => {
+                alert(`안전 지식 테스트 완료! ${earnedPoints}P가 적립되었습니다.`);
+                loadUser(); // 프로필 새로고침
+              });
+          }
+        });
+    }
+
     const newPoint = {
       id: Date.now(),
       shopName: decodedText.includes('CAFE') ? '제휴 카페 A' : (decodedText || '단국대 주변 헬멧 스테이션'),
@@ -377,19 +409,10 @@ function App() {
       }
 
       if (minDistance <= 10) {
-        const newPoint = {
-          id: Date.now() + 1,
-          shopName: '합법 주차장 반납 보상',
-          amount: '+100P',
-          issuedAt: new Date().toLocaleDateString(),
-          type: '주차 보상',
-          status: 'active'
-        };
-        setCoupons(prev => [newPoint, ...prev]);
         speak("주차 확인 성공. 리워드 100포인트가 적립되었습니다. 주차를 종료합니다.");
       }
 
-      const summary = endRideSession();
+      const summary = endRideSession(user?.id);
       if (summary) setFinalRideSummary(summary);
     } else {
       // Mock data if not actively riding, allowing UI testing
@@ -448,7 +471,19 @@ function App() {
 
         {/* Phase 15: Mandatory Onboarding Quiz Overlay (Second Priority) */}
         {hasAgreedDisclaimer && !hasCompletedOnboarding && (
-          <SafetyQuiz onComplete={() => setHasCompletedOnboarding(true)} />
+          <SafetyQuiz onComplete={() => {
+            setHasCompletedOnboarding(true);
+            // 퀴즈 완료 시 보너스 500P (최초 1회)
+            if (user?.id) {
+               supabase.from('profiles').select('points').eq('id', user.id).single()
+               .then(({ data }) => {
+                 if (data) {
+                    supabase.from('profiles').update({ points: (data.points || 0) + 500 }).eq('id', user.id)
+                    .then(() => loadUser());
+                 }
+               });
+            }
+          }} />
         )}
 
         {/* Phase 26: Real-time Hazard Alert Overlay */}
@@ -749,7 +784,7 @@ function App() {
         <PersonalInsights
           isOpen={isDashboardOpen}
           onClose={() => setIsDashboardOpen(false)}
-          history={JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')}
+          history={rideHistory}
         />
         <ShadowImpactSheet
           isOpen={isShadowSheetOpen}
@@ -760,13 +795,17 @@ function App() {
           isOpen={isProfileSheetOpen}
           onClose={() => setIsProfileSheetOpen(false)}
           userName={profile?.nickname || "사용자 K"}
-          userPoints={userProfile?.points || 12350}
-          userScore={userProfile?.safety_score || 92}
+          userPoints={profile?.points || 0}
+          userScore={profile?.safety_score || 0}
+          onAdminOpen={() => {
+            setIsProfileSheetOpen(false);
+            setIsAdminDashboardOpen(true);
+          }}
         />
         <RewardWalletSheet
           isOpen={isWalletSheetOpen}
           onClose={() => setIsWalletSheetOpen(false)}
-          userPoints={userProfile?.points || 12350}
+          userPoints={profile?.points || 0}
           coupons={coupons}
           setCoupons={setCoupons}
         />
@@ -886,12 +925,12 @@ function App() {
           isOpen={isESGDashboardOpen}
           onClose={() => setIsESGDashboardOpen(false)}
           metrics={{
-            carbonSaved: userProfile.carbon_saved,
-            safetyScore: userProfile.safety_score,
+            carbonSaved: (profile?.total_distance * 0.2).toFixed(1) || 0,
+            safetyScore: profile?.safety_score || 0,
             hazardReports: historyMetrics.hazardReports || 0,
             safetyStreak: historyMetrics.safetyStreak || 1
           }}
-          history={JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')}
+          history={rideHistory}
         />
 
         <RideSettings
@@ -971,6 +1010,10 @@ function App() {
               <div className={`absolute bottom-0 left-0 w-40 h-40 rounded-full blur-[80px] -z-0 ${parkingGeofenceModal.success ? 'bg-cyber-blue/20' : 'bg-red-500/10'}`}></div>
             </div>
           </div>
+        )}
+
+        {isAdminDashboardOpen && (
+          <AdminDashboard onClose={() => setIsAdminDashboardOpen(false)} />
         )}
       </div>
     </ErrorBoundary>

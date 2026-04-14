@@ -7,11 +7,16 @@ const SafetyQuiz = ({ onComplete }) => {
     const { t } = useTranslation();
     const { speak, voicesLoaded } = useVoiceGuidance();
 
+    /** * [2026 최신 법규 반영 데이터]
+     * 1. 면허 필수 (X)  2. 인도 주행 금지 (O)  3. 음주 운전 금지 (X) 
+     * 4. 1인 탑승 (X)   5. 자전거도로 허용 (O)  6. 횡단보도 하차 (O)
+     * 7. 야간 등화 (O)  8. 시속 25km 제한 (O)  9. 스쿨존 가중처벌 (O)
+     */
     const quizDataArray = [
-        { question: t("quiz_q1"), answer: true, desc: t("quiz_desc1") },
-        { question: t("quiz_q2"), answer: false, desc: t("quiz_desc2") },
+        { question: t("quiz_q1"), answer: false, desc: t("quiz_desc1") },
+        { question: t("quiz_q2"), answer: true, desc: t("quiz_desc2") },
         { question: t("quiz_q3"), answer: false, desc: t("quiz_desc3") },
-        { question: t("quiz_q4"), answer: true, desc: t("quiz_desc4") },
+        { question: t("quiz_q4"), answer: false, desc: t("quiz_desc4") },
         { question: t("quiz_q5"), answer: true, desc: t("quiz_desc5") },
         { question: t("quiz_q6"), answer: true, desc: t("quiz_desc6") },
         { question: t("quiz_q7"), answer: true, desc: t("quiz_desc7") },
@@ -27,13 +32,11 @@ const SafetyQuiz = ({ onComplete }) => {
     const [selected, setSelected] = useState(null);
     const [isDone, setIsDone] = useState(false);
     const [hasSpokenInit, setHasSpokenInit] = useState(false);
-    const [isQuizStarted, setIsQuizStarted] = useState(false); // 모바일 상호작용 강제용 상태
+    const [isQuizStarted, setIsQuizStarted] = useState(false);
 
-    // useEffect를 통한 첫 문제 발성 로직 삭제 (모바일 대응을 위해 onClick 내에서 동기 호출)
     useEffect(() => {
         if (isQuizStarted && shuffledQuiz.length > 0 && voicesLoaded && !hasSpokenInit) {
             setHasSpokenInit(true);
-            // 발성은 onClick 핸들러로 위임
         }
     }, [isQuizStarted, shuffledQuiz, voicesLoaded, hasSpokenInit]);
 
@@ -62,7 +65,7 @@ const SafetyQuiz = ({ onComplete }) => {
 
         setTimeout(() => {
             nextQuiz();
-        }, 1500); // 3초에서 1.5초로 단축
+        }, 1500);
     };
 
     if (isDone) {
@@ -103,13 +106,10 @@ const SafetyQuiz = ({ onComplete }) => {
                     </p>
                     <button
                         onClick={() => {
-                            // 1. HTML5 순수 오디오 버퍼를 동기적으로 강제 재생하여 iOS/Safari의 Media Context Lock 해제
                             try {
                                 const silence = new Audio("data:audio/mp3;base64,//MkxAAQAAAAgAFAAAhAAAMoAQAAAE/gAAAAAABzwAAAAABwAAhAAAMoAQAAAE/gAAAAAABzwAAAAAAA=");
                                 silence.play().catch(e => console.log('Audio init skipped', e));
                             } catch (e) { }
-
-                            // 2. 이어서 곧바로 SpeechSynthesis 호출
                             speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`);
                             setIsQuizStarted(true);
                         }}

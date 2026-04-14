@@ -66,8 +66,8 @@ export const useUserStore = create((set, get) => ({
                     id: data.user.id,
                     nickname: '천안안전라이더_' + Math.floor(Math.random() * 1000),
                     safety_score: 100,
-                    reward_points: 0,
-                    carbon_reduction: 0
+                    points: 0,
+                    total_distance: 0
                 })
                 .select()
                 .single();

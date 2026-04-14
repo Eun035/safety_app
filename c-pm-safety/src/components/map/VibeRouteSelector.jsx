@@ -35,7 +35,6 @@ const VIBE_OPTIONS = [
         icon: <Zap size={20} className="text-black" />,
         tags: ['Fast', 'City Lights'],
         gradient: 'bg-gradient-to-br from-cyber-cyan to-[#0284c7] border-transparent shadow-[0_0_20px_rgba(64,255,220,0.5)] text-black',
-        inactiveGradient: 'bg-[#1a1a1a] border border-white/5 opacity-60'
     }
 ];
 

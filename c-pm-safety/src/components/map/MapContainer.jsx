@@ -9,6 +9,8 @@ import { calculateDistance } from '../../utils/distance';
 
 import usePMParkingData from '../../hooks/usePMParkingData';
 import stationData from '../../data/station_data.json';
+import { useRideSession } from '../../hooks/useRideSession';
+import { supabase } from '../../lib/supabaseClient';
 
 const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSelectedLocation, onStationClick, rideConfig }) => {
     const mapRef = useRef(null);
@@ -20,6 +22,9 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
     const [isFollowMode, setIsFollowMode] = useState(true);
     const [highlightedStationId, setHighlightedStationId] = useState(null);
     const [selectedDangerZone, setSelectedDangerZone] = useState(null);
+    const [safetyGridScores, setSafetyGridScores] = useState([]);
+    
+    const { isRiding, currentPath } = useRideSession();
 
     // 0. Filter PMs by active brands
     const filteredTagoPms = useMemo(() => {
@@ -65,6 +70,36 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
             setMapCenter(userLocation);
         }
     };
+
+    // Phase 45: Fetch Safety Grid Scores
+    useEffect(() => {
+        const fetchSafetyScores = async () => {
+            try {
+                const { data: scores, error } = await supabase
+                    .from('safety_grid_scores')
+                    .select('*')
+                    .gt('safe_pass_count', 0); // 최소 1회 이상 통과한 구역만
+                
+                if (error) throw error;
+                setSafetyGridScores(scores || []);
+            } catch (err) {
+                console.error('[C-Safe] Safety Grid 로드 실패:', err);
+            }
+        };
+
+        fetchSafetyScores();
+        
+        // 실시간 업데이트 구독 (선택 사항)
+        const channel = supabase
+            .channel('safety_updates')
+            .on('postgres_changes', { event: 'INSERT', table: 'safety_grid_scores', schema: 'public' }, fetchSafetyScores)
+            .on('postgres_changes', { event: 'UPDATE', table: 'safety_grid_scores', schema: 'public' }, fetchSafetyScores)
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
 
     const findNearestPM = () => {
         if (!userLocation || tagoPms.length === 0) {
@@ -219,6 +254,32 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                             </div>
                         </CustomOverlayMap>
                     )}
+
+                    {/* Phase 45: Current Ride Path Visualization */}
+                    {isRiding && currentPath.length > 1 && (
+                        <Polyline
+                            path={currentPath.map(p => ({ lat: p.lat, lng: p.lng }))}
+                            strokeWeight={6}
+                            strokeColor="#40ffdc"
+                            strokeOpacity={0.8}
+                            strokeStyle="solid"
+                        />
+                    )}
+
+                    {/* Phase 45: Safety Grid Layer (Collective Intelligence) */}
+                    {safetyGridScores.map((grid) => {
+                        const score = Math.min(grid.safe_pass_count / 10, 1); // 10회 이상이면 최대 불투명도
+                        return (
+                            <Circle
+                                key={`safety-grid-${grid.grid_id}`}
+                                center={{ lat: grid.lat_center, lng: grid.lng_center }}
+                                radius={25} // 50m 격자 (반경 25m)
+                                strokeWeight={0}
+                                fillColor="#40ffdc"
+                                fillOpacity={score * 0.4} // 안전할수록 더 선명한 비취색
+                            />
+                        );
+                    })}
 
                     {!showHeatmap && Array.isArray(data) && data.filter(loc => loc.type !== 'available_pm').map((loc) => (
                         <MapMarker

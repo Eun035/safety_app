@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabaseClient';
 
 export const useRideSession = create((set, get) => ({
     isRiding: false,
@@ -8,12 +9,43 @@ export const useRideSession = create((set, get) => ({
     suddenBrakeCount: 0,
     isHardwareSyncing: false,
     historyMetrics: {
-        avgReactionTime: 1.0, // Default 1.0s
-        totalRides: 0
+        avgReactionTime: 1.0,
+        totalRides: 0,
+        safetyStreak: 0,
+        hazardReports: 0
+    },
+    rideHistory: [],
+    currentPath: [], // 실시간 주행 경로 [{lat, lng, ts}]
+
+    fetchRideHistory: async (userId) => {
+        if (!userId) return;
+        try {
+            const { data, error } = await supabase
+                .from('rides')
+                .select('*')
+                .eq('user_id', userId)
+                .order('start_time', { ascending: false });
+            
+            if (error) throw error;
+            set({ rideHistory: data || [] });
+            return data;
+        } catch (error) {
+            console.error('[C-Safe] Ride History Fetch 실패:', error);
+            return [];
+        }
     },
 
-    loadHistory: () => {
-        const pastRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
+    loadHistory: async (userId) => {
+        let pastRides = [];
+        
+        if (userId) {
+            pastRides = await get().fetchRideHistory(userId);
+        }
+
+        // Fallback to LocalStorage if Supabase returned nothing or wasn't available
+        if (pastRides.length === 0) {
+            pastRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
+        }
         if (pastRides.length === 0) return;
 
         // Calculate Safety Streak
@@ -72,38 +104,114 @@ export const useRideSession = create((set, get) => ({
             startTime: Date.now(),
             totalDistance: 0,
             topSpeed: 0,
-            suddenBrakeCount: 0
+            suddenBrakeCount: 0,
+            currentPath: [] // 경로 초기화
         });
     },
 
-    updateMetrics: (distanceDelta, currentSpeed, isSuddenBrake) => set((state) => {
+    updateMetrics: (distanceDelta, currentSpeed, isSuddenBrake, location) => set((state) => {
         if (!state.isRiding) return state;
+        
+        const newPath = [...state.currentPath];
+        if (location?.lat && location?.lng) {
+            newPath.push({ 
+                lat: location.lat, 
+                lng: location.lng, 
+                ts: Date.now() 
+            });
+        }
+
         return {
             totalDistance: state.totalDistance + distanceDelta,
             topSpeed: Math.max(state.topSpeed, currentSpeed),
-            suddenBrakeCount: state.suddenBrakeCount + (isSuddenBrake ? 1 : 0)
+            suddenBrakeCount: state.suddenBrakeCount + (isSuddenBrake ? 1 : 0),
+            currentPath: newPath
         };
     }),
 
-    endRideSession: async () => {
+    endRideSession: async (userId) => {
         const state = get();
         if (!state.isRiding) return null;
 
         await state.simulateHardwareAction('LOCK'); // 하드웨어 잠금 신호
 
         const durationMinutes = Math.floor((Date.now() - state.startTime) / 60000) || 1;
+        const finalDistance = Math.floor(state.totalDistance * 100) / 100;
 
         const summary = {
             id: `ride-${Date.now()}`,
             date: new Date().toLocaleDateString(),
-            distance: state.totalDistance.toFixed(2),
+            distance: finalDistance,
             time: durationMinutes,
             topSpeed: state.topSpeed.toFixed(1),
             suddenBrakeCount: state.suddenBrakeCount,
-            co2Saved: (state.totalDistance * 0.2).toFixed(1) // 임의의 탄소 절감량 계산
+            co2Saved: (state.totalDistance * 0.2).toFixed(1)
         };
 
-        // LocalStorage에 로그 남기기 (이후 DB 저장 로직 이동)
+        // 1. Supabase 'rides' 테이블에 저장 (비동기)
+        if (userId) {
+            try {
+                const isSafe = state.suddenBrakeCount === 0;
+
+                // ride_logs 또는 rides 테이블 확인 필요. phase8 스키마 기준 'rides' 사용.
+                const { data: rideData, error: rideError } = await supabase
+                    .from('rides')
+                    .insert([{
+                        user_id: userId,
+                        start_time: new Date(state.startTime).toISOString(),
+                        end_time: new Date().toISOString(),
+                        distance: finalDistance,
+                        is_safe_ride: isSafe
+                    }])
+                    .select()
+                    .single();
+                
+                if (rideError) {
+                    console.error('[C-Safe] Ride Log 저장 실패:', rideError);
+                } else if (rideData && state.currentPath.length > 0) {
+                    // 1-1. 상세 경로 저장 (ride_paths)
+                    await supabase.from('ride_paths').insert([{
+                        ride_id: rideData.id,
+                        path_data: state.currentPath
+                    }]);
+
+                    // 1-2. 안전 그리드 스코어 업데이트 (RPC 호출)
+                    const { aggregatePathToGrids } = await import('../utils/safetyScoring');
+                    const gridUpdates = aggregatePathToGrids(state.currentPath, isSafe);
+                    
+                    if (gridUpdates.length > 0) {
+                        await supabase.rpc('update_safety_scores', { grids: gridUpdates });
+                    }
+                }
+
+                // 2. 사용자 프로필 업데이트 (포인트 + 누적 거리)
+                // 기본 보상 100P + 거리 기반 가중치 (데모용)
+                const earnedPoints = 100; 
+                
+                const { error: profileError } = await supabase.rpc('increment_user_stats', {
+                    user_id_in: userId,
+                    inc_points: earnedPoints,
+                    inc_distance: finalDistance
+                });
+                
+                // 만약 rpc가 없다면 일반 update 시도
+                if (profileError) {
+                    console.warn('[C-Safe] RPC increment_user_stats 실패, 일반 update 시도');
+                    // 현재 점수를 가져와서 더하는 방식 (동시성 이슈 가능성 있으나 데모용으로 허용)
+                    const { data: profile } = await supabase.from('profiles').select('points, total_distance').eq('id', userId).single();
+                    if (profile) {
+                        await supabase.from('profiles').update({
+                            points: (profile.points || 0) + earnedPoints,
+                            total_distance: (profile.total_distance || 0) + finalDistance
+                        }).eq('id', userId);
+                    }
+                }
+            } catch (err) {
+                console.error('[C-Safe] Supabase 연동 오류:', err);
+            }
+        }
+
+        // LocalStorage fallback/cache
         const pastRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
         localStorage.setItem('csafe_ride_history', JSON.stringify([summary, ...pastRides]));
 

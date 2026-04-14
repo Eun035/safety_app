@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Shield, Star, Zap, Award, TrendingUp, Gift } from 'lucide-react';
+import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings } from 'lucide-react';
 
 // Radar Chart (Spider Web) component using SVG
 const RadarChart = ({ data }) => {
@@ -129,7 +129,7 @@ const badges = [
     { icon: '⚡', name: '스피드킹', color: 'from-purple-500/10 to-purple-900/10', border: 'border-purple-500/40', text: 'text-purple-400' },
 ];
 
-const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92 }) => {
+const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, onAdminOpen }) => {
     const { t } = useTranslation();
 
     return (
@@ -266,8 +266,17 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                     </div>
                                 </div>
 
-                            </div>
+                                {/* === Section 5: Admin Entry === */}
+                                <div className="pt-2 border-t border-white/5 mt-4">
+                                    <button 
+                                        onClick={onAdminOpen}
+                                        className="w-full bg-white/5 hover:bg-white/10 text-gray-500 py-3 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-2 border border-white/5"
+                                    >
+                                        <Settings size={12} /> B2G ADMIN CONSOLE
+                                    </button>
+                                </div>
 
+                            </div>
                         </motion.div>
                     </div>
                 </>
