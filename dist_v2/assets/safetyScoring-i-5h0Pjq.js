@@ -1,0 +1,1 @@
+var t=5e-4;const a=(a,n)=>{const r=new Map;return a.forEach(a=>{const o=(e=a.lat,s=a.lng,`${(Math.round(e/t)*t).toFixed(4)}_${(Math.round(s/t)*t).toFixed(4)}`);var e,s;if(!r.has(o)){const{lat:t,lng:a}=(t=>{const[a,n]=t.split("_").map(Number);return{lat:a,lng:n}})(o);r.set(o,{id:o,lat:t,lng:a,is_safe:n})}}),Array.from(r.values())};export{a as aggregatePathToGrids};
