@@ -1,21 +1,21 @@
 import React from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { PhoneCall } from 'lucide-react';
+import { toast } from '../../hooks/useToast';
 
 const SOSButton = () => {
     const [emergencyContact, setEmergencyContact] = useLocalStorage('emergencyContact', '');
 
     const handleSOSClick = () => {
         if (!emergencyContact) {
-            const contact = prompt('긴급 상황 시 연락할 보호자의 전화번호를 입력해주세요. (예: 01012345678)');
+            const contact = window.prompt('진급 상황 시 연락할 보호자 전화번호를 입력해주세요. (예: 01012345678)');
             if (contact) {
-                // 숫자만 남기기
                 const cleanContact = contact.replace(/[^0-9]/g, '');
                 if (cleanContact.length >= 9) {
                     setEmergencyContact(cleanContact);
-                    alert('비상 연락처가 저장되었습니다. 다시 클릭하면 즉시 전화가 걸립니다.');
+                    toast('폰 번호가 저장되었습니다. 다시 클릭하면 즉시 전화가 걸립니다.', 'success');
                 } else {
-                    alert('올바른 전화번호를 입력해주세요.');
+                    toast('❌ 올바른 전화번호를 입력해주세요.', 'error');
                 }
             }
         } else {

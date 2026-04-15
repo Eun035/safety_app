@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, MoreHorizontal, Leaf, Zap, Share2, Play } from 'lucide-react';
 import TargetedAdBanner from './TargetedAdBanner';
+import { toast } from '../../hooks/useToast';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0 }) => {
     const [currentTime, setCurrentTime] = useState("");
@@ -48,11 +49,11 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                 await navigator.clipboard.writeText(shareText);
             }
 
-            alert("📸 갤러리에 사진이 다운로드되었고, 공유 문구가 클립보드에 복사되었습니다!\n인스타그램 앱을 열어 스토리에 바로 공유해 보세요.");
+            toast('📸 사진 다운로드 완료! 공유 문구가 클립보드에 복사되었습니다.', 'success');
 
         } catch (error) {
             console.error("공유 실패:", error);
-            alert("공유 로직에 문제가 발생했습니다. 브라우저 설정을 확인해 주세요.");
+            toast('⚠️ 공유 중 문제가 발생했습니다.', 'error');
         }
     };
 

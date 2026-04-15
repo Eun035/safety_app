@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Info, ShieldCheck, MapPin, Star } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { toast } from '../../hooks/useToast';
 
 const InfoCard = ({ location, onClose }) => {
     // Phase 26: 즐겨찾기 기능 (Bookmark)
@@ -16,10 +17,10 @@ const InfoCard = ({ location, onClose }) => {
         e.stopPropagation();
         if (isFavorite) {
             setFavorites(prev => prev.filter(fav => (fav.id || fav.title) !== locId));
-            alert("즐겨찾기가 해제되었습니다.");
+            toast("즐겨찾기에서 제거되었습니다.", 'info');
         } else {
             setFavorites(prev => [...prev, location]);
-            alert("즐겨찾기에 추가되었습니다.");
+            toast("⭐ 즐겨찾기에 추가되었습니다!", 'success');
         }
     };
 

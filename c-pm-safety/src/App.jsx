@@ -46,6 +46,9 @@ import { useUserStore } from './hooks/useUserStore';
 import { useGeolocation } from './hooks/useGeolocation';
 import { calculateStopDistance } from './utils/physics';
 import DigitalTwinIndicator from './components/common/DigitalTwinIndicator';
+import ToastContainer from './components/common/ToastContainer';
+import { supabase } from './lib/supabaseClient';
+import { toast } from './hooks/useToast';
 
 // (제거된 mockUserProfile)
 
@@ -224,9 +227,9 @@ function App() {
 
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (isIOS) {
-        alert("iOS 기기에서는 Safari 브라우저의 '공유' 아이콘을 누른 후 '홈 화면에 추가'를 클릭하여 설치해 주세요.");
+        toast("Safari의 '공유' 아이콘 → '홈 화면에 추가'를 탭하여 설치해 주세요.", 'info');
       } else {
-        alert("현재 브라우저에서는 자동 설치를 지원하지 않거나 이미 설치되어 있습니다. 브라우저 메뉴에서 '설정' 또는 '앱 설치'를 확인해 주세요.");
+        toast("설치를 지원하지 않는 환경이거나 이미 설치되어 있습니다.", 'info');
       }
       return;
     }
@@ -324,7 +327,7 @@ function App() {
     setHasAgreedDisclaimer(false);
     setHasCompletedOnboarding(false);
     setShowSplash(true);
-    alert("온보딩 상태가 초기화되었습니다. 다시 시작합니다.");
+    toast("온보딩이 초기화되었습니다. 재시작합니다.", 'info');
   };
 
   const handleQRScanSuccess = (decodedText) => {
@@ -341,7 +344,7 @@ function App() {
         status: 'active'
       };
       setCoupons(prev => [newPoint, ...prev]);
-      alert("안전모 착용이 확인되었습니다! 선지급 마일리지 50P가 적립되었습니다. 운행을 시작합니다.");
+      toast("✅ 안전모 착용 확인! 선지급 마일리지 50P 적립 완료", 'success');
 
       setCameraAction(null); // 모달 닫기
       startRide();
@@ -358,7 +361,7 @@ function App() {
           if (data) {
             supabase.from('profiles').update({ points: (data.points || 0) + earnedPoints }).eq('id', user.id)
               .then(() => {
-                alert(`안전 지식 테스트 완료! ${earnedPoints}P가 적립되었습니다.`);
+                toast(`🎉 안전 지식 테스트 완료! ${earnedPoints}P 적립`, 'success');
                 loadUser(); // 프로필 새로고침
               });
           }
@@ -375,7 +378,7 @@ function App() {
     };
 
     setCoupons(prev => [newPoint, ...prev]);
-    alert("보관 완료! 천안사랑카드 500P가 적립되었습니다.");
+    toast("🎁 보관 완료! 천안사랑카드 500P 적립", 'success');
   };
 
   // Phase 20: Splash Screen state management
@@ -460,6 +463,7 @@ function App() {
 
   return (
     <ErrorBoundary>
+      <ToastContainer />
       {/* Global Cyberpunk Chill Background */}
       <div
         className="h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-colors duration-1000"
@@ -867,7 +871,7 @@ function App() {
           }}
           onSubmit={(feedback) => {
             console.log("Feedback submitted:", feedback);
-            alert("피드백이 접수되었습니다. 감사합니다!");
+            toast("피드백이 접수되었습니다. 감사합니다! 🙏", 'success');
             setIsFeedbackOpen(false);
           }}
         />

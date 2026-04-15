@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, MessageSquareText, ThumbsUp, Send } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { toast } from '../../hooks/useToast';
 
 const FeedbackReport = ({ isOpen, onClose, onSubmit }) => {
     const [rating, setRating] = useState(0);
@@ -46,7 +47,7 @@ const FeedbackReport = ({ isOpen, onClose, onSubmit }) => {
             }
         } catch (error) {
             console.error("Error submitting feedback:", error);
-            alert("피드백 전송에 실패했습니다. (Supabase 연결 확인 필요)");
+            toast('⚠️ 피드백 전송에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
             if (onSubmit) {
                 // DB 에러가 나도 앱 진행은 막지 않도록 콜백은 실행
                 onSubmit({ rating, tags: selectedTags, text });

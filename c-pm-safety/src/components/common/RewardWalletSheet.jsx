@@ -2,18 +2,18 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Wallet, Ticket, CheckCircle, Gift, ArrowRightLeft, Sparkles } from 'lucide-react';
+import { toast } from '../../hooks/useToast';
 
 const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons }) => {
     const { t } = useTranslation();
 
     const handleUseCoupon = (id) => {
-        const isConfirmed = window.confirm("지역화폐로 전환하시겠습니까? 전환 후에는 취소할 수 없습니다.");
-        if (isConfirmed) {
-            const updatedCoupons = coupons.map(c =>
-                c.id === id ? { ...c, status: 'used' } : c
-            );
-            setCoupons(updatedCoupons);
-        }
+        // window.confirm 대신 즉시 전환 처리 (모바일 PWA confirm 차단 방지)
+        const updatedCoupons = coupons.map(c =>
+            c.id === id ? { ...c, status: 'used' } : c
+        );
+        setCoupons(updatedCoupons);
+        toast('문서화폐 전환 완료! 천안사랑카드 앱에서 확인하세요.', 'success');
     };
 
     return (

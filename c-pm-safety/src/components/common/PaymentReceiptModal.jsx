@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CreditCard, CheckCircle, Smartphone, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { toast } from '../../hooks/useToast';
 
 const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPaymentComplete }) => {
     const [isPaying, setIsPaying] = useState(false);
@@ -19,7 +20,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
         // 포트원(KG이니시스 등) 결제창 호출을 모킹 (2초 지연)
         setTimeout(() => {
             setIsPaying(false);
-            alert(`[결제 성공] ${finalAmount.toLocaleString()}원이 결제되었습니다.\n결제번호: INI_mock_${Date.now()}`);
+            toast(`💳 결제 완료 — ${finalAmount.toLocaleString()}원`, 'success');
             if (onPaymentComplete) onPaymentComplete();
         }, 2000);
     };

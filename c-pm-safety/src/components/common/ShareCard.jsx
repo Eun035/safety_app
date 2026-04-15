@@ -1,5 +1,6 @@
 import React from 'react';
 import { Share2, Download, X, Shield, Zap, TrendingUp, Award } from 'lucide-react';
+import { toast } from '../../hooks/useToast';
 
 const ShareCard = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
@@ -18,7 +19,7 @@ const ShareCard = ({ isOpen, onClose, data }) => {
                 console.log('Share failed', err);
             }
         } else {
-            alert('공유 기능을 지원하지 않는 브라우저입니다. 화면을 캡처하여 공유해 주세요!');
+            toast('📸 공유 기능을 지원하지 않는 브라우저입니다. 화면을 캐프쳐하여 공유해 주세요!', 'warning');
         }
     };
 

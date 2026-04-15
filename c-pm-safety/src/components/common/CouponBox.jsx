@@ -1,18 +1,17 @@
 import React from 'react';
 import { Ticket, X, CheckCircle } from 'lucide-react';
+import { toast } from '../../hooks/useToast';
 
 const CouponBox = ({ isOpen, onClose, coupons, setCoupons }) => {
     if (!isOpen) return null;
 
     const handleUseCoupon = (id) => {
-        const isConfirmed = window.confirm("사장님(직원) 확인을 받으셨습니까? 사용 처리 후에는 되돌릴 수 없습니다.");
-        if (isConfirmed) {
-            const updatedCoupons = coupons.map(c =>
-                c.id === id ? { ...c, status: 'used' } : c
-            );
-            setCoupons(updatedCoupons);
-            alert("쿠폰이 사용 처리되었습니다.");
-        }
+        // window.confirm 대신 즉시 처리 (모바일 PWA에서 confirm 차단 방지)
+        const updatedCoupons = coupons.map(c =>
+            c.id === id ? { ...c, status: 'used' } : c
+        );
+        setCoupons(updatedCoupons);
+        toast('✅ 쿠폰이 사용 처리되었습니다.', 'success');
     };
 
     return (

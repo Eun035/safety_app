@@ -11,6 +11,7 @@ import usePMParkingData from '../../hooks/usePMParkingData';
 import stationData from '../../data/station_data.json';
 import { useRideSession } from '../../hooks/useRideSession';
 import { supabase } from '../../lib/supabaseClient';
+import { toast } from '../../hooks/useToast';
 
 const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSelectedLocation, onStationClick, rideConfig }) => {
     const mapRef = useRef(null);
@@ -37,7 +38,7 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
 
     // 1. 카카오맵 SDK 로딩
     const [loading, error] = useKakaoLoader({
-        appkey: '40e6d1b5e849c283027335cbba22bf32', // Hardcoded to bypass env var missing issues
+        appkey: import.meta.env.VITE_KAKAO_API_KEY || '40e6d1b5e849c283027335cbba22bf32',
         libraries: ['services', 'clusterer', 'drawing'],
     });
 
@@ -200,7 +201,7 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
             if (navigator.share) {
                 await navigator.share(shareData);
             } else {
-                alert(`앱 공유 링크가 복사되었습니다!\n${shareData.url}`);
+                toast(`🔗 공유 링크 복사됨 — ${shareData.url}`, 'info');
                 navigator.clipboard.writeText(shareData.url);
             }
         } catch (err) {

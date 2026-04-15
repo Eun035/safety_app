@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { X, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { toast } from '../../hooks/useToast';
 
 const QRScanner = ({ isOpen, onClose, onScanSuccess, mode = 'station' }) => {
     const { t } = useTranslation();
@@ -46,7 +47,7 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess, mode = 'station' }) => {
             }
         ).catch((err) => {
             console.error("카메라를 자동으로 시작하는 데 실패했습니다.", err);
-            alert("카메라 권한을 허용해 주시거나 카메라가 정상 작동하는지 확인해주세요.");
+            toast('📷 카메라 권한을 허용해 주시거나 카메라가 정상 작동하는지 확인해주세요.', 'error');
         });
 
         // Cleanup on unmount or when `isOpen` becomes false

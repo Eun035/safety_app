@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl'
-import JavaScriptObfuscator from 'javascript-obfuscator';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// https://vite.dev/config/
+// Vercel 배포 최적화 설정
+// - basicSsl 제거 (Vercel은 HTTPS 기본 제공)
+// - base: '/' 로 변경 (SPA rewrites와 호환)
+// - 로컬 PWA 아이콘 사용 (외부 CDN 의존성 제거)
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [
     react(),
     VitePWA({
@@ -14,36 +15,45 @@ export default defineConfig({
       devOptions: {
         enabled: false
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'icon.svg'],
       manifest: {
         name: 'C-Safe: 전동킥보드 안전 가이드',
         short_name: 'C-Safe',
         description: '천안 캠퍼스 PM 안전 주행 및 주차 가이드',
-        theme_color: '#2563eb',
-        background_color: '#ffffff',
+        theme_color: '#0a0f1e',
+        background_color: '#0a0f1e',
         display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: '/icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024 // 15MB 제한
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15MB
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'weather-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 30 }
+            }
+          }
+        ]
       }
     })
   ],
   server: {
     port: 8888,
     strictPort: true,
-    host: true, // 로컬 네트워크(휴대폰) 접속 허용
+    host: true,
   },
   build: {
     outDir: 'dist_v2',

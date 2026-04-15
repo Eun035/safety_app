@@ -3,6 +3,7 @@ import { Camera, ShieldCheck, AlertCircle, X } from 'lucide-react';
 import { useEdgeAI } from '../../hooks/useEdgeAI';
 import { supabase } from '../../lib/supabaseClient';
 import { useUserStore } from '../../hooks/useUserStore';
+import { toast } from '../../hooks/useToast';
 
 const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
   const videoRef = useRef(null);
@@ -73,7 +74,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
           streamRef.current.getTracks().forEach(track => track.stop());
         }
 
-        alert("안전 인증 완료! 100P 적립");
+        toast('🛡️ 안전 인증 완료! 100P 적립', 'success');
         onSuccess?.();
         onClose();
       };
