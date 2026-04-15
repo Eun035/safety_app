@@ -43,43 +43,47 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
     };
   }, [isOpen]);
 
-  // 추론 성공 시 후속 처리
+  // 검증 성공 또는 스킵 시 후속 처리 함수
+  const handleSuccess = async (isVerified) => {
+    try {
+      if (user) {
+        const { error } = await supabase
+          .from('ride_logs')
+          .insert([
+            {
+              user_id: user.id,
+              is_helmet_verified: isVerified,
+              timestamp: new Date().toISOString()
+            }
+          ]);
+
+        if (error) {
+          console.error('Supabase 기록 실패:', error);
+        }
+      }
+    } catch (err) {
+      console.error('기록 에러:', err);
+    }
+
+    // 스트림 정지
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+
+    if (isVerified) {
+      toast('🛡️ 안전 인증 완료! 100P 적립', 'success');
+    } else {
+      toast('⚠️ 헬멧 검증 생략 완료 (데이터 수집 모드)', 'warning');
+    }
+    
+    onSuccess?.();
+    onClose();
+  };
+
+  // AI가 헬멧을 추론했을 때 자동 처리
   useEffect(() => {
     if (isHelmetDetected) {
-      const saveDetectionResult = async () => {
-        try {
-          // Supabase 가벼운 JSON 페이로드 로그 전송
-          // ride_logs 테이블에 INSERT (무거운 이미지 데이터 제외)
-          if (user) {
-            const { error } = await supabase
-              .from('ride_logs')
-              .insert([
-                {
-                  user_id: user.id,
-                  is_helmet_verified: true,
-                  timestamp: new Date().toISOString()
-                }
-              ]);
-
-            if (error) {
-              console.error('Supabase 기록 실패 (ride_logs 테이블이 없을 수도 있음, 무시):', error);
-            }
-          }
-        } catch (err) {
-          console.error('기록 에러:', err);
-        }
-
-        // 스트림 정지
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-        }
-
-        toast('🛡️ 안전 인증 완료! 100P 적립', 'success');
-        onSuccess?.();
-        onClose();
-      };
-
-      saveDetectionResult();
+      handleSuccess(true);
     }
   }, [isHelmetDetected, user, onClose, onSuccess]);
 
@@ -152,6 +156,14 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
               <span className="text-sm font-bold">카메라 권한이 필요합니다</span>
             </div>
           )}
+
+          {/* 데이터 수집을 위한 강제 패스 버튼 */}
+          <button
+            onClick={() => handleSuccess(false)}
+            className="mt-6 px-6 py-2.5 bg-white/5 hover:bg-white/10 active:bg-white/20 text-white/50 hover:text-white/80 text-xs font-bold rounded-full border border-white/5 backdrop-blur-md transition-all"
+          >
+            데이터 수집용 구동 시작 (헬멧 검사 패스)
+          </button>
         </div>
       </div>
     </div>
