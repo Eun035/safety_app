@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
 import InfoCard from './InfoCard';
-import { AlertTriangle, MapPin, Navigation, Info, ShieldAlert, Zap, LocateFixed, Share2 } from 'lucide-react';
+import { AlertTriangle, MapPin, Navigation, Info, ShieldAlert, Zap, LocateFixed, Share2, X } from 'lucide-react';
 import accidentData from '../../data/accidentHeatmap.json';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { calculateDistance } from '../../utils/distance';
