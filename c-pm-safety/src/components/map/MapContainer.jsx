@@ -13,7 +13,7 @@ import { useRideSession } from '../../hooks/useRideSession';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from '../../hooks/useToast';
 
-const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSelectedLocation, onStationClick, rideConfig }) => {
+const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSelectedLocation, onStationClick, rideConfig, onRouteReady }) => {
     const mapRef = useRef(null);
     const { speak } = useVoiceGuidance();
     const [map, setMap] = useState(null);
@@ -24,6 +24,11 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
     const [highlightedStationId, setHighlightedStationId] = useState(null);
     const [selectedDangerZone, setSelectedDangerZone] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
+
+    // --- Navigation Mode States ---
+    const [navStep, setNavStep] = useState('idle'); // 'idle' | 'select_origin' | 'select_destination' | 'route_ready'
+    const [routeOrigin, setRouteOrigin] = useState(null);
+    const [routeDestination, setRouteDestination] = useState(null);
     
     const { isRiding, currentPath } = useRideSession();
 
@@ -185,6 +190,23 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
 
     const handleMarkerClick = (location) => {
         if (showHeatmap) return;
+        
+        // 탐색 모드 (Navigation Mode) 중일 때의 동작
+        if (navStep === 'select_origin') {
+            setRouteOrigin(location);
+            setNavStep('select_destination');
+            toast('🏁 출발지가 설정되었습니다. 이제 목적지를 선택하세요.', 'success');
+            return;
+        }
+
+        if (navStep === 'select_destination') {
+            setRouteDestination(location);
+            setNavStep('route_ready');
+            toast('✨ 목적지가 설정되었습니다. 안전 경로가 생성됩니다.', 'success');
+            return;
+        }
+
+        // 일반 모드 동작
         setHighlightedStationId(null);
         setSelectedLocation(location);
         speak(`${location.title || ''} 지역입니다. ${location.desc || ''}. ${location.safetyTip || ''}`);
@@ -238,6 +260,48 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                         : 'none'
                 }}
             >
+                {/* --- 상단 네비게이션 가이드 패널 --- */}
+                {navStep !== 'idle' && (
+                    <div className="absolute top-6 left-4 right-4 z-50 animate-in slide-in-from-top-4 pointer-events-auto">
+                        <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-white font-black flex items-center gap-2">
+                                    <Navigation size={18} className="text-cyber-cyan" />
+                                    {navStep === 'select_origin' && '출발지를 지도에서 선택하세요 (1/2)'}
+                                    {navStep === 'select_destination' && '목적지를 지도에서 선택하세요 (2/2)'}
+                                    {navStep === 'route_ready' && '안전 경로 탐색 완료!'}
+                                </h3>
+                                <button onClick={() => { setNavStep('idle'); setRouteOrigin(null); setRouteDestination(null); }} className="text-gray-400 hover:text-white p-1">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col gap-2 mt-3">
+                                <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/10' : 'border-white/5 bg-white/5'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan' : 'bg-gray-500 animate-pulse'}`} />
+                                    <span className={`text-sm ${routeOrigin ? 'text-white' : 'text-gray-400'}`}>
+                                        {routeOrigin ? routeOrigin.title : '지도 위 마커(대여소 등)를 터치'}
+                                    </span>
+                                </div>
+                                <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${navStep === 'select_destination' ? 'border-cyber-green bg-cyber-green/10' : 'border-white/5 bg-white/5'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-cyber-green' : 'bg-gray-500'}`} />
+                                    <span className={`text-sm ${routeDestination ? 'text-white' : 'text-gray-400'}`}>
+                                        {routeDestination ? routeDestination.title : (navStep === 'select_origin' ? '대기 중' : '지도 위 마커 터치')}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {navStep === 'route_ready' && (
+                                <button 
+                                    onClick={() => onRouteReady && onRouteReady()}
+                                    className="mt-4 w-full py-3 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                                >
+                                    이 길로 Choose Vibe & 주행 시작
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <Map
                     center={mapCenter}
                     level={4}
@@ -264,6 +328,21 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
                             strokeColor="#40ffdc"
                             strokeOpacity={0.8}
                             strokeStyle="solid"
+                        />
+                    )}
+
+                    {/* --- Mock Safe Route Visualization --- */}
+                    {navStep === 'route_ready' && routeOrigin && routeDestination && (
+                        <Polyline
+                            path={[
+                                { lat: routeOrigin.lat, lng: routeOrigin.lng },
+                                { lat: (routeOrigin.lat + routeDestination.lat) / 2 + 0.003, lng: (routeOrigin.lng + routeDestination.lng) / 2 + 0.003 }, // 약간의 곡선을 주기 위한 경유지
+                                { lat: routeDestination.lat, lng: routeDestination.lng }
+                            ]}
+                            strokeWeight={8}
+                            strokeColor="#10B981"
+                            strokeOpacity={0.8}
+                            strokeStyle="shortdash"
                         />
                     )}
 
@@ -419,6 +498,16 @@ const MapContainer = ({ data, tagoPms = [], showHeatmap, selectedLocation, setSe
 
             {/* Fab Group (Right Bottom) */}
             <div className="absolute bottom-[220px] right-4 flex flex-col gap-3 z-[100]">
+                {/* --- 길찾기 전환 버튼 --- */}
+                {navStep === 'idle' && !showHeatmap && (
+                    <button 
+                        onClick={() => setNavStep('select_origin')} 
+                        className="p-4 rounded-full shadow-2xl transition-all bg-cyber-green text-black border border-cyber-green hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.6)]"
+                    >
+                        <Navigation size={24} className="fill-black/30" />
+                    </button>
+                )}
+                
                 <button onClick={handleShareApp} className="p-4 rounded-full shadow-2xl transition-all bg-[#1a1a1a] text-cyber-cyan border border-cyber-cyan/30 hover:border-cyber-cyan hover:bg-cyber-cyan/20 hover:shadow-neon-cyan">
                     <Share2 size={24} className="fill-cyber-cyan/30" />
                 </button>

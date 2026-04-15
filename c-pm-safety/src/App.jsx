@@ -667,6 +667,7 @@ function App() {
                 setSelectedDropStation(station);
                 setIsDropAndGoOpen(true);
               }}
+              onRouteReady={() => setIsVibeRouteOpen(true)}
             />
           </div>
           {/* Phase 11: Core Action Buttons (Neon Cyan & Zen Mode) */}
