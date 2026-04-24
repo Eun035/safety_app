@@ -1,0 +1,13 @@
+# Query: getVoices
+# ContextLines: 1
+
+2개 결과 - 1개 파일
+
+c-pm-safety\src\hooks\useVoiceGuidance.js:
+  16  
+  17:         if (window.speechSynthesis?.getVoices()?.length > 0) {
+  18              setTimeout(() => setVoicesLoaded(true), 0);
+
+  65  
+  66:         let availableVoices = window.speechSynthesis?.getVoices() || [];
+  67  
