@@ -38,7 +38,26 @@ export const useUserStore = create((set, get) => ({
                 .eq('id', userId)
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116: no rows returned
+            if (error) {
+                if (error.code === 'PGRST116') {
+                    // Profile doesn't exist yet, create one
+                    const { data: newProfile, error: insertError } = await supabase
+                        .from('profiles')
+                        .upsert({
+                            id: userId,
+                            nickname: '라이더_' + Math.floor(Math.random() * 1000),
+                            safety_score: 100,
+                            points: 0,
+                            total_distance: 0
+                        })
+                        .select()
+                        .single();
+                        
+                    if (!insertError && newProfile) {
+                        set({ profile: newProfile });
+                        return;
+                    }
+                }
                 throw error;
             }
 
@@ -50,6 +69,7 @@ export const useUserStore = create((set, get) => ({
             // Fallback: Create a local temporary profile if DB is unreachable
             set({ 
                 profile: {
+                    id: userId || 'temp_id',
                     nickname: '임시라이더_' + Math.floor(Math.random() * 100),
                     points: 1000,
                     safety_score: 95,
