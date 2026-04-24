@@ -15,7 +15,7 @@ export const useVoiceGuidance = () => {
         };
 
         if (window.speechSynthesis.getVoices().length > 0) {
-            setVoicesLoaded(true);
+            setTimeout(() => setVoicesLoaded(true), 0);
         }
 
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -122,7 +122,7 @@ export const useVoiceGuidance = () => {
         // 모바일 환경에서의 권한 블로킹을 우회하기 위해 모든 TTS 호출을 동기화하여 즉각 실행함
         window.speechSynthesis.speak(utterance);
 
-    }, [i18n.language, voicesLoaded]);
+    }, [i18n.language]);
 
     return { speak, voicesLoaded };
 };

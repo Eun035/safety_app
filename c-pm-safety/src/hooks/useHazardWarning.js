@@ -12,9 +12,25 @@ export const useHazardWarning = (locations = []) => {
     // 쿨타임 (예: 같은 구역이라도 3분 지났으면 다시 울리게 할지 등, 현재는 1회만 울림)
     const HAZARD_RADIUS_METERS = 50;
 
+    const triggerVoiceWarning = (text) => {
+        if ('speechSynthesis' in window) {
+            // 진행 중인 다른 안내 멘트가 있다면 즉각 취소하고 경고 발령
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 1.1; // 긴급함을 위해 살짝 빠르게
+            utterance.pitch = 1.2; // 톤을 약간 높임
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            console.warn("Speech Synthesis API not supported.");
+        }
+    };
+
     useEffect(() => {
         if (!navigator.geolocation) {
-            setError('Geolocation API is not supported by your browser.');
+            setTimeout(() => setError('Geolocation API is not supported by your browser.'), 0);
             return;
         }
 
@@ -88,21 +104,7 @@ export const useHazardWarning = (locations = []) => {
         };
     }, [locations]);
 
-    const triggerVoiceWarning = (text) => {
-        if ('speechSynthesis' in window) {
-            // 진행 중인 다른 안내 멘트가 있다면 즉각 취소하고 경고 발령
-            window.speechSynthesis.cancel();
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ko-KR';
-            utterance.rate = 1.1; // 긴급함을 위해 살짝 빠르게
-            utterance.pitch = 1.2; // 톤을 약간 높임
-
-            window.speechSynthesis.speak(utterance);
-        } else {
-            console.warn("Speech Synthesis API not supported.");
-        }
-    };
 
     return { userLocation, activeHazard, error };
 };

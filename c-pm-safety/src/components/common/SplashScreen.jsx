@@ -51,7 +51,7 @@ const SplashScreen = ({ isDataLoading, onComplete }) => {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyber-cyan/10 rounded-full blur-[100px] pointer-events-none"></div>
 
             {/* Top Logo / Emblem */}
-            <div className="absolute top-16 flex flex-col items-center opacity-80 animate-in fade-in duration-1000 delay-300">
+            <div className="absolute top-16 flex flex-col items-center opacity-80 duration-1000 delay-300">
                 <div className="w-12 h-12 bg-[#0d141f] rounded-full border border-cyber-cyan/30 flex items-center justify-center shadow-neon-cyan mb-3">
                     <span className="text-cyber-cyan font-black text-lg italic tracking-tighter">C<Zap size={14} className="inline ml-0.5 fill-cyber-cyan" /></span>
                 </div>
@@ -61,10 +61,10 @@ const SplashScreen = ({ isDataLoading, onComplete }) => {
             {/* Center Artwork (Minimalist Edition Reference) */}
             <div className="relative w-64 h-64 mb-16 flex items-center justify-center">
                 {/* Visual Container */}
-                <div className="absolute inset-0 rounded-full animate-in zoom-in duration-1000 relative flex flex-col items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 rounded-full flex flex-col items-center justify-center overflow-hidden">
                     {/* User-provided Video Asset */}
                     <video 
-                        src="./helmet_video.mp4"
+                        src="/helmet_video.mp4"
                         autoPlay
                         loop
                         muted
@@ -88,7 +88,7 @@ const SplashScreen = ({ isDataLoading, onComplete }) => {
             </div>
 
             {/* Progress Bar & Loader Text */}
-            <div className="absolute bottom-20 w-full max-w-xs flex flex-col gap-3 px-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
+            <div className="absolute bottom-20 w-full max-w-xs flex flex-col gap-3 px-6 duration-1000 delay-500">
                 <div className="flex justify-between items-end">
                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Initializing Core</span>
                     <span className="text-xs font-black text-cyber-cyan">{Math.min(progress, 100)}%</span>

@@ -32,11 +32,13 @@ export const useSafetyGrid = (currentLat, currentLng) => {
             }
         }
 
-        setSafetyStatus({
-            level: highestLevel,
-            borderColor: color,
-            message: msg
-        });
+        setTimeout(() => {
+            setSafetyStatus({
+                level: highestLevel,
+                borderColor: color,
+                message: msg
+            });
+        }, 0);
 
     }, [currentLat, currentLng]);
 

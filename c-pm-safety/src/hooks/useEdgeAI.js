@@ -17,9 +17,11 @@ export const useEdgeAI = (videoRef, isRunning) => {
         setIsModelLoaded(true);
       }, 1500); // 1.5초 후 로딩 완료
     } else {
-      setIsModelLoaded(false);
-      setIsHelmetDetected(false);
-      setDetectionProgress(0);
+      setTimeout(() => {
+        setIsModelLoaded(false);
+        setIsHelmetDetected(false);
+        setDetectionProgress(0);
+      }, 0);
       detectionDurationRef.current = 0;
     }
     

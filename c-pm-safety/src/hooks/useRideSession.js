@@ -148,8 +148,9 @@ export const useRideSession = create((set, get) => ({
             co2Saved: (state.totalDistance * 0.2).toFixed(1)
         };
 
-        // 1. Supabase 'rides' 테이블에 저장 (비동기)
-        if (userId) {
+        // 1. Supabase 'rides' 테이블에 저장 (비동기) - 게스트 모드일 경우 스킵
+        const isGuest = userId?.toString().startsWith('guest_');
+        if (userId && !isGuest) {
             try {
                 const isSafe = state.suddenBrakeCount === 0;
 

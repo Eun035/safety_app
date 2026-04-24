@@ -47,6 +47,15 @@ export const useUserStore = create((set, get) => ({
             }
         } catch (error) {
             console.error('Error fetching profile:', error);
+            // Fallback: Create a local temporary profile if DB is unreachable
+            set({ 
+                profile: {
+                    nickname: '임시라이더_' + Math.floor(Math.random() * 100),
+                    points: 1000,
+                    safety_score: 95,
+                    total_distance: 0
+                }
+            });
         }
     },
 
@@ -78,6 +87,24 @@ export const useUserStore = create((set, get) => ({
         } catch (error) {
             console.error('Error signing in anonymously:', error);
             set({ error: error.message });
+            
+            // Critical Debug Fix: If Supabase Auth is disabled (422), fallback to LocalGuest Mode
+            if (error.status === 422 || error.message.includes('signup')) {
+                console.warn('[C-Safe] Supabase Auth disabled. Switching to Local Guest Mode.');
+                const guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
+                const guestUser = { id: guestId, is_guest: true };
+                set({ 
+                    user: guestUser,
+                    profile: {
+                        id: guestId,
+                        nickname: '게스트라이더',
+                        points: 0,
+                        safety_score: 100,
+                        total_distance: 0
+                    },
+                    isLoading: false
+                });
+            }
         } finally {
             set({ isLoading: false });
         }

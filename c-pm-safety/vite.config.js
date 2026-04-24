@@ -56,7 +56,7 @@ export default defineConfig({
     host: true,
   },
   build: {
-    outDir: 'dist_v2',
+    outDir: 'dist',
     target: 'es2020',
     minify: 'terser',
     terserOptions: {

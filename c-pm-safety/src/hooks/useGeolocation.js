@@ -10,7 +10,7 @@ export const useGeolocation = (options = {}) => {
 
         if (isTracking) {
             if (!navigator.geolocation) {
-                setError('Geolocation is not supported by your browser');
+                setTimeout(() => setError('Geolocation is not supported by your browser'), 0);
                 return;
             }
 

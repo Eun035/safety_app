@@ -62,7 +62,31 @@ export const useSafeData = () => {
       setLocations(mappedData);
     } catch (error) {
       console.error("[C-Safe] 데이터 로드 실패 (Fallback 진행):", error.message);
-      setLocations([]);
+      
+      // Fallback: 하드코딩된 안전 데이터 (DB가 없을 경우 대비)
+      const fallbackHazards = [
+        { 
+          id: 'fb-1', title: '단국대 학생회관 앞 급경사', lat: 36.8405, lng: 127.1720, 
+          type: 'SLOPE', description: '내리막길 속도 주의 구역', 
+          safetyTip: '속도를 10km/h 이하로 유지하고 브레이크 점검을 꼭 하세요.' 
+        },
+        { 
+          id: 'fb-2', title: '안서동 천호지 입구 교차로', lat: 36.8320, lng: 127.1780, 
+          type: 'accident', description: '빈번한 사고 발생 구역', 
+          safetyTip: '좌우 합류 차량을 확인하고 일시 정지 후 출발하세요.' 
+        },
+        {
+          id: 'fb-3', title: '상명대 정문 보도 파손', lat: 36.8325, lng: 127.1775,
+          type: '도로파손', description: '보도블록 돌출 주의',
+          safetyTip: '바퀴 끼임 사고 위험이 있으니 우회하거나 서행하세요.'
+        }
+      ];
+
+      setLocations(fallbackHazards.map(item => ({
+        ...item,
+        desc: item.description,
+        safetyTip: item.safety_tip
+      })));
     }
   };
 

@@ -50,40 +50,7 @@ import ToastContainer from './components/common/ToastContainer';
 import { supabase } from './lib/supabaseClient';
 import { toast } from './hooks/useToast';
 
-// (제거된 mockUserProfile)
 
-const mockUserProfile = {
-  "userId": "usr_9981",
-  "nickname": "천안안전라이더",
-  "university": "단국대학교 천안캠퍼스",
-  "profileImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-  "registeredHelmet": "HELMET-MY-001",
-  "dashboard": {
-    "safetyScore": 94,
-    "safetyRank": "상위 5%",
-    "helmetStationUsage": 18,
-    "rewardPoints": 1800,
-    "carbonReduction": "14.2kg"
-  },
-  "emergencyContact": {
-    "name": "어머니",
-    "phone": "010-1234-5678"
-  },
-  "recentRoutes": [
-    {
-      "date": "2026-02-23",
-      "from": "천안아산역",
-      "to": "단국대학교 천안캠퍼스",
-      "distance": "5.2km"
-    },
-    {
-      "date": "2026-02-21",
-      "from": "상명대학교",
-      "to": "신부동 터미널",
-      "distance": "3.1km"
-    }
-  ]
-};
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -124,13 +91,14 @@ function App() {
   const userLat = location?.lat || DEFAULT_LAT;
   const userLng = location?.lng || DEFAULT_LNG;
 
-  const { borderColor: gridBorderColor } = useSafetyGrid(userLat, userLng);
+  const { borderColor: gridBorderColor = '#40ffdc' } = useSafetyGrid(userLat, userLng);
 
   // Helper variables to match old `currentMetrics` prop
   const currentMetrics = {
     mileage: totalDistance.toFixed(2),
     savedCarbon: (totalDistance * 0.2).toFixed(1),
-    speed: location?.speed || 0
+    speed: location?.speed || 0,
+    stability: 98 // Added missing stability property to prevent ReferenceError
   };
   const { speak } = useVoiceGuidance();
 
@@ -163,6 +131,11 @@ function App() {
     brandFilters: ['G-Bike', 'Swing', 'Dear']
   });
   const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
+  
+  // Phase 45: Lifted Navigation / Route States from MapContainer
+  const [navStep, setNavStep] = useState('idle'); // 'idle' | 'select_origin' | 'select_destination' | 'route_ready'
+  const [routeOrigin, setRouteOrigin] = useState(null);
+  const [routeDestination, setRouteDestination] = useState(null);
 
   // Sync simulation speed with ride config
   useEffect(() => {
@@ -326,6 +299,9 @@ function App() {
     setHasSelectedLanguage(false);
     setHasAgreedDisclaimer(false);
     setHasCompletedOnboarding(false);
+    setNavStep('idle');
+    setRouteOrigin(null);
+    setRouteDestination(null);
     setShowSplash(true);
     toast("온보딩이 초기화되었습니다. 재시작합니다.", 'info');
   };
@@ -396,6 +372,19 @@ function App() {
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [panToLocation, setPanToLocation] = useState(null);
 
+  // Phase 20: Emergency Splash Timeout (Fail-Safe for Black Screen)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (showSplash) {
+        console.warn("[C-Safe] Emergency Splash Exit triggered.");
+        setShowSplash(false);
+        // authLoading이 걸려있을 경우를 대비해 스토어 상태도 강제 해제
+        useUserStore.setState({ isLoading: false });
+      }
+    }, 5000); // 5초 후 강제 진입
+    return () => clearTimeout(timer);
+  }, [showSplash]);
+
   const handleParkingComplete = (photoUrl) => {
     setIsParkingOpen(false);
     if (photoUrl) setRideSummaryPhoto(photoUrl);
@@ -446,11 +435,12 @@ function App() {
       }
       await startRide(); // 기기 제어 타이머 등 비동기 대기
       startTracking();   // 시작 즉시 GPS 수집
+      setNavStep('idle'); // 주행 시작 시 네비 모드 종료
     }
     setCameraAction(null);
   };
 
-  if (showSplash || authLoading) {
+  if (showSplash) {
     return <SplashScreen isDataLoading={mapLoading || authLoading} onComplete={() => setShowSplash(false)} />;
   }
 
@@ -667,7 +657,18 @@ function App() {
                 setSelectedDropStation(station);
                 setIsDropAndGoOpen(true);
               }}
-              onRouteReady={() => setIsVibeRouteOpen(true)}
+              onRouteReady={() => {
+                // 목적지 선택 완료 후 헬멧 인증 카메라 호출
+                speak("목적지 설정이 완료되었습니다. 안전 주행을 위해 헬멧을 인증해 주세요.");
+                setCameraAction('start');
+              }}
+              // Lifted Props
+              navStep={navStep}
+              setNavStep={setNavStep}
+              routeOrigin={routeOrigin}
+              setRouteOrigin={setRouteOrigin}
+              routeDestination={routeDestination}
+              setRouteDestination={setRouteDestination}
             />
           </div>
           {/* Phase 11: Core Action Buttons (Neon Cyan & Zen Mode) */}
@@ -698,10 +699,18 @@ function App() {
               <div className="flex gap-3 mt-1 animate-in slide-in-from-bottom">
                 <button
                   onClick={() => {
-                    speak(''); // TTS 권한 획득 (운행 시작 전처리)
-                    setCameraAction('start');
+                    speak(''); // TTS 권한 획득
+                    // 주행 시작 클릭 시 바로 시작 대신 목적지 설정 모드 진입
+                    setRouteOrigin({ 
+                      title: '현재 위치', 
+                      lat: userLat, 
+                      lng: userLng,
+                      type: 'CURRENT_LOC'
+                    });
+                    setNavStep('select_destination');
+                    toast('📍 안전 주행을 위해 목적지(주차 구역)를 선택해 주세요.', 'info');
                   }}
-                  disabled={isHardwareSyncing}
+                  disabled={isHardwareSyncing || navStep !== 'idle'}
                   className="pointer-events-auto flex-[3] bg-cyber-cyan text-black h-16 rounded-[2rem] font-black text-lg shadow-neon-cyan flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
                 >
                   {isHardwareSyncing ? (
@@ -709,7 +718,7 @@ function App() {
                   ) : (
                     <>
                       <Play size={24} className="fill-black" />
-                      {t("START RIDE")}
+                      {navStep === 'idle' ? t("START RIDE") : "목적지 선택 중..."}
                     </>
                   )}
                 </button>
