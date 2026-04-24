@@ -695,7 +695,7 @@ function App() {
               </div>
             )}
 
-            {!isRiding && (
+            {!isRiding && !selectedLocation && (
               <div className="flex gap-3 mt-1 animate-in slide-in-from-bottom">
                 <button
                   onClick={() => {

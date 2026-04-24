@@ -1,9 +1,9 @@
 import React from 'react';
-import { X, Info, ShieldCheck, MapPin, Star } from 'lucide-react';
+import { X, Info, ShieldCheck, MapPin, Star, Navigation } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { toast } from '../../hooks/useToast';
 
-const InfoCard = ({ location, onClose }) => {
+const InfoCard = ({ location, onClose, onSetOrigin }) => {
     // Phase 26: 즐겨찾기 기능 (Bookmark)
     const [favorites, setFavorites] = useLocalStorage('csafe_favorite_stations', []);
 
@@ -69,10 +69,20 @@ const InfoCard = ({ location, onClose }) => {
                         <div>
                             <div className="text-[10px] font-black text-cyber-green uppercase tracking-widest mb-1">Safety Tip</div>
                             <p className="text-xs font-medium text-gray-200 leading-relaxed">
-                                {location.safetyTip}
+                                {location.safetyTip || '안전한 라이딩을 위해 헬멧을 꼭 착용하세요.'}
                             </p>
                         </div>
                     </div>
+
+                    {onSetOrigin && (
+                        <button
+                            onClick={onSetOrigin}
+                            className="mt-4 w-full py-3 bg-cyber-cyan text-black font-black rounded-xl hover:bg-[#40e0d0] transition-all shadow-[0_0_15px_rgba(64,255,220,0.4)] flex items-center justify-center gap-2"
+                        >
+                            <Navigation size={18} className="fill-black" />
+                            이곳을 출발지로 지정
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

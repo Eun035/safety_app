@@ -40,6 +40,7 @@ const MapContainer = ({
     const [highlightedStationId, setHighlightedStationId] = useState(null);
     const [selectedDangerZone, setSelectedDangerZone] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
+    const [showPMs, setShowPMs] = useState(false); // Phase 26: PM 가시성 토글
 
     const { isRiding, currentPath } = useRideSession();
 
@@ -402,7 +403,7 @@ const MapContainer = ({
                         />
                     ))}
 
-                    {!showHeatmap && Array.isArray(filteredTagoPms) && filteredTagoPms.map((loc) => (
+                    {showPMs && Array.isArray(filteredTagoPms) && filteredTagoPms.map((loc) => (
                         <CustomOverlayMap key={loc.id} position={{ lat: loc.lat, lng: loc.lng }} yAnchor={0.5} zIndex={2}>
                             <div
                                 onClick={() => handleMarkerClick(loc)}
@@ -413,7 +414,7 @@ const MapContainer = ({
                         </CustomOverlayMap>
                     ))}
 
-                    {!showHeatmap && pmStations.map((station) => (
+                    {showPMs && pmStations.map((station) => (
                         <CustomOverlayMap key={station.id} position={{ lat: station.lat, lng: station.lng }} yAnchor={1} zIndex={1}>
                             <div
                                 onClick={() => handleMarkerClick(station)}
@@ -425,13 +426,14 @@ const MapContainer = ({
                         </CustomOverlayMap>
                     ))}
 
-                    {!showHeatmap && stationData.map((station) => {
+                    {showPMs && stationData.map((station) => {
                         const isHighlighted = highlightedStationId === station.id;
                         return (
                             <CustomOverlayMap key={station.id} position={{ lat: station.lat, lng: station.lng }} yAnchor={1} zIndex={isHighlighted ? 40 : 3}>
                                 <div
                                     onClick={() => {
                                         setHighlightedStationId(station.id);
+                                        handleMarkerClick(station);
                                         if (onStationClick) onStationClick(station);
                                     }}
                                     className={`flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative ${isHighlighted
@@ -455,10 +457,10 @@ const MapContainer = ({
                         );
                     })}
 
-                    {!showHeatmap && Array.isArray(pmParkings) && pmParkings.map((parking, idx) => (
+                    {showPMs && Array.isArray(pmParkings) && pmParkings.map((parking, idx) => (
                         <CustomOverlayMap key={`parking-${idx}`} position={{ lat: parking.lat, lng: parking.lng }} yAnchor={1} zIndex={2}>
                             <div
-                                onClick={() => handleMarkerClick({ id: `parking-${idx}`, title: parking.locationName, desc: `주차가능 대수: ${parking.capacity}`, type: 'parking' })}
+                                onClick={() => handleMarkerClick({ id: `parking-${idx}`, lat: parking.lat, lng: parking.lng, title: parking.locationName, desc: `주차가능 대수: ${parking.capacity}`, type: 'parking' })}
                                 className="w-8 h-8 rounded-full bg-cyan-600 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.8)] hover:scale-110 transition-transform cursor-pointer relative"
                             >
                                 <div className="absolute -bottom-1 h-0 w-0 border-x-4 border-x-transparent border-t-[6px] border-t-cyan-600"></div>
@@ -538,8 +540,8 @@ const MapContainer = ({
                 <button onClick={handleShareApp} className="p-4 rounded-full shadow-2xl transition-all bg-[#1a1a1a] text-cyber-cyan border border-cyber-cyan/30 hover:border-cyber-cyan hover:bg-cyber-cyan/20 hover:shadow-neon-cyan">
                     <Share2 size={24} className="fill-cyber-cyan/30" />
                 </button>
-                <button onClick={findNearestPM} className="p-4 rounded-full shadow-2xl transition-all bg-[#1a1a1a] text-purple-400 border border-purple-500/30 hover:border-purple-400 hover:bg-purple-900/20 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                    <Zap size={24} className="fill-purple-500/50" />
+                <button onClick={() => setShowPMs(prev => !prev)} className={`p-4 rounded-full shadow-2xl transition-all border ${showPMs ? 'bg-purple-900/40 text-purple-400 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.6)]' : 'bg-[#1a1a1a] text-purple-400 border-purple-500/30 hover:border-purple-400 hover:bg-purple-900/20 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]'}`}>
+                    <Zap size={24} className={showPMs ? "fill-purple-400 text-purple-400" : "fill-purple-500/50"} />
                 </button>
                 <button onClick={locateMe} className={`p-4 rounded-full shadow-2xl transition-all border ${isFollowMode ? 'bg-blue-900/40 text-blue-400 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'bg-[#1a1a1a] text-gray-400 border-white/10'}`}>
                     <LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} />
@@ -548,7 +550,16 @@ const MapContainer = ({
 
             <div className="flex justify-center flex-col absolute bottom-0 w-full z-10 pointer-events-none pb-24 px-4">
                 <div className="w-full max-w-lg mx-auto pointer-events-auto">
-                    <InfoCard location={selectedLocation} onClose={() => setSelectedLocation(null)} />
+                    <InfoCard 
+                        location={selectedLocation} 
+                        onClose={() => setSelectedLocation(null)} 
+                        onSetOrigin={() => {
+                            setRouteOrigin(selectedLocation);
+                            setNavStep('select_destination');
+                            setSelectedLocation(null);
+                            toast('🏁 출발지가 설정되었습니다. 이제 마커를 눌러 목적지를 선택하세요.', 'success');
+                        }}
+                    />
                 </div>
             </div>
         </div>
