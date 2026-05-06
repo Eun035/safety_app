@@ -284,7 +284,7 @@ const MapContainer = ({
                 className="w-full h-full transition-all duration-1000 ease-in-out"
                 style={{
                     filter: rideConfig?.isNightMode 
-                        ? 'invert(90%) hue-rotate(180deg) brightness(85%) contrast(120%) saturate(140%)' 
+                        ? 'invert(100%) hue-rotate(180deg) brightness(75%) contrast(110%) saturate(60%)' 
                         : 'none'
                 }}
             >
@@ -305,16 +305,16 @@ const MapContainer = ({
                             </div>
 
                             <div className="flex flex-col gap-2 mt-3">
-                                <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/10' : 'border-white/5 bg-white/5'}`}>
-                                    <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan' : 'bg-gray-500 animate-pulse'}`} />
-                                    <span className={`text-sm ${routeOrigin ? 'text-white' : 'text-gray-400'}`}>
-                                        {routeOrigin ? routeOrigin.title : (navStep === 'select_origin' ? '지도 위 마커(대여소 등)를 터치' : '대기 중')}
+                                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/20' : 'border-white/10 bg-white/10'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-gray-600 animate-pulse'}`} />
+                                    <span className={`text-sm font-bold ${routeOrigin ? 'text-white' : 'text-gray-300'}`}>
+                                        {routeOrigin ? routeOrigin.title : (navStep === 'select_origin' ? '지도 위 마커(대여소 등)를 터치하세요' : '대기 중...')}
                                     </span>
                                 </div>
-                                <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${navStep === 'select_destination' ? 'border-cyber-green bg-cyber-green/10' : 'border-white/5 bg-white/5'}`}>
-                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-cyber-green' : 'bg-gray-500'}`} />
-                                    <span className={`text-sm ${routeDestination ? 'text-white' : 'text-gray-400'}`}>
-                                        {routeDestination ? routeDestination.title : (navStep === 'select_destination' ? '지도 위 마커 터치' : '대기 중')}
+                                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_destination' ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/10'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600'}`} />
+                                    <span className={`text-sm font-bold ${routeDestination ? 'text-white' : 'text-gray-300'}`}>
+                                        {routeDestination ? routeDestination.title : (navStep === 'select_destination' ? '목적지 마커를 터치하세요' : '대기 중...')}
                                     </span>
                                 </div>
                             </div>
@@ -526,25 +526,34 @@ const MapContainer = ({
             </div>
 
             {/* Fab Group (Right Bottom) - Repositioned for cleaner layout */}
-            <div className="absolute bottom-[160px] right-4 flex flex-col gap-2 z-[100]">
-                {/* --- 길찾기 전환 버튼 --- */}
-                {navStep === 'idle' && !showHeatmap && (
-                    <button 
-                        onClick={() => setNavStep('select_origin')} 
-                        className="w-12 h-12 rounded-xl shadow-2xl transition-all bg-cyber-green text-black border border-cyber-green hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.6)] flex items-center justify-center"
-                    >
-                        <Navigation size={20} className="fill-black/30" />
-                    </button>
-                )}
-                
-                <button onClick={handleShareApp} className="w-10 h-10 rounded-xl shadow-2xl transition-all bg-[#1a1a1a]/80 backdrop-blur-md text-cyber-cyan border border-cyber-cyan/30 flex items-center justify-center">
+            <div className="absolute bottom-[160px] right-4 flex flex-col gap-3 z-[100] items-center">
+                <button 
+                    onClick={handleShareApp} 
+                    className="w-10 h-10 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all"
+                    title="공유하기"
+                >
                     <Share2 size={18} />
                 </button>
-                <button onClick={() => setShowPMs(prev => !prev)} className={`w-10 h-10 rounded-xl shadow-2xl transition-all border flex items-center justify-center ${showPMs ? 'bg-purple-900/40 text-purple-400 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-[#1a1a1a]/80 text-purple-400 border-purple-500/30'}`}>
-                    <Zap size={18} className={showPMs ? "fill-purple-400" : "fill-purple-500/30"} />
+                <button 
+                    onClick={() => setShowPMs(prev => !prev)} 
+                    className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${
+                        showHeatmap ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
+                    }`}
+                    title="기기 보기"
+                >
+                    <Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} />
                 </button>
-                <button onClick={locateMe} className={`w-10 h-10 rounded-xl shadow-2xl transition-all border flex items-center justify-center ${isFollowMode ? 'bg-blue-900/40 text-blue-400 border-blue-400' : 'bg-[#1a1a1a]/80 text-gray-400 border-white/10'}`}>
-                    <LocateFixed size={18} className={isFollowMode ? 'animate-pulse' : ''} />
+                
+                <div className="h-[1px] w-6 bg-white/10 my-1" />
+
+                <button 
+                    onClick={locateMe} 
+                    className={`w-12 h-12 rounded-2xl shadow-neon-blue flex items-center justify-center active:scale-90 transition-all border-2 ${
+                        isFollowMode ? 'bg-blue-500 text-white border-white' : 'bg-gray-900/90 text-blue-400 border-blue-500/30'
+                    }`}
+                    title="현재 위치"
+                >
+                    <LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} />
                 </button>
             </div>
 

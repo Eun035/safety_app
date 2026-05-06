@@ -58,6 +58,7 @@ function App() {
   const { user, profile, isLoading: authLoading, signInAnonymously, loadUser } = useUserStore();
 
   const [isSOSOpen, setIsSOSOpen] = useState(false);
+  const [isToolsOpen, setIsToolsOpen] = useState(false); // New: FAB Menu State
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isParkingOpen, setIsParkingOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
@@ -126,9 +127,10 @@ function App() {
   const [digitalTwinData, setDigitalTwinData] = useState(null);
   const [simSpeed, setSimSpeed] = useState(15);
   const [rideConfig, setRideConfig] = useState({
-    speedLimit: 15,
-    isNightMode: false,
-    brandFilters: ['G-Bike', 'Swing', 'Dear']
+    brandFilters: [],
+    isNightMode: true, // Always default to Dark Mode for premium feel
+    isVoiceEnabled: true,
+    speedLimit: 20
   });
   const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
   
@@ -569,51 +571,63 @@ function App() {
         {/* Phase 35: Domain Debug Overlay for Kakao Map Registration */}
 
 
-        {/* Map Control Buttons (Left Side) - Relocated to bottom-left to avoid top-panel overlap */}
-        <div className="absolute left-4 bottom-[160px] z-[45] flex flex-col gap-2 pointer-events-auto items-center">
+        {/* Phase 40: Unified Tools Menu (FAB Grouping) */}
+        <div className="absolute left-4 bottom-[160px] z-[100] flex flex-col gap-2 pointer-events-auto items-center">
+          {isToolsOpen && (
+            <div className="flex flex-col gap-2 mb-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
+              <button
+                onClick={() => setIsESGDashboardOpen(true)}
+                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white"
+                title="ESG 리포트"
+              >
+                <Shield size={18} />
+              </button>
+              <button
+                onClick={() => setShowHeatmap(prev => !prev)}
+                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
+                  showHeatmap ? 'text-orange-500 border-orange-500/50 shadow-neon-orange' : 'text-white border-white/10'
+                }`}
+                title="위험 구역 히트맵"
+              >
+                <Activity size={18} />
+              </button>
+              <button
+                onClick={() => setIsDashboardOpen(true)}
+                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
+                  isDashboardOpen ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10'
+                }`}
+                title="종합 대시보드"
+              >
+                <Layers size={18} />
+              </button>
+              
+              <div className="h-[1px] w-6 bg-white/10 mx-auto my-1" />
+              
+              <button
+                onClick={handleInstallClick}
+                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white/60"
+                title="PWA 설치"
+              >
+                <Download size={16} />
+              </button>
+              <button
+                onClick={resetOnboarding}
+                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white/30"
+                title="온보딩 리셋"
+              >
+                <RefreshCw size={14} />
+              </button>
+            </div>
+          )}
+          
           <button
-            onClick={() => setIsESGDashboardOpen(true)}
-            className="w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10"
-          >
-            <Shield size={20} />
-          </button>
-          <button
-            onClick={() => setShowHeatmap(prev => !prev)}
-            className={`w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl shadow-glass flex items-center justify-center active:scale-90 transition-all border ${
-              showHeatmap
-                ? 'text-red-500 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
-                : 'text-red-900/60 border-white/10'
+            onClick={() => setIsToolsOpen(!isToolsOpen)}
+            className={`w-12 h-12 rounded-2xl shadow-glass flex items-center justify-center transition-all duration-300 border ${
+              isToolsOpen ? 'bg-orange-500 text-black border-orange-400 rotate-45' : 'bg-gray-900/90 text-white border-white/20'
             }`}
           >
-            <Activity size={18} />
+            {isToolsOpen ? <X size={24} /> : <Layers size={24} />}
           </button>
-          <button
-            onClick={() => setIsDashboardOpen(true)}
-            className={`w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'text-purple-400 border-white/10'}`}
-          >
-            <Layers size={18} />
-          </button>
-
-          {/* Phase 26: Debug 버튼 - 하단 구석 배치 및 투명도 강화 */}
-          <div className="mt-2 flex flex-col gap-2 items-center opacity-40 hover:opacity-100 transition-opacity">
-            <button
-              onClick={handleInstallClick}
-              className={`w-8 h-8 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
-                showInstallBtn 
-                  ? 'bg-blue-600 text-white border-blue-400' 
-                  : 'bg-blue-900/40 text-blue-400 border-blue-500/10'
-              }`}
-            >
-              <Download size={14} />
-            </button>
-
-            <button
-              onClick={resetOnboarding}
-              className="w-8 h-8 bg-red-900/20 backdrop-blur-md rounded-full border border-red-500/10 flex items-center justify-center text-white/20 active:scale-90 transition-all"
-            >
-              <RefreshCw size={12} />
-            </button>
-          </div>
         </div>
 
 
