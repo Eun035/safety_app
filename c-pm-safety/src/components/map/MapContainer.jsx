@@ -96,13 +96,12 @@ const MapContainer = ({
                 const { data: scores, error } = await supabase
                     .from('safety_grid_scores')
                     .select('*')
-                    .gt('safe_pass_count', 0); // 최소 1회 이상 통과한 구역만
+                    .gt('safe_pass_count', 0);
                 
                 if (error) throw error;
                 setSafetyGridScores(scores || []);
             } catch (err) {
                 console.error('[C-Safe] Safety Grid 로드 실패:', err);
-                // Fallback: 하드코딩된 안전 그리드 데이터 (시각적 피드백 유지)
                 setSafetyGridScores([
                     { grid_id: 'g1', lat_center: 36.833, lng_center: 127.179, safe_pass_count: 15 },
                     { grid_id: 'g2', lat_center: 36.834, lng_center: 127.180, safe_pass_count: 8 },
@@ -113,7 +112,6 @@ const MapContainer = ({
 
         fetchSafetyScores();
         
-        // 실시간 업데이트 구독 (선택 사항)
         const channel = supabase
             .channel('safety_updates')
             .on('postgres_changes', { event: 'INSERT', table: 'safety_grid_scores', schema: 'public' }, fetchSafetyScores)
@@ -124,6 +122,36 @@ const MapContainer = ({
             supabase.removeChannel(channel);
         };
     }, []);
+
+    // Phase 45: Memoize Overlay Lists to prevent lag
+    const safetyGridOverlay = useMemo(() => {
+        return safetyGridScores.map((grid) => {
+            const score = Math.min(grid.safe_pass_count / 10, 1);
+            return (
+                <Circle
+                    key={`safety-grid-${grid.grid_id}`}
+                    center={{ lat: grid.lat_center, lng: grid.lng_center }}
+                    radius={25}
+                    strokeWeight={0}
+                    fillColor="#40ffdc"
+                    fillOpacity={score * 0.3}
+                />
+            );
+        });
+    }, [safetyGridScores]);
+
+    const ridingPath = useMemo(() => {
+        if (!isRiding || currentPath.length < 2) return null;
+        return (
+            <Polyline
+                path={currentPath.map(p => ({ lat: p.lat, lng: p.lng }))}
+                strokeWeight={6}
+                strokeColor="#40ffdc"
+                strokeOpacity={0.8}
+                strokeStyle="solid"
+            />
+        );
+    }, [isRiding, currentPath]);
 
     const findNearestPM = () => {
         if (!userLocation || tagoPms.length === 0) {
@@ -284,8 +312,12 @@ const MapContainer = ({
                 className="w-full h-full transition-all duration-1000 ease-in-out"
                 style={{
                     filter: rideConfig?.isNightMode 
-                        ? 'invert(100%) hue-rotate(180deg) brightness(75%) contrast(110%) saturate(60%)' 
-                        : 'none'
+                        ? 'invert(100%) hue-rotate(180deg) brightness(80%) contrast(110%) saturate(60%)' 
+                        : 'none',
+                    // GPU 가속 강제 (성능 개선)
+                    WebkitTransform: 'translateZ(0)',
+                    transform: 'translateZ(0)',
+                    willChange: 'filter'
                 }}
             >
                 {/* --- 상단 네비게이션 가이드 패널 (중앙 정렬로 변경하여 아이콘 겹침 방지) --- */}
@@ -348,46 +380,9 @@ const MapContainer = ({
                         </CustomOverlayMap>
                     )}
 
-                    {/* Phase 45: Current Ride Path Visualization */}
-                    {isRiding && currentPath.length > 1 && (
-                        <Polyline
-                            path={currentPath.map(p => ({ lat: p.lat, lng: p.lng }))}
-                            strokeWeight={6}
-                            strokeColor="#40ffdc"
-                            strokeOpacity={0.8}
-                            strokeStyle="solid"
-                        />
-                    )}
-
-                    {/* --- Mock Safe Route Visualization --- */}
-                    {navStep === 'route_ready' && routeOrigin && routeDestination && (
-                        <Polyline
-                            path={[
-                                { lat: routeOrigin.lat, lng: routeOrigin.lng },
-                                { lat: (routeOrigin.lat + routeDestination.lat) / 2 + 0.003, lng: (routeOrigin.lng + routeDestination.lng) / 2 + 0.003 }, // 약간의 곡선을 주기 위한 경유지
-                                { lat: routeDestination.lat, lng: routeDestination.lng }
-                            ]}
-                            strokeWeight={8}
-                            strokeColor="#10B981"
-                            strokeOpacity={0.8}
-                            strokeStyle="shortdash"
-                        />
-                    )}
-
-                    {/* Phase 45: Safety Grid Layer (Collective Intelligence) */}
-                    {safetyGridScores.map((grid) => {
-                        const score = Math.min(grid.safe_pass_count / 10, 1); // 10회 이상이면 최대 불투명도
-                        return (
-                            <Circle
-                                key={`safety-grid-${grid.grid_id}`}
-                                center={{ lat: grid.lat_center, lng: grid.lng_center }}
-                                radius={25} // 50m 격자 (반경 25m)
-                                strokeWeight={0}
-                                fillColor="#40ffdc"
-                                fillOpacity={score * 0.4} // 안전할수록 더 선명한 비취색
-                            />
-                        );
-                    })}
+                    {/* Phase 45: Current Ride Path & Grid Visualization (Memoized) */}
+                    {ridingPath}
+                    {safetyGridOverlay}
 
                     {!showHeatmap && Array.isArray(data) && data.filter(loc => loc.type !== 'available_pm').map((loc) => (
                         <MapMarker
