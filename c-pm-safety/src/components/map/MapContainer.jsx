@@ -312,9 +312,9 @@ const MapContainer = ({
                 className="w-full h-full transition-all duration-1000 ease-in-out"
                 style={{
                     filter: rideConfig?.isNightMode 
-                        ? 'invert(100%) hue-rotate(180deg) brightness(80%) contrast(110%) saturate(60%)' 
+                        ? 'invert(90%) hue-rotate(190deg) brightness(95%) contrast(105%)' 
                         : 'none',
-                    // GPU 가속 강제 (성능 개선)
+                    // GPU 가속 강제
                     WebkitTransform: 'translateZ(0)',
                     transform: 'translateZ(0)',
                     willChange: 'filter'
@@ -383,6 +383,33 @@ const MapContainer = ({
                     {/* Phase 45: Current Ride Path & Grid Visualization (Memoized) */}
                     {ridingPath}
                     {safetyGridOverlay}
+
+                    {/* --- Parking & Station Markers (Restored) --- */}
+                    {!showHeatmap && pmParkings.map((station) => (
+                        <MapMarker
+                            key={`parking-${station.id}`}
+                            position={{ lat: station.lat, lng: station.lng }}
+                            image={{
+                                src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                                size: { width: 24, height: 35 }
+                            }}
+                            onClick={() => {
+                                if (navStep === 'select_destination') {
+                                    setRouteDestination({
+                                        title: station.name || '주차 구역',
+                                        lat: station.lat,
+                                        lng: station.lng
+                                    });
+                                    setNavStep('route_ready');
+                                    toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                                }
+                            }}
+                        >
+                            <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
+                                {station.name}
+                            </div>
+                        </MapMarker>
+                    ))}
 
                     {!showHeatmap && Array.isArray(data) && data.filter(loc => loc.type !== 'available_pm').map((loc) => (
                         <MapMarker
