@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa';
+import tailwindcss from '@tailwindcss/vite';
 
 // Vercel 배포 최적화 설정
 // - basicSsl 제거 (Vercel은 HTTPS 기본 제공)
@@ -9,6 +10,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: '/',
   plugins: [
+    tailwindcss(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
