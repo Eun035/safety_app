@@ -569,7 +569,8 @@ function App() {
         {/* Phase 35: Domain Debug Overlay for Kakao Map Registration */}
 
 
-        <div className="absolute left-4 top-24 z-[45] flex flex-col gap-2 pointer-events-auto items-center">
+        {/* Map Control Buttons (Left Side) - Relocated to bottom-left to avoid top-panel overlap */}
+        <div className="absolute left-4 bottom-[160px] z-[45] flex flex-col gap-2 pointer-events-auto items-center">
           <button
             onClick={() => setIsESGDashboardOpen(true)}
             className="w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10"
@@ -593,24 +594,24 @@ function App() {
             <Layers size={18} />
           </button>
 
-          {/* Phase 26: Debug 버튼 - 더 작게 구석으로 배치 */}
-          <div className="mt-4 flex flex-col gap-2 items-center opacity-60 hover:opacity-100 transition-opacity">
+          {/* Phase 26: Debug 버튼 - 하단 구석 배치 및 투명도 강화 */}
+          <div className="mt-2 flex flex-col gap-2 items-center opacity-40 hover:opacity-100 transition-opacity">
             <button
               onClick={handleInstallClick}
-              className={`w-9 h-9 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
+              className={`w-8 h-8 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
                 showInstallBtn 
                   ? 'bg-blue-600 text-white border-blue-400' 
-                  : 'bg-blue-900/40 text-blue-400 border-blue-500/20'
+                  : 'bg-blue-900/40 text-blue-400 border-blue-500/10'
               }`}
             >
-              <Download size={16} />
+              <Download size={14} />
             </button>
 
             <button
               onClick={resetOnboarding}
-              className="w-9 h-9 bg-red-900/20 backdrop-blur-md rounded-full border border-red-500/10 flex items-center justify-center text-white/30 active:scale-90 transition-all"
+              className="w-8 h-8 bg-red-900/20 backdrop-blur-md rounded-full border border-red-500/10 flex items-center justify-center text-white/20 active:scale-90 transition-all"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={12} />
             </button>
           </div>
         </div>
