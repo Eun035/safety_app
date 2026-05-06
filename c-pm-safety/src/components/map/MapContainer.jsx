@@ -525,26 +525,26 @@ const MapContainer = ({
                 </Map>
             </div>
 
-            {/* Fab Group (Right Bottom) */}
-            <div className="absolute bottom-[220px] right-4 flex flex-col gap-3 z-[100]">
+            {/* Fab Group (Right Bottom) - Repositioned for cleaner layout */}
+            <div className="absolute bottom-[160px] right-4 flex flex-col gap-2 z-[100]">
                 {/* --- 길찾기 전환 버튼 --- */}
                 {navStep === 'idle' && !showHeatmap && (
                     <button 
                         onClick={() => setNavStep('select_origin')} 
-                        className="p-4 rounded-full shadow-2xl transition-all bg-cyber-green text-black border border-cyber-green hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.6)]"
+                        className="w-12 h-12 rounded-xl shadow-2xl transition-all bg-cyber-green text-black border border-cyber-green hover:bg-emerald-400 hover:shadow-[0_0_20px_rgba(16,185,129,0.6)] flex items-center justify-center"
                     >
-                        <Navigation size={24} className="fill-black/30" />
+                        <Navigation size={20} className="fill-black/30" />
                     </button>
                 )}
                 
-                <button onClick={handleShareApp} className="p-4 rounded-full shadow-2xl transition-all bg-[#1a1a1a] text-cyber-cyan border border-cyber-cyan/30 hover:border-cyber-cyan hover:bg-cyber-cyan/20 hover:shadow-neon-cyan">
-                    <Share2 size={24} className="fill-cyber-cyan/30" />
+                <button onClick={handleShareApp} className="w-10 h-10 rounded-xl shadow-2xl transition-all bg-[#1a1a1a]/80 backdrop-blur-md text-cyber-cyan border border-cyber-cyan/30 flex items-center justify-center">
+                    <Share2 size={18} />
                 </button>
-                <button onClick={() => setShowPMs(prev => !prev)} className={`p-4 rounded-full shadow-2xl transition-all border ${showPMs ? 'bg-purple-900/40 text-purple-400 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.6)]' : 'bg-[#1a1a1a] text-purple-400 border-purple-500/30 hover:border-purple-400 hover:bg-purple-900/20 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]'}`}>
-                    <Zap size={24} className={showPMs ? "fill-purple-400 text-purple-400" : "fill-purple-500/50"} />
+                <button onClick={() => setShowPMs(prev => !prev)} className={`w-10 h-10 rounded-xl shadow-2xl transition-all border flex items-center justify-center ${showPMs ? 'bg-purple-900/40 text-purple-400 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-[#1a1a1a]/80 text-purple-400 border-purple-500/30'}`}>
+                    <Zap size={18} className={showPMs ? "fill-purple-400" : "fill-purple-500/30"} />
                 </button>
-                <button onClick={locateMe} className={`p-4 rounded-full shadow-2xl transition-all border ${isFollowMode ? 'bg-blue-900/40 text-blue-400 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'bg-[#1a1a1a] text-gray-400 border-white/10'}`}>
-                    <LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} />
+                <button onClick={locateMe} className={`w-10 h-10 rounded-xl shadow-2xl transition-all border flex items-center justify-center ${isFollowMode ? 'bg-blue-900/40 text-blue-400 border-blue-400' : 'bg-[#1a1a1a]/80 text-gray-400 border-white/10'}`}>
+                    <LocateFixed size={18} className={isFollowMode ? 'animate-pulse' : ''} />
                 </button>
             </div>
 

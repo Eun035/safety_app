@@ -569,53 +569,48 @@ function App() {
         {/* Phase 35: Domain Debug Overlay for Kakao Map Registration */}
 
 
-        <div className="absolute left-4 top-28 z-[45] flex flex-col gap-3 pointer-events-auto items-center">
+        <div className="absolute left-4 top-24 z-[45] flex flex-col gap-2 pointer-events-auto items-center">
           <button
             onClick={() => setIsESGDashboardOpen(true)}
-            className="w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10"
+            className="w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl shadow-glass flex items-center justify-center text-cyber-cyan active:scale-90 transition-all border border-white/10"
           >
-            <Shield size={24} />
+            <Shield size={20} />
           </button>
           <button
             onClick={() => setShowHeatmap(prev => !prev)}
-            className={`w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl shadow-glass flex items-center justify-center active:scale-90 transition-all border ${
+            className={`w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl shadow-glass flex items-center justify-center active:scale-90 transition-all border ${
               showHeatmap
                 ? 'text-red-500 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.4)]'
                 : 'text-red-900/60 border-white/10'
             }`}
           >
-            <Activity size={20} />
+            <Activity size={18} />
           </button>
           <button
             onClick={() => setIsDashboardOpen(true)}
-            className={`w-12 h-12 bg-cyber-panel/80 backdrop-blur-md rounded-2xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'text-purple-400 border-white/10'}`}
+            className={`w-10 h-10 bg-cyber-panel/80 backdrop-blur-md rounded-xl flex items-center justify-center active:scale-90 transition-all border ${isDashboardOpen ? 'text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'text-purple-400 border-white/10'}`}
           >
-            <Layers size={21} />
+            <Layers size={18} />
           </button>
 
-          {/* Phase 26: Debug 버튼 - 온보딩(퀴즈) 초기화 & PWA 수동 설치 세트 */}
-          <div className="mt-8 flex flex-col gap-1.5 items-center">
-            {/* PWA 수동 설치 버튼: 남색/파랑색 디자인으로 변경 및 RESET과 밀착 */}
+          {/* Phase 26: Debug 버튼 - 더 작게 구석으로 배치 */}
+          <div className="mt-4 flex flex-col gap-2 items-center opacity-60 hover:opacity-100 transition-opacity">
             <button
               onClick={handleInstallClick}
-              className={`w-12 h-12 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
+              className={`w-9 h-9 rounded-full shadow-glass flex flex-col items-center justify-center transition-all active:scale-95 border ${
                 showInstallBtn 
-                  ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-pulse' 
-                  : 'bg-blue-900/60 text-blue-400 border-blue-500/30'
+                  ? 'bg-blue-600 text-white border-blue-400' 
+                  : 'bg-blue-900/40 text-blue-400 border-blue-500/20'
               }`}
-              title="홈 화면에 앱 설치"
             >
-              <Download size={20} />
-              <span className="text-[7px] font-black tracking-tighter mt-1 leading-none uppercase">Install</span>
+              <Download size={16} />
             </button>
 
             <button
               onClick={resetOnboarding}
-              className="w-12 h-12 bg-red-900/40 backdrop-blur-md rounded-full shadow-glass flex flex-col items-center justify-center text-white/50 animate-in fade-in active:scale-90 transition-all border border-red-500/20"
-              title="온보딩 초기화 (퀴즈 다시보기)"
+              className="w-9 h-9 bg-red-900/20 backdrop-blur-md rounded-full border border-red-500/10 flex items-center justify-center text-white/30 active:scale-90 transition-all"
             >
               <RefreshCw size={14} />
-              <span className="text-[7px] font-bold mt-1 text-gray-500">RESET</span>
             </button>
           </div>
         </div>
@@ -686,24 +681,19 @@ function App() {
           </div>
           {/* Phase 11: Core Action Buttons (Neon Cyan & Zen Mode) */}
           <div className="absolute bottom-6 left-0 w-full px-6 flex flex-col gap-3 pointer-events-none z-[100]">
-            {!isRiding && !selectedLocation && (
-              <div className="flex items-center gap-3 w-full animate-in slide-in-from-bottom">
-                <div className="flex-1 bg-cyber-panel/90 backdrop-blur-xl rounded-[2rem] p-4 flex items-center justify-between border border-white/5 shadow-glass pointer-events-auto">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full border-4 border-cyber-cyan/30 border-t-cyber-cyan animate-spin flex-shrink-0 relative">
-                      <div className="absolute inset-0 m-auto w-8 h-8 rounded-full bg-cyber-cyan/20 blur-[4px]"></div>
-                    </div>
-                    <div>
-                      <p className="text-white font-black text-lg leading-tight">{t("Ready to Ride")}</p>
-                      <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">MI SCOOTER 4 PRO</p>
-                    </div>
-                  </div>
-                  <div className="text-right bg-transparent border-none outline-none ring-0 focus:ring-0">
-                    <p className="text-cyber-cyan font-black text-xl drop-shadow-[0_0_10px_rgba(64,255,220,0.8)] leading-tight bg-transparent border-none outline-none">
-                      {isRiding ? (currentMetrics?.speed || 0) : '24.5'}
-                    </p>
-                    <p className="text-gray-500 text-[9px] font-bold uppercase tracking-widest bg-transparent border-none outline-none">EST. KM RANGE</p>
-                  </div>
+            {/* Compact Ready Status Badge (Shrunk from large card) */}
+            {!isRiding && !selectedLocation && navStep === 'idle' && (
+              <div className="flex justify-center animate-in slide-in-from-bottom duration-500">
+                <div className="bg-cyber-panel/90 backdrop-blur-xl rounded-full py-1.5 px-4 flex items-center gap-3 border border-white/10 shadow-glass pointer-events-auto">
+                   <div className="flex items-center gap-2">
+                     <div className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse shadow-neon-cyan" />
+                     <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{t("Ready to Ride")}</span>
+                   </div>
+                   <div className="h-3 w-[1px] bg-white/20" />
+                   <div className="flex items-center gap-1.5">
+                     <span className="text-xs font-black text-white italic">24.5</span>
+                     <span className="text-[8px] font-bold text-gray-500 uppercase">km</span>
+                   </div>
                 </div>
               </div>
             )}
@@ -724,23 +714,25 @@ function App() {
                     toast('📍 안전 주행을 위해 목적지(주차 구역)를 선택해 주세요.', 'info');
                   }}
                   disabled={isHardwareSyncing || navStep !== 'idle'}
-                  className="pointer-events-auto flex-[3] bg-cyber-cyan text-black h-16 rounded-[2rem] font-black text-lg shadow-neon-cyan flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
+                  className="pointer-events-auto flex-[3] bg-cyber-cyan text-black h-14 rounded-2xl font-black text-lg shadow-neon-cyan flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
                 >
                   {isHardwareSyncing ? (
                     <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
                   ) : (
                     <>
-                      <Play size={24} className="fill-black" />
-                      {navStep === 'idle' ? t("START RIDE") : "목적지 선택 중..."}
+                      <Play size={20} className="fill-black" />
+                      <span className="tracking-tighter">
+                        {navStep === 'idle' ? t("START RIDE") : "목적지 선택 중..."}
+                      </span>
                     </>
                   )}
                 </button>
 
                 <button
                   onClick={() => setIsParkingOpen(true)}
-                  className="pointer-events-auto flex-[1] bg-cyber-panel/80 backdrop-blur-xl h-16 rounded-[2rem] flex items-center justify-center border border-white/10 active:scale-95 transition-all text-white hover:bg-white/10 shadow-glass text-xl font-bold"
+                  className="pointer-events-auto flex-[1] bg-cyber-panel/80 backdrop-blur-xl h-14 rounded-2xl flex items-center justify-center border border-white/10 active:scale-95 transition-all text-white shadow-glass"
                 >
-                  <Camera size={24} className="text-cyber-green" />
+                  <Camera size={22} className="text-cyber-green" />
                 </button>
               </div>
             )}
