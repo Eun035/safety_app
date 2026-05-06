@@ -288,9 +288,9 @@ const MapContainer = ({
                         : 'none'
                 }}
             >
-                {/* --- 상단 네비게이션 가이드 패널 --- */}
+                {/* --- 상단 네비게이션 가이드 패널 (중앙 정렬로 변경하여 아이콘 겹침 방지) --- */}
                 {navStep !== 'idle' && (
-                    <div className="absolute top-6 left-4 right-4 z-50 animate-in slide-in-from-top-4 pointer-events-auto">
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[calc(100%-120px)] max-w-md z-50 animate-in slide-in-from-top-4 pointer-events-auto">
                         <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-white font-black flex items-center gap-2">
