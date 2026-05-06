@@ -502,8 +502,16 @@ function App() {
         {/* Phase 9 & 11: Real-time Cyber Telemetry */}
         {isRiding && (
           <div className="absolute top-28 left-1/2 -translate-x-1/2 z-[100] w-[95%] max-w-md flex flex-col gap-2 animate-in slide-in-from-top duration-500">
+            {/* Live Status Indicator */}
+            <div className="flex justify-center mb-1">
+              <div className="bg-cyber-cyan/20 backdrop-blur-md py-1.5 px-4 rounded-full border border-cyber-cyan/30 flex items-center gap-2 shadow-[0_0_15px_rgba(64,255,220,0.2)]">
+                <div className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse shadow-neon-cyan"></div>
+                <span className="text-[10px] font-black text-cyber-cyan tracking-widest uppercase">Live Riding</span>
+              </div>
+            </div>
+
             {/* Speed & Mileage Dashboard */}
-            <div className="bg-gray-900/95 backdrop-blur-lg text-white p-5 rounded-[32px] shadow-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-gray-900/90 backdrop-blur-xl text-white p-5 rounded-[32px] shadow-2xl border border-white/10 flex items-center justify-between">
               <div className="flex flex-col items-center">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Speed</span>
                 <span className="text-4xl font-black italic tracking-tighter">{currentMetrics.speed}</span>
@@ -536,18 +544,23 @@ function App() {
               </div>
             </div>
 
-            {/* End Ride Button */}
+            {/* End Ride Button (Refined Style) */}
             <button
               onClick={() => {
                 speak(''); // TTS 권한 강제 획득 (운행 종료 시 음성 지원)
                 setIsParkingOpen(true);
               }}
               disabled={isHardwareSyncing}
-              className="w-full bg-white text-black h-14 rounded-2xl font-black shadow-xl active:scale-95 transition-transform border-4 border-black/5 disabled:opacity-50 flex items-center justify-center"
+              className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 h-14 rounded-2xl font-black shadow-xl active:scale-95 transition-all border border-red-500/30 disabled:opacity-50 flex items-center justify-center backdrop-blur-md"
             >
               {isHardwareSyncing ? (
-                <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-              ) : "운행 종료"}
+                <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div>
+                  <span>주행 종료 및 주차 인증</span>
+                </div>
+              )}
             </button>
           </div>
         )}
