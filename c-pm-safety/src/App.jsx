@@ -229,72 +229,59 @@ function App() {
     setShowInstallBtn(false);
   };
 
-  // Phase 45: Real-time Coordinate & Path Bridge
+  // Phase 45 & 46: 실시간 경로 추적 및 효율적인 안전 모니터링
   const lastLocationRef = React.useRef(null);
+  const lastAlertTimeRef = React.useRef(0);
+
   useEffect(() => {
-    if (isRiding && location?.lat && location?.lng) {
-      let distanceDelta = 0;
-      if (lastLocationRef.current) {
-        distanceDelta = calculateDistance(
-          lastLocationRef.current.lat, 
-          lastLocationRef.current.lng, 
-          location.lat, 
-          location.lng
-        );
-      }
-      
-      // Update global ride state (Path tracking included)
-      updateMetrics(distanceDelta, location.speed || 0, false, location);
-      lastLocationRef.current = location;
-    } else if (!isRiding) {
+    if (!isRiding || !location?.lat) {
       lastLocationRef.current = null;
-    }
-  }, [isRiding, location]);
-
-  // 야간/날씨 등 위험 감지 시 음성 경고
-  useEffect(() => {
-    if (weatherRisk) {
-      speak("현재 노면이 매우 미끄럽습니다. 급가속과 급제동을 피하고 천천히 운행하세요.");
+      return;
     }
 
-    // Phase 9: 실시간 주행 품질 경고
-    if (isRiding && (currentMetrics?.stability || 100) < 40) {
-      speak("기기가 심하게 흔들립니다. 주행 안정도가 낮으니 서행하여 마일리지를 보호하세요.");
+    // --- 1. 경로 및 마일리지 추적 (기본 기능) ---
+    let distanceDelta = 0;
+    if (lastLocationRef.current) {
+      distanceDelta = calculateDistance(
+        lastLocationRef.current.lat, 
+        lastLocationRef.current.lng, 
+        location.lat, 
+        location.lng
+      );
     }
-  }, [weatherRisk, isRiding, currentMetrics?.stability, speak]);
+    updateMetrics(distanceDelta, location.speed || 0, false, location);
+    lastLocationRef.current = location;
 
-  // Phase Digital Twin: 실시간 위험도 계산 및 음성 안내 연동
-  useEffect(() => {
-    // 1. 노면 상태 결정 (Weather + Hazard context)
+    // --- 2. 물리 엔진 기반 안전 모니터링 (알람 기능) ---
     let surface = weatherRisk ? 'wet' : 'dry';
     if (activeHazard?.type === 'ICE') surface = 'ice';
     else if (activeHazard?.type === 'WET') surface = 'wet';
     else if (activeHazard?.type === 'TILE') surface = 'tile';
-
-    // 2. 경사도 결정 (Hazard context)
-    const incline = activeHazard?.type === 'SLOPE' ? 10 : 0;
-
-    // 3. 속도 결정
-    // GPS 속도가 있으면 우선 사용, 없으면 시뮬레이션 속도 사용
-    const speed = (isRiding && location?.speed > 0) ? location.speed : (isRiding ? 20 : simSpeed);
-
-    // 4. 반응 시간 결정 (히스토리 데이터 반영)
+    
+    const speed = location?.speed || 0;
     const reactionTime = historyMetrics?.avgReactionTime || 1.0;
-
-    const result = calculateStopDistance(speed, incline, reactionTime, surface);
+    const result = calculateStopDistance(speed, activeHazard?.type === 'SLOPE' ? 10 : 0, reactionTime, surface);
+    
     setDigitalTwinData({
       ...result,
       speed,
-      incline,
+      incline: activeHazard?.type === 'SLOPE' ? 10 : 0,
       surface,
       reactionTime
     });
 
-    // 위험/경고 시 속도 감속 안내 (사용자 요청 사항)
-    if (isRiding && (result.riskLevel === 'danger' || result.riskLevel === 'warning')) {
-      speak("위험 상황입니다. 속도를 줄이고 안전거리를 확보해 주세요.");
+    // --- 3. 알람 임계치 체크 및 음성 안내 ---
+    const now = Date.now();
+    if (now - lastAlertTimeRef.current < 5000) return; // 5초 쿨타임
+
+    if (speed > rideConfig.speedLimit) {
+      speak(`과속입니다! 현재 ${Math.round(speed)}km입니다. 속도를 줄이세요.`);
+      lastAlertTimeRef.current = now;
+    } else if (result.riskLevel === 'danger') {
+      speak(`위험! 제동 거리가 ${Math.round(result.totalDist)}미터입니다. 감속하세요.`);
+      lastAlertTimeRef.current = now;
     }
-  }, [weatherRisk, activeHazard, isRiding, currentMetrics?.speed, simSpeed, speak, historyMetrics]);
+  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, speak, historyMetrics, updateMetrics]);
 
   const [showLangMenu, setShowLangMenu] = useState(false);
 
