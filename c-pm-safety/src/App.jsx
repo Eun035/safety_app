@@ -440,8 +440,6 @@ function App() {
     setIsStationRewardOpen(true);
   };
 
-  const [isMapReady, setIsMapReady] = useState(false);
-
   const handleCameraConfirm = async (photoData) => {
     if (cameraAction === 'start') {
       if (!photoData) {
