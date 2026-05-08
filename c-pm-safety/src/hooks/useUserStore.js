@@ -65,7 +65,7 @@ export const useUserStore = create((set, get) => ({
                 set({ profile: data });
             }
         } catch (error) {
-            console.error('Error fetching profile:', error);
+            console.warn('[C-Safe] Profile fetch failed, using local guest profile:', error.message);
             // Fallback: Create a local temporary profile if DB is unreachable
             set({ 
                 profile: {
@@ -84,25 +84,41 @@ export const useUserStore = create((set, get) => ({
         try {
             set({ isLoading: true });
             const { data, error } = await supabase.auth.signInAnonymously();
+            
             if (error) throw error;
-
             set({ user: data.user });
 
-            // 익명 프로필 생성
-            const { data: newProfile, error: profileError } = await supabase
-                .from('profiles')
-                .upsert({
-                    id: data.user.id,
-                    nickname: '천안안전라이더_' + Math.floor(Math.random() * 1000),
-                    safety_score: 100,
-                    points: 0,
-                    total_distance: 0
-                })
-                .select()
-                .single();
+            // 익명 프로필 생성 시도 (보안 정책 등으로 실패할 수 있음)
+            try {
+                const { data: newProfile, error: profileError } = await supabase
+                    .from('profiles')
+                    .upsert({
+                        id: data.user.id,
+                        nickname: '천안안전라이더_' + Math.floor(Math.random() * 1000),
+                        safety_score: 100,
+                        points: 0,
+                        total_distance: 0
+                    })
+                    .select()
+                    .single();
 
-            if (profileError) throw profileError;
-            set({ profile: newProfile });
+                if (profileError) {
+                    console.warn('[C-Safe] Profile creation failed (DB Permission), using guest mode.');
+                    throw profileError; // 내부 catch에서 처리
+                }
+                set({ profile: newProfile });
+            } catch (pError) {
+                // DB 권한 문제(403, 406 등) 발생 시 게스트 프로필 강제 설정
+                set({
+                    profile: {
+                        id: data.user.id,
+                        nickname: '게스트라이더_' + data.user.id.substring(0, 4),
+                        points: 0,
+                        safety_score: 100,
+                        total_distance: 0
+                    }
+                });
+            }
 
         } catch (error) {
             console.error('Error signing in anonymously:', error);
