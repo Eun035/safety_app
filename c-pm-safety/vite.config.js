@@ -59,13 +59,22 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    target: 'es2020',
+    target: 'esnext',
     minify: 'terser',
+    cssCodeSplit: true, // CSS 코드 분할 활성화
+    sourcemap: false,
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
       },
-    }
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'framer-motion', 'lucide-react'],
+        },
+      },
+    },
   }
 })

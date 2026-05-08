@@ -24,16 +24,19 @@
 :root {
   font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
   background-color: #0a1118;
-  /* Cyberpunk Dark Teal Background */
   color: #e2e8f0;
-  /* Default Text Color */
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+html, body {
   margin: 0;
-  display: block;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0a1118;
+  overflow-x: hidden;
 }
 
 #root {
