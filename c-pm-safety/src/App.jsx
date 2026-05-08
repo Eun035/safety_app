@@ -152,6 +152,14 @@ function App() {
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
+  const [showSplash, setShowSplash] = useState(true);
+  const [cameraAction, setCameraAction] = useState(null);
+  const [rideSummaryPhoto, setRideSummaryPhoto] = useState(null);
+  const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
+  const [qrScanMode, setQrScanMode] = useState('station');
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [panToLocation, setPanToLocation] = useState(null);
+
   // 🚀 최적화: 무한 루프 방지를 위한 콜백 안정화
   const handleMapReady = React.useCallback(() => {
     setIsMapReady(true);
@@ -160,6 +168,18 @@ function App() {
   const handleSplashComplete = React.useCallback(() => {
     setShowSplash(false);
   }, []);
+
+  // Phase 20: Emergency Splash Timeout (Fail-Safe)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (showSplash) {
+        console.warn("[C-Safe] Emergency Splash Exit triggered.");
+        setShowSplash(false);
+        useUserStore.setState({ isLoading: false });
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showSplash]);
 
   // Supabase Auth Init (익명 로그인 처리, 온보딩과 무관하게 최초 1회)
   useEffect(() => {
@@ -371,33 +391,7 @@ function App() {
     toast("🎁 보관 완료! 천안사랑카드 500P 적립", 'success');
   };
 
-  // Phase 20: Splash Screen state management
-  const [showSplash, setShowSplash] = useState(true);
 
-  // Phase 26: Pocket App Camera Modal State
-  const [cameraAction, setCameraAction] = useState(null);
-  const [rideSummaryPhoto, setRideSummaryPhoto] = useState(null);
-  const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
-
-  // Phase 26: QR Scanner Mode (station | helmet)
-  const [qrScanMode, setQrScanMode] = useState('station');
-
-  // Phase 26: Favorite Stations State
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
-  const [panToLocation, setPanToLocation] = useState(null);
-
-  // Phase 20: Emergency Splash Timeout (Fail-Safe for Black Screen)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (showSplash) {
-        console.warn("[C-Safe] Emergency Splash Exit triggered.");
-        setShowSplash(false);
-        // authLoading이 걸려있을 경우를 대비해 스토어 상태도 강제 해제
-        useUserStore.setState({ isLoading: false });
-      }
-    }, 5000); // 5초 후 강제 진입
-    return () => clearTimeout(timer);
-  }, [showSplash]);
 
   const handleParkingComplete = (photoUrl) => {
     setIsParkingOpen(false);
