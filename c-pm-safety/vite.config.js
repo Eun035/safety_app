@@ -52,6 +52,9 @@ export default defineConfig({
       }
     })
   ],
+  optimizeDeps: {
+    include: ['lucide-react', 'react-kakao-maps-sdk', 'framer-motion']
+  },
   server: {
     port: 8888,
     strictPort: true,
