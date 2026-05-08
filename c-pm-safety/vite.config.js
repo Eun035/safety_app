@@ -64,7 +64,7 @@ export default defineConfig({
     outDir: 'dist',
     target: 'esnext',
     minify: 'terser',
-    cssCodeSplit: true, // CSS 코드 분할 활성화
+    cssCodeSplit: false, // CSS 유실 방지를 위해 코드 분할 비활성화
     sourcemap: false,
     terserOptions: {
       compress: {

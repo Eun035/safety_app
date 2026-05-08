@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@source "../src";
 
 @theme {
   --color-cyber-bg: #0a1118;
