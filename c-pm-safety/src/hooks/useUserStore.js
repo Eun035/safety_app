@@ -23,63 +23,72 @@ export const useUserStore = create((set, get) => ({
             }
         } catch (error) {
             console.error('Error loading user session:', error);
+            // 세션 로드 실패 시에도 앱이 멈추지 않도록 에러만 기록
             set({ error: error.message });
         } finally {
             set({ isLoading: false });
         }
     },
 
-    // 프로필 데이터 Fetch (mockUserProfile 대체)
+    // 프로필 데이터 Fetch (에러 발생 시 게스트 모드 자동 전환)
     fetchProfile: async (userId) => {
         try {
-            const { data, error } = await supabase
+            if (!userId) return;
+
+            // maybeSingle()을 사용하여 데이터가 없거나 권한이 없어도 에러를 던지지 않게 함
+            const { data, error, status } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
-                .single();
+                .maybeSingle();
 
-            if (error) {
-                if (error.code === 'PGRST116') {
-                    // Profile doesn't exist yet, create one
-                    const { data: newProfile, error: insertError } = await supabase
-                        .from('profiles')
-                        .upsert({
-                            id: userId,
-                            nickname: '라이더_' + Math.floor(Math.random() * 1000),
-                            safety_score: 100,
-                            points: 0,
-                            total_distance: 0
-                        })
-                        .select()
-                        .single();
-                        
-                    if (!insertError && newProfile) {
-                        set({ profile: newProfile });
-                        return;
+            // 406(Not Acceptable) 또는 403(Forbidden) 등 API 접근 거부 시 게스트 모드
+            if (error || status === 406 || status === 403) {
+                console.warn(`[C-Safe] Profile fetch restricted (Status: ${status}). Using Guest Mode.`);
+                set({ 
+                    profile: {
+                        id: userId,
+                        nickname: '안전 주행자',
+                        points: 1000,
+                        safety_score: 100,
+                        total_distance: 0,
+                        is_guest: true
                     }
-                }
-                throw error;
+                });
+                return;
             }
 
             if (data) {
                 set({ profile: data });
+            } else {
+                // 데이터가 없는 경우 (최초 가입 등)
+                set({ 
+                    profile: {
+                        id: userId,
+                        nickname: '신규 라이더',
+                        points: 0,
+                        safety_score: 100,
+                        total_distance: 0,
+                        is_guest: false
+                    }
+                });
             }
         } catch (error) {
-            console.warn('[C-Safe] Profile fetch failed, using local guest profile:', error.message);
-            // Fallback: Create a local temporary profile if DB is unreachable
+            console.warn('[C-Safe] Critical profile fetch error, switching to Guest Fallback:', error.message);
             set({ 
                 profile: {
-                    id: userId || 'temp_id',
-                    nickname: '임시라이더_' + Math.floor(Math.random() * 100),
-                    points: 1000,
-                    safety_score: 95,
-                    total_distance: 0
+                    id: userId || 'guest_id',
+                    nickname: '게스트',
+                    points: 0,
+                    safety_score: 90,
+                    total_distance: 0,
+                    is_guest: true
                 }
             });
         }
     },
 
-    // (간단한 데모용) 익명 로그인
+    // 익명 로그인
     signInAnonymously: async () => {
         try {
             set({ isLoading: true });
@@ -88,7 +97,7 @@ export const useUserStore = create((set, get) => ({
             if (error) throw error;
             set({ user: data.user });
 
-            // 익명 프로필 생성 시도 (보안 정책 등으로 실패할 수 있음)
+            // 프로필 생성 시도 (RLS 정책에 따라 차단될 수 있음)
             try {
                 const { data: newProfile, error: profileError } = await supabase
                     .from('profiles')
@@ -100,47 +109,46 @@ export const useUserStore = create((set, get) => ({
                         total_distance: 0
                     })
                     .select()
-                    .single();
+                    .maybeSingle();
 
-                if (profileError) {
-                    console.warn('[C-Safe] Profile creation failed (DB Permission), using guest mode.');
-                    throw profileError; // 내부 catch에서 처리
+                if (profileError) throw profileError;
+                
+                if (newProfile) {
+                    set({ profile: newProfile });
+                } else {
+                    throw new Error("No profile created");
                 }
-                set({ profile: newProfile });
             } catch (pError) {
-                // DB 권한 문제(403, 406 등) 발생 시 게스트 프로필 강제 설정
+                console.warn('[C-Safe] DB Profile creation blocked, using local profile instead.');
                 set({
                     profile: {
                         id: data.user.id,
                         nickname: '게스트라이더_' + data.user.id.substring(0, 4),
                         points: 0,
                         safety_score: 100,
-                        total_distance: 0
+                        total_distance: 0,
+                        is_guest: true
                     }
                 });
             }
 
         } catch (error) {
             console.error('Error signing in anonymously:', error);
-            set({ error: error.message });
             
-            // Critical Debug Fix: If Supabase Auth is disabled (422), fallback to LocalGuest Mode
-            if (error.status === 422 || error.message.includes('signup')) {
-                console.warn('[C-Safe] Supabase Auth disabled. Switching to Local Guest Mode.');
-                const guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
-                const guestUser = { id: guestId, is_guest: true };
-                set({ 
-                    user: guestUser,
-                    profile: {
-                        id: guestId,
-                        nickname: '게스트라이더',
-                        points: 0,
-                        safety_score: 100,
-                        total_distance: 0
-                    },
-                    isLoading: false
-                });
-            }
+            // Supabase Auth 설정이 안 되어 있을 경우 (422 등) 로컬 게스트 모드로 강제 진입
+            const guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
+            set({ 
+                user: { id: guestId, is_guest: true },
+                profile: {
+                    id: guestId,
+                    nickname: '로컬게스트',
+                    points: 0,
+                    safety_score: 100,
+                    total_distance: 0,
+                    is_guest: true
+                },
+                isLoading: false
+            });
         } finally {
             set({ isLoading: false });
         }

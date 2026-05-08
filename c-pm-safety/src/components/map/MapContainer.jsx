@@ -384,60 +384,17 @@ const MapContainer = ({
                 </div>
             )}
 
+            {/* Map Layer (With Filter) */}
             <div 
-                className="relative w-full h-full z-10 transition-all duration-1000 ease-in-out"
+                className="absolute inset-0 z-0 transition-all duration-1000 ease-in-out"
                 style={{
                     filter: rideConfig?.isNightMode
                         ? 'invert(90%) hue-rotate(190deg) brightness(95%) contrast(105%)'
                         : 'none',
-                    // GPU 가속 강제
                     WebkitTransform: 'translateZ(0)',
-                    transform: 'translateZ(0)',
-                    willChange: 'filter'
+                    transform: 'translateZ(0)'
                 }}
             >
-                {/* --- 상단 네비게이션 가이드 패널 --- */}
-                {navStep !== 'idle' && (
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[calc(100%-120px)] max-w-md z-50 animate-in slide-in-from-top-4 pointer-events-auto">
-                        <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-white font-black flex items-center gap-2">
-                                    <Navigation size={18} className="text-cyber-cyan" />
-                                    {navStep === 'select_origin' && '출발지를 지도에서 선택하세요 (1/2)'}
-                                    {navStep === 'select_destination' && '목적지를 지도에서 선택하세요 (2/2)'}
-                                    {navStep === 'route_ready' && '안전 경로 탐색 완료!'}
-                                </h3>
-                                <button onClick={() => { setNavStep('idle'); setRouteOrigin(null); setRouteDestination(null); }} className="text-gray-400 hover:text-white p-1">
-                                    <X size={20} />
-                                </button>
-                            </div>
-
-                            <div className="flex flex-col gap-2 mt-3">
-                                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/20' : 'border-white/10 bg-white/10'}`}>
-                                    <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-gray-600 animate-pulse'}`} />
-                                    <span className={`text-sm font-bold ${routeOrigin ? 'text-white' : 'text-gray-300'}`}>
-                                        {routeOrigin ? routeOrigin.title : (navStep === 'select_origin' ? '지도 위 마커(대여소 등)를 터치하세요' : '대기 중...')}
-                                    </span>
-                                </div>
-                                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_destination' ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/10'}`}>
-                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600'}`} />
-                                    <span className={`text-sm font-bold ${routeDestination ? 'text-white' : 'text-gray-300'}`}>
-                                        {routeDestination ? routeDestination.title : (navStep === 'select_destination' ? '목적지 마커를 터치하세요' : '대기 중...')}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {navStep === 'route_ready' && (
-                                <button
-                                    onClick={() => typeof onRouteReady === 'function' && onRouteReady()}
-                                    className="mt-4 w-full py-3 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                                >
-                                    이 길로 Choose Vibe & 주행 시작
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
                 <Map
                     center={mapCenter}
                     level={4}
@@ -481,18 +438,16 @@ const MapContainer = ({
                         </CustomOverlayMap>
                     )}
 
-                    {/* Phase 45: Current Ride Path & Grid Visualization (Memoized) */}
                     {ridingPath}
                     {safetyGridOverlay}
 
-                    {/* --- Parking & Station Markers (Optimized) --- */}
                     {!showHeatmap && (
                         <MarkerClusterer
                             averageCenter={true}
                             minLevel={6}
                             disableClickZoom={false}
-                            gridSize={100} // 격자 크기를 키워 더 넓은 범위로 묶음
-                            minClusterSize={2} // 2개 이상일 때만 묶음
+                            gridSize={100}
+                            minClusterSize={2}
                             styles={[{
                                 width: '53px', height: '52px',
                                 background: 'rgba(64, 255, 220, 0.9)',
@@ -589,7 +544,6 @@ const MapContainer = ({
                         </CustomOverlayMap>
                     ))}
 
-                    {/* ⚠️ Danger Zones: visible only when showHeatmap is active */}
                     {showHeatmap && accidentData.map((acc) => {
                         const isSelected = selectedDangerZone?.id === acc.id;
                         const color = acc.intensity === 'HIGH' ? '#ef4444' : acc.intensity === 'MEDIUM' ? '#f87171' : '#fca5a5';
@@ -605,7 +559,6 @@ const MapContainer = ({
                                     fillOpacity={isSelected ? 0.45 : 0.3}
                                     onClick={() => setSelectedDangerZone(isSelected ? null : acc)}
                                 />
-                                {/* Small badge label */}
                                 {!isSelected && (
                                     <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={0.5} zIndex={20}>
                                         <div
@@ -617,7 +570,6 @@ const MapContainer = ({
                                         </div>
                                     </CustomOverlayMap>
                                 )}
-                                {/* Inline info card on click */}
                                 {isSelected && (
                                     <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={1.15} zIndex={50}>
                                         <div
@@ -645,49 +597,62 @@ const MapContainer = ({
                 </Map>
             </div>
 
-            {/* Fab Group (Right Bottom) - Repositioned for cleaner layout */}
-            <div className="absolute bottom-[160px] right-4 flex flex-col gap-3 z-[100] items-center">
-                <button
-                    onClick={handleShareApp}
-                    className="w-10 h-10 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all"
-                    title="공유하기"
-                >
-                    <Share2 size={18} />
-                </button>
-                <button
-                    onClick={() => setShowPMs(prev => !prev)}
-                    className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${showHeatmap ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
-                        }`}
-                    title="기기 보기"
-                >
-                    <Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} />
-                </button>
+            {/* UI Layer (Above Map, No Filter) */}
+            <div className="absolute inset-0 z-10 pointer-events-none">
+                {/* --- 상단 네비게이션 가이드 패널 --- */}
+                {navStep !== 'idle' && (
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-md z-50 animate-in slide-in-from-top-4 pointer-events-auto">
+                        <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-white font-black flex items-center gap-2">
+                                    <Navigation size={18} className="text-cyber-cyan" />
+                                    {navStep === 'select_origin' && '출발지를 선택하세요 (1/2)'}
+                                    {navStep === 'select_destination' && '목적지를 선택하세요 (2/2)'}
+                                    {navStep === 'route_ready' && '안전 경로 탐색 완료!'}
+                                </h3>
+                                <button onClick={() => { setNavStep('idle'); setRouteOrigin(null); setRouteDestination(null); }} className="text-gray-400 hover:text-white p-1">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <div className="flex flex-col gap-2 mt-3">
+                                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/20' : 'border-white/10 bg-white/10'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-gray-600 animate-pulse'}`} />
+                                    <span className={`text-sm font-bold ${routeOrigin ? 'text-white' : 'text-gray-300'}`}>{routeOrigin ? routeOrigin.title : '출발지 선택 중...'}</span>
+                                </div>
+                                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_destination' ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/10'}`}>
+                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600'}`} />
+                                    <span className={`text-sm font-bold ${routeDestination ? 'text-white' : 'text-gray-300'}`}>{routeDestination ? routeDestination.title : '목적지 선택 중...'}</span>
+                                </div>
+                            </div>
+                            {navStep === 'route_ready' && (
+                                <button onClick={onRouteReady} className="mt-4 w-full py-3 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-lg">주행 시작</button>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                <div className="h-[1px] w-6 bg-white/10 my-1" />
-
-                <button
-                    onClick={locateMe}
-                    className={`w-12 h-12 rounded-2xl shadow-neon-blue flex items-center justify-center active:scale-90 transition-all border-2 ${isFollowMode ? 'bg-blue-500 text-white border-white' : 'bg-gray-900/90 text-blue-400 border-blue-500/30'
-                        }`}
-                    title="현재 위치"
-                >
-                    <LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} />
-                </button>
-            </div>
-
-            <div className="flex justify-center flex-col absolute bottom-0 w-full z-10 pointer-events-none pb-24 px-4">
-                <div className="w-full max-w-lg mx-auto pointer-events-auto">
-                    <InfoCard
-                        location={selectedLocation}
-                        onClose={() => setSelectedLocation(null)}
-                        onSetOrigin={() => {
-                            setRouteOrigin(selectedLocation);
-                            setNavStep('select_destination');
-                            setSelectedLocation(null);
-                            toast('🏁 출발지가 설정되었습니다. 이제 마커를 눌러 목적지를 선택하세요.', 'success');
-                        }}
-                    />
+                {/* Fab Group */}
+                <div className="absolute bottom-36 right-4 flex flex-col gap-3 pointer-events-auto">
+                    <button onClick={handleShareApp} className="w-10 h-10 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all"><Share2 size={18} /></button>
+                    <button onClick={() => setShowPMs(prev => !prev)} className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${showPMs ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'}`}><Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} /></button>
+                    <div className="h-[1px] w-6 bg-white/10 mx-auto" />
+                    <button onClick={locateMe} className={`w-12 h-12 rounded-2xl shadow-neon-blue flex items-center justify-center active:scale-90 transition-all border-2 ${isFollowMode ? 'bg-blue-500 text-white border-white' : 'bg-gray-900/90 text-blue-400 border-blue-500/30'}`}><LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} /></button>
                 </div>
+
+                {/* Info Card */}
+                <div className="absolute bottom-6 w-full px-4 pointer-events-auto">
+                    <div className="max-w-lg mx-auto">
+                        <InfoCard
+                            location={selectedLocation}
+                            onClose={() => setSelectedLocation(null)}
+                            onSetOrigin={() => {
+                                setRouteOrigin(selectedLocation);
+                                setNavStep('select_destination');
+                                setSelectedLocation(null);
+                                toast('🏁 출발지가 설정되었습니다. 목적지를 선택하세요.', 'success');
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

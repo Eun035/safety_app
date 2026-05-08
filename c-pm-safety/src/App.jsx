@@ -173,6 +173,19 @@ function App() {
       loadHistory(finalUser?.id); // 주행 기록 기반 지표 로드
     };
     initAuth();
+
+    // 🚀 Fail-safe: 지도가 8초 안에 로드되지 않으면 강제로 진입 허용 (카카오맵 API 오류 대비)
+    const mapTimeout = setTimeout(() => {
+      setIsMapReady(prev => {
+        if (!prev) {
+          console.warn("[C-Safe] Map initialization timeout. Forcing entry.");
+          return true;
+        }
+        return prev;
+      });
+    }, 8000);
+
+    return () => clearTimeout(mapTimeout);
   }, []);
 
   useEffect(() => {
