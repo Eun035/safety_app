@@ -18,19 +18,24 @@ export const useRideSession = create((set, get) => ({
     currentPath: [], // 실시간 주행 경로 [{lat, lng, ts}]
 
     fetchRideHistory: async (userId) => {
-        if (!userId) return;
+        if (!userId) return [];
         try {
-            const { data, error } = await supabase
+            const { data, error, status } = await supabase
                 .from('rides')
                 .select('*')
                 .eq('user_id', userId)
                 .order('start_time', { ascending: false });
             
-            if (error) throw error;
+            // 403, 406 등 권한 오류 시 에러를 던지지 않고 빈 배열 반환 (게스트 모드 지원)
+            if (error || status === 406 || status === 403) {
+                console.warn(`[C-Safe] Ride history access restricted (Status: ${status}). Falling back to local.`);
+                return [];
+            }
+            
             set({ rideHistory: data || [] });
-            return data;
+            return data || [];
         } catch (error) {
-            console.error('[C-Safe] Ride History Fetch 실패:', error);
+            console.error('[C-Safe] Ride History Fetch 오류 (안전하게 건너뜀):', error);
             return [];
         }
     },
@@ -198,9 +203,14 @@ export const useRideSession = create((set, get) => ({
                 // 만약 rpc가 없다면 일반 update 시도
                 if (profileError) {
                     console.warn('[C-Safe] RPC increment_user_stats 실패, 일반 update 시도');
-                    // 현재 점수를 가져와서 더하는 방식 (동시성 이슈 가능성 있으나 데모용으로 허용)
-                    const { data: profile } = await supabase.from('profiles').select('points, total_distance').eq('id', userId).single();
-                    if (profile) {
+                    // 현재 점수를 가져와서 더하는 방식 (maybeSingle 사용으로 406 방지)
+                    const { data: profile, error: fetchError } = await supabase
+                        .from('profiles')
+                        .select('points, total_distance')
+                        .eq('id', userId)
+                        .maybeSingle();
+
+                    if (!fetchError && profile) {
                         await supabase.from('profiles').update({
                             points: (profile.points || 0) + earnedPoints,
                             total_distance: (profile.total_distance || 0) + finalDistance
