@@ -153,6 +153,44 @@ const MapContainer = ({
         );
     }, [isRiding, currentPath]);
 
+    // 🚀 최적화: 대용량 주차 마커를 메모이제이션하여 렌더링 성능 극대화
+    const [currentLevel, setCurrentLevel] = useState(3);
+
+    const memoizedParkingMarkers = useMemo(() => {
+        if (showHeatmap) return null;
+        // 지도가 너무 멀리 있을 때는 상세 마커를 그리지 않아 성능 확보 (클러스터만 작동)
+        if (currentLevel > 4) return null;
+
+        return pmParkings.map((station, idx) => (
+            <MapMarker
+                key={`parking-${idx}`}
+                position={{ lat: station.lat, lng: station.lng }}
+                image={{
+                    src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                    size: { width: 24, height: 35 }
+                }}
+                onClick={() => {
+                    if (navStep === 'select_destination') {
+                        setRouteDestination({
+                            title: station.locationName || '주차 구역',
+                            lat: station.lat,
+                            lng: station.lng
+                        });
+                        setNavStep('route_ready');
+                        toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                    }
+                }}
+            >
+                {/* 줌 레벨이 아주 낮을 때만 이름을 표시하여 렌더링 부하 최소화 */}
+                {currentLevel <= 3 && (
+                    <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
+                        {station.locationName}
+                    </div>
+                )}
+            </MapMarker>
+        ));
+    }, [pmParkings, showHeatmap, navStep, setNavStep, setRouteDestination, currentLevel]);
+
     const findNearestPM = () => {
         if (!userLocation || tagoPms.length === 0) {
             speak("현재 위치를 찾을 수 없거나 주변에 킥보드가 없습니다.");
@@ -368,6 +406,7 @@ const MapContainer = ({
                     style={{ width: '100%', height: '100%' }}
                     ref={mapRef}
                     onDragStart={handleDragStart}
+                    onZoomChanged={(map) => setCurrentLevel(map.getLevel())}
                     onCreate={setMap}
                     onClick={() => setHighlightedStationId(null)}
                 >
@@ -384,37 +423,27 @@ const MapContainer = ({
                     {ridingPath}
                     {safetyGridOverlay}
 
-                    {/* --- Parking & Station Markers (Restored) --- */}
+                    {/* --- Parking & Station Markers (Optimized) --- */}
                     {!showHeatmap && (
                         <MarkerClusterer
                             averageCenter={true}
                             minLevel={6}
+                            disableClickZoom={false}
+                            gridSize={100} // 격자 크기를 키워 더 넓은 범위로 묶음
+                            minClusterSize={2} // 2개 이상일 때만 묶음
+                            styles={[{
+                                width: '53px', height: '52px',
+                                background: 'rgba(64, 255, 220, 0.9)',
+                                borderRadius: '26px',
+                                color: '#000',
+                                textAlign: 'center',
+                                fontWeight: 'bold',
+                                lineHeight: '54px',
+                                border: '2px solid #fff',
+                                boxShadow: '0 0 15px rgba(64, 255, 220, 0.5)'
+                            }]}
                         >
-                            {pmParkings.map((station, idx) => (
-                                <MapMarker
-                                    key={`parking-${idx}`}
-                                    position={{ lat: station.lat, lng: station.lng }}
-                                    image={{
-                                        src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                        size: { width: 24, height: 35 }
-                                    }}
-                                    onClick={() => {
-                                        if (navStep === 'select_destination') {
-                                            setRouteDestination({
-                                                title: station.locationName || '주차 구역',
-                                                lat: station.lat,
-                                                lng: station.lng
-                                            });
-                                            setNavStep('route_ready');
-                                            toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
-                                        }
-                                    }}
-                                >
-                                    <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
-                                        {station.locationName}
-                                    </div>
-                                </MapMarker>
-                            ))}
+                            {memoizedParkingMarkers}
                         </MarkerClusterer>
                     )}
 
