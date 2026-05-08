@@ -72,12 +72,5 @@ export default defineConfig({
         drop_debugger: true,
       },
     },
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'framer-motion', 'lucide-react'],
-        },
-      },
-    },
   }
 })
