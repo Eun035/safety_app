@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap } from 'react-kakao-maps-sdk';
+import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap, MarkerClusterer } from 'react-kakao-maps-sdk';
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
 import InfoCard from './InfoCard';
 import { AlertTriangle, MapPin, Navigation, Info, ShieldAlert, Zap, LocateFixed, Share2, X } from 'lucide-react';
@@ -13,14 +13,14 @@ import { useRideSession } from '../../hooks/useRideSession';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from '../../hooks/useToast';
 
-const MapContainer = ({ 
-    data, 
-    tagoPms = [], 
-    showHeatmap, 
-    selectedLocation, 
-    setSelectedLocation, 
-    onStationClick, 
-    rideConfig, 
+const MapContainer = ({
+    data,
+    tagoPms = [],
+    showHeatmap,
+    selectedLocation,
+    setSelectedLocation,
+    onStationClick,
+    rideConfig,
     onRouteReady,
     // Lifted Props
     navStep,
@@ -97,7 +97,7 @@ const MapContainer = ({
                     .from('safety_grid_scores')
                     .select('*')
                     .gt('safe_pass_count', 0);
-                
+
                 if (error) throw error;
                 setSafetyGridScores(scores || []);
             } catch (err) {
@@ -111,7 +111,7 @@ const MapContainer = ({
         };
 
         fetchSafetyScores();
-        
+
         const channel = supabase
             .channel('safety_updates')
             .on('postgres_changes', { event: 'INSERT', table: 'safety_grid_scores', schema: 'public' }, fetchSafetyScores)
@@ -236,7 +236,7 @@ const MapContainer = ({
 
     const handleMarkerClick = (location) => {
         if (showHeatmap) return;
-        
+
         // 탐색 모드 (Navigation Mode) 중일 때의 동작
         if (navStep === 'select_origin') {
             setRouteOrigin(location);
@@ -248,7 +248,7 @@ const MapContainer = ({
         if (navStep === 'select_destination') {
             // 사용자 요청: 헬멧 스테이션, PM 주차장을 최우선으로 지정
             const isSafeZone = location.type === 'parking' || location.type === 'PM_STATION' || location.id?.startsWith('pm-');
-            
+
             if (!isSafeZone) {
                 speak("안전한 주차와 리워드 혜택을 위해 주차장이나 헬멧 스테이션을 목적지로 선택해 주세요.");
                 toast('⚠️ 안전 주행을 위해 지정된 주차 구역을 목적지로 선택해 주세요!', 'warning');
@@ -308,11 +308,11 @@ const MapContainer = ({
 
     return (
         <div className={`relative w-full h-full transition-all duration-700 ${rideConfig?.isNightMode ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
-            <div 
+            <div
                 className="w-full h-full transition-all duration-1000 ease-in-out"
                 style={{
-                    filter: rideConfig?.isNightMode 
-                        ? 'invert(90%) hue-rotate(190deg) brightness(95%) contrast(105%)' 
+                    filter: rideConfig?.isNightMode
+                        ? 'invert(90%) hue-rotate(190deg) brightness(95%) contrast(105%)'
                         : 'none',
                     // GPU 가속 강제
                     WebkitTransform: 'translateZ(0)',
@@ -352,7 +352,7 @@ const MapContainer = ({
                             </div>
 
                             {navStep === 'route_ready' && (
-                                <button 
+                                <button
                                     onClick={() => typeof onRouteReady === 'function' && onRouteReady()}
                                     className="mt-4 w-full py-3 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                                 >
@@ -385,31 +385,38 @@ const MapContainer = ({
                     {safetyGridOverlay}
 
                     {/* --- Parking & Station Markers (Restored) --- */}
-                    {!showHeatmap && pmParkings.map((station) => (
-                        <MapMarker
-                            key={`parking-${station.id}`}
-                            position={{ lat: station.lat, lng: station.lng }}
-                            image={{
-                                src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                                size: { width: 24, height: 35 }
-                            }}
-                            onClick={() => {
-                                if (navStep === 'select_destination') {
-                                    setRouteDestination({
-                                        title: station.name || '주차 구역',
-                                        lat: station.lat,
-                                        lng: station.lng
-                                    });
-                                    setNavStep('route_ready');
-                                    toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
-                                }
-                            }}
+                    {!showHeatmap && (
+                        <MarkerClusterer
+                            averageCenter={true}
+                            minLevel={6}
                         >
-                            <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
-                                {station.name}
-                            </div>
-                        </MapMarker>
-                    ))}
+                            {pmParkings.map((station, idx) => (
+                                <MapMarker
+                                    key={`parking-${idx}`}
+                                    position={{ lat: station.lat, lng: station.lng }}
+                                    image={{
+                                        src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                                        size: { width: 24, height: 35 }
+                                    }}
+                                    onClick={() => {
+                                        if (navStep === 'select_destination') {
+                                            setRouteDestination({
+                                                title: station.locationName || '주차 구역',
+                                                lat: station.lat,
+                                                lng: station.lng
+                                            });
+                                            setNavStep('route_ready');
+                                            toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                                        }
+                                    }}
+                                >
+                                    <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
+                                        {station.locationName}
+                                    </div>
+                                </MapMarker>
+                            ))}
+                        </MarkerClusterer>
+                    )}
 
                     {!showHeatmap && Array.isArray(data) && data.filter(loc => loc.type !== 'available_pm').map((loc) => (
                         <MapMarker
@@ -459,8 +466,8 @@ const MapContainer = ({
                                         if (onStationClick) onStationClick(station);
                                     }}
                                     className={`flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative ${isHighlighted
-                                            ? 'scale-125 animate-bounce shadow-[0_0_30px_#f97316] z-50 rounded-full'
-                                            : 'w-10 h-10 bg-[#1e1410]/90 border border-orange-500 rounded-full hover:scale-110 shadow-lg'
+                                        ? 'scale-125 animate-bounce shadow-[0_0_30px_#f97316] z-50 rounded-full'
+                                        : 'w-10 h-10 bg-[#1e1410]/90 border border-orange-500 rounded-full hover:scale-110 shadow-lg'
                                         }`}
                                 >
                                     {isHighlighted ? (
@@ -549,30 +556,28 @@ const MapContainer = ({
 
             {/* Fab Group (Right Bottom) - Repositioned for cleaner layout */}
             <div className="absolute bottom-[160px] right-4 flex flex-col gap-3 z-[100] items-center">
-                <button 
-                    onClick={handleShareApp} 
+                <button
+                    onClick={handleShareApp}
                     className="w-10 h-10 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all"
                     title="공유하기"
                 >
                     <Share2 size={18} />
                 </button>
-                <button 
-                    onClick={() => setShowPMs(prev => !prev)} 
-                    className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${
-                        showHeatmap ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
-                    }`}
+                <button
+                    onClick={() => setShowPMs(prev => !prev)}
+                    className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${showHeatmap ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
+                        }`}
                     title="기기 보기"
                 >
                     <Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} />
                 </button>
-                
+
                 <div className="h-[1px] w-6 bg-white/10 my-1" />
 
-                <button 
-                    onClick={locateMe} 
-                    className={`w-12 h-12 rounded-2xl shadow-neon-blue flex items-center justify-center active:scale-90 transition-all border-2 ${
-                        isFollowMode ? 'bg-blue-500 text-white border-white' : 'bg-gray-900/90 text-blue-400 border-blue-500/30'
-                    }`}
+                <button
+                    onClick={locateMe}
+                    className={`w-12 h-12 rounded-2xl shadow-neon-blue flex items-center justify-center active:scale-90 transition-all border-2 ${isFollowMode ? 'bg-blue-500 text-white border-white' : 'bg-gray-900/90 text-blue-400 border-blue-500/30'
+                        }`}
                     title="현재 위치"
                 >
                     <LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} />
@@ -581,9 +586,9 @@ const MapContainer = ({
 
             <div className="flex justify-center flex-col absolute bottom-0 w-full z-10 pointer-events-none pb-24 px-4">
                 <div className="w-full max-w-lg mx-auto pointer-events-auto">
-                    <InfoCard 
-                        location={selectedLocation} 
-                        onClose={() => setSelectedLocation(null)} 
+                    <InfoCard
+                        location={selectedLocation}
+                        onClose={() => setSelectedLocation(null)}
                         onSetOrigin={() => {
                             setRouteOrigin(selectedLocation);
                             setNavStep('select_destination');

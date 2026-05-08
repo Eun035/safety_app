@@ -37,6 +37,7 @@ import { useRideSession } from './hooks/useRideSession';
 import { useSafetyGrid } from './hooks/useSafetyGrid';
 import StationRewardModal from './components/common/StationRewardModal';
 import DropAndGoModal from './components/common/DropAndGoModal';
+import StationUnlockScreen from './components/common/StationUnlockScreen';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
@@ -119,6 +120,7 @@ function App() {
   const [finalRideSummary, setFinalRideSummary] = useState(null);
   const [isDropAndGoOpen, setIsDropAndGoOpen] = useState(false);
   const [selectedDropStation, setSelectedDropStation] = useState(null);
+  const [isStationUnlockOpen, setIsStationUnlockOpen] = useState(false);
 
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
@@ -486,6 +488,17 @@ function App() {
           }} />
         )}
 
+        {/* Phase Station: Unlock & Sterilization Screen */}
+        {isStationUnlockOpen && (
+          <StationUnlockScreen 
+            onClose={() => setIsStationUnlockOpen(false)} 
+            onUnlockComplete={() => {
+              setIsStationUnlockOpen(false);
+              toast("🔓 스테이션 잠금이 해제되었습니다. 주행을 시작하세요!", "success");
+            }}
+          />
+        )}
+
         {/* Phase 26: Real-time Hazard Alert Overlay */}
         <HazardAlertOverlay activeHazard={activeHazard} />
 
@@ -616,6 +629,13 @@ function App() {
                 title="온보딩 리셋"
               >
                 <RefreshCw size={14} />
+              </button>
+              <button
+                onClick={() => setIsStationUnlockOpen(true)}
+                className="w-10 h-10 bg-blue-600/80 backdrop-blur-md rounded-xl border border-blue-400/30 flex items-center justify-center text-white"
+                title="스테이션 언락 테스트"
+              >
+                <Unlock size={18} />
               </button>
             </div>
           )}
