@@ -150,6 +150,16 @@ function App() {
   // Phase 26: PWA Manual Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+
+  // 🚀 최적화: 무한 루프 방지를 위한 콜백 안정화
+  const handleMapReady = React.useCallback(() => {
+    setIsMapReady(true);
+  }, []);
+
+  const handleSplashComplete = React.useCallback(() => {
+    setShowSplash(false);
+  }, []);
 
   // Supabase Auth Init (익명 로그인 처리, 온보딩과 무관하게 최초 1회)
   useEffect(() => {
@@ -448,7 +458,7 @@ function App() {
       {showSplash && (
         <SplashScreen 
           isDataLoading={mapLoading || authLoading || !isMapReady} 
-          onComplete={() => setShowSplash(false)} 
+          onComplete={handleSplashComplete} 
         />
       )}
 
@@ -699,7 +709,7 @@ function App() {
                 speak("목적지 설정이 완료되었습니다. 안전 주행을 위해 헬멧을 인증해 주세요.");
                 setCameraAction('start');
               }}
-              onMapReady={() => setIsMapReady(true)}
+              onMapReady={handleMapReady}
               // Lifted Props
               navStep={navStep}
               setNavStep={setNavStep}

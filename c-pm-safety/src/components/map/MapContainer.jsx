@@ -160,7 +160,7 @@ const MapContainer = ({
     const boundsTimeoutRef = useRef(null);
 
     // 지도를 움직이는 동안에는 계산을 멈추고, 멈췄을 때만 마커를 갱신
-    const updateBoundsDebounced = (map) => {
+    const updateBoundsDebounced = React.useCallback((map) => {
         if (boundsTimeoutRef.current) clearTimeout(boundsTimeoutRef.current);
         boundsTimeoutRef.current = setTimeout(() => {
             const bounds = map.getBounds();
@@ -171,7 +171,7 @@ const MapContainer = ({
                 ne: { lat: ne.getLat(), lng: ne.getLng() }
             });
         }, 150);
-    };
+    }, []);
 
     const memoizedParkingMarkers = useMemo(() => {
         if (showHeatmap) return null;
@@ -373,6 +373,8 @@ const MapContainer = ({
         );
     }
 
+    const hasNotifiedReady = useRef(false);
+
     return (
         <div className="relative w-full h-full bg-[#0a1118] overflow-hidden">
             {/* Map Placeholder / Skeleton */}
@@ -458,12 +460,15 @@ const MapContainer = ({
                             ne: { lat: ne.getLat(), lng: ne.getLng() }
                         });
                         
-                        // 🚀 최적화: 지도가 실제로 그려질 시간을 확보한 뒤 스플래시 종료 신호 전송
-                        setTimeout(() => {
-                            if (typeof onMapReady === 'function') {
-                                onMapReady();
-                            }
-                        }, 800);
+                        // 🚀 최적화: 무한 루프 방지를 위해 최초 1회만 신호 전송
+                        if (!hasNotifiedReady.current) {
+                            setTimeout(() => {
+                                if (typeof onMapReady === 'function') {
+                                    onMapReady();
+                                    hasNotifiedReady.current = true;
+                                }
+                            }, 1000);
+                        }
                     }}
                     onClick={() => setHighlightedStationId(null)}
                 >
