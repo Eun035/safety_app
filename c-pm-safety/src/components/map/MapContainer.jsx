@@ -153,15 +153,29 @@ const MapContainer = ({
         );
     }, [isRiding, currentPath]);
 
-    // 🚀 최적화: 대용량 주차 마커를 메모이제이션하여 렌더링 성능 극대화
+    // 🚀 최적화: 가시 영역 필터링 (Viewport Filtering)
     const [currentLevel, setCurrentLevel] = useState(3);
+    const [mapBounds, setMapBounds] = useState(null);
 
     const memoizedParkingMarkers = useMemo(() => {
         if (showHeatmap) return null;
-        // 지도가 너무 멀리 있을 때는 상세 마커를 그리지 않아 성능 확보 (클러스터만 작동)
-        if (currentLevel > 4) return null;
+        
+        // 지도가 너무 멀리 있을 때는 클러스터러가 처리하도록 마커 렌더링을 제한하거나 
+        // 화면에 보이는 마커만 필터링하여 렌더링 부하를 줄임
+        let visibleParkings = pmParkings;
+        
+        if (mapBounds) {
+            visibleParkings = pmParkings.filter(p => 
+                p.lat >= mapBounds.sw.lat && p.lat <= mapBounds.ne.lat &&
+                p.lng >= mapBounds.sw.lng && p.lng <= mapBounds.ne.lng
+            );
+        }
 
-        return pmParkings.map((station, idx) => (
+        // 성능을 위해 한 번에 최대 150개까지만 마커로 렌더링 (그 이상은 클러스터가 처리)
+        const displayLimit = currentLevel <= 4 ? 150 : 0;
+        const targetParkings = visibleParkings.slice(0, displayLimit);
+
+        return targetParkings.map((station, idx) => (
             <MapMarker
                 key={`parking-${idx}`}
                 position={{ lat: station.lat, lng: station.lng }}
@@ -181,7 +195,6 @@ const MapContainer = ({
                     }
                 }}
             >
-                {/* 줌 레벨이 아주 낮을 때만 이름을 표시하여 렌더링 부하 최소화 */}
                 {currentLevel <= 3 && (
                     <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
                         {station.locationName}
@@ -189,7 +202,7 @@ const MapContainer = ({
                 )}
             </MapMarker>
         ));
-    }, [pmParkings, showHeatmap, navStep, setNavStep, setRouteDestination, currentLevel]);
+    }, [pmParkings, showHeatmap, navStep, setNavStep, setRouteDestination, currentLevel, mapBounds]);
 
     const findNearestPM = () => {
         if (!userLocation || tagoPms.length === 0) {
@@ -407,7 +420,26 @@ const MapContainer = ({
                     ref={mapRef}
                     onDragStart={handleDragStart}
                     onZoomChanged={(map) => setCurrentLevel(map.getLevel())}
-                    onCreate={setMap}
+                    onBoundsChanged={(map) => {
+                        const bounds = map.getBounds();
+                        const sw = bounds.getSouthWest();
+                        const ne = bounds.getNorthEast();
+                        setMapBounds({
+                            sw: { lat: sw.getLat(), lng: sw.getLng() },
+                            ne: { lat: ne.getLat(), lng: ne.getLng() }
+                        });
+                    }}
+                    onCreate={(map) => {
+                        setMap(map);
+                        // 초기 바운즈 설정
+                        const bounds = map.getBounds();
+                        const sw = bounds.getSouthWest();
+                        const ne = bounds.getNorthEast();
+                        setMapBounds({
+                            sw: { lat: sw.getLat(), lng: sw.getLng() },
+                            ne: { lat: ne.getLat(), lng: ne.getLng() }
+                        });
+                    }}
                     onClick={() => setHighlightedStationId(null)}
                 >
                     {userLocation && (
