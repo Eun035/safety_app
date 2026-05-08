@@ -22,6 +22,7 @@ const MapContainer = ({
     onStationClick,
     rideConfig,
     onRouteReady,
+    onMapReady, // New: Signal when map is truly ready to show
     // Lifted Props
     navStep,
     setNavStep,
@@ -439,6 +440,13 @@ const MapContainer = ({
                             sw: { lat: sw.getLat(), lng: sw.getLng() },
                             ne: { lat: ne.getLat(), lng: ne.getLng() }
                         });
+                        
+                        // 🚀 최적화: 지도가 실제로 그려질 시간을 확보한 뒤 스플래시 종료 신호 전송
+                        setTimeout(() => {
+                            if (typeof onMapReady === 'function') {
+                                onMapReady();
+                            }
+                        }, 800);
                     }}
                     onClick={() => setHighlightedStationId(null)}
                 >

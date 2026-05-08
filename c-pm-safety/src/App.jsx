@@ -417,6 +417,8 @@ function App() {
     setIsStationRewardOpen(true);
   };
 
+  const [isMapReady, setIsMapReady] = useState(false);
+
   const handleCameraConfirm = async (photoData) => {
     if (cameraAction === 'start') {
       if (!photoData) {
@@ -431,10 +433,6 @@ function App() {
     setCameraAction(null);
   };
 
-  if (showSplash) {
-    return <SplashScreen isDataLoading={mapLoading || authLoading} onComplete={() => setShowSplash(false)} />;
-  }
-
   if (!hasSelectedLanguage) {
     return <LanguageSelectorScreen onComplete={() => {
       speak('');
@@ -445,6 +443,15 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastContainer />
+      
+      {/* Phase Transition: Splash Screen Overlay */}
+      {showSplash && (
+        <SplashScreen 
+          isDataLoading={mapLoading || authLoading || !isMapReady} 
+          onComplete={() => setShowSplash(false)} 
+        />
+      )}
+
       {/* Global Cyberpunk Chill Background */}
       <div
         className="h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-colors duration-1000"
@@ -692,6 +699,7 @@ function App() {
                 speak("목적지 설정이 완료되었습니다. 안전 주행을 위해 헬멧을 인증해 주세요.");
                 setCameraAction('start');
               }}
+              onMapReady={() => setIsMapReady(true)}
               // Lifted Props
               navStep={navStep}
               setNavStep={setNavStep}
