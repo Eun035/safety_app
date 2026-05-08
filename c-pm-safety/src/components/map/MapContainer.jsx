@@ -157,6 +157,21 @@ const MapContainer = ({
     // 🚀 최적화: 가시 영역 필터링 (Viewport Filtering)
     const [currentLevel, setCurrentLevel] = useState(3);
     const [mapBounds, setMapBounds] = useState(null);
+    const boundsTimeoutRef = useRef(null);
+
+    // 지도를 움직이는 동안에는 계산을 멈추고, 멈췄을 때만 마커를 갱신
+    const updateBoundsDebounced = (map) => {
+        if (boundsTimeoutRef.current) clearTimeout(boundsTimeoutRef.current);
+        boundsTimeoutRef.current = setTimeout(() => {
+            const bounds = map.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            setMapBounds({
+                sw: { lat: sw.getLat(), lng: sw.getLng() },
+                ne: { lat: ne.getLat(), lng: ne.getLng() }
+            });
+        }, 150);
+    };
 
     const memoizedParkingMarkers = useMemo(() => {
         if (showHeatmap) return null;
@@ -359,9 +374,16 @@ const MapContainer = ({
     }
 
     return (
-        <div className={`relative w-full h-full transition-all duration-700 ${rideConfig?.isNightMode ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
-            <div
-                className="w-full h-full transition-all duration-1000 ease-in-out"
+        <div className="relative w-full h-full bg-[#0a1118] overflow-hidden">
+            {/* Map Placeholder / Skeleton */}
+            {!map && (
+                <div className="absolute inset-0 bg-[#0a1118] z-0 flex items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-cyber-cyan/20 border-t-cyber-cyan rounded-full animate-spin"></div>
+                </div>
+            )}
+
+            <div 
+                className="relative w-full h-full z-10 transition-all duration-1000 ease-in-out"
                 style={{
                     filter: rideConfig?.isNightMode
                         ? 'invert(90%) hue-rotate(190deg) brightness(95%) contrast(105%)'
@@ -372,7 +394,7 @@ const MapContainer = ({
                     willChange: 'filter'
                 }}
             >
-                {/* --- 상단 네비게이션 가이드 패널 (중앙 정렬로 변경하여 아이콘 겹침 방지) --- */}
+                {/* --- 상단 네비게이션 가이드 패널 --- */}
                 {navStep !== 'idle' && (
                     <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[calc(100%-120px)] max-w-md z-50 animate-in slide-in-from-top-4 pointer-events-auto">
                         <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl">
@@ -420,16 +442,11 @@ const MapContainer = ({
                     style={{ width: '100%', height: '100%' }}
                     ref={mapRef}
                     onDragStart={handleDragStart}
-                    onZoomChanged={(map) => setCurrentLevel(map.getLevel())}
-                    onBoundsChanged={(map) => {
-                        const bounds = map.getBounds();
-                        const sw = bounds.getSouthWest();
-                        const ne = bounds.getNorthEast();
-                        setMapBounds({
-                            sw: { lat: sw.getLat(), lng: sw.getLng() },
-                            ne: { lat: ne.getLat(), lng: ne.getLng() }
-                        });
+                    onZoomChanged={(map) => {
+                        setCurrentLevel(map.getLevel());
+                        updateBoundsDebounced(map);
                     }}
+                    onBoundsChanged={updateBoundsDebounced}
                     onCreate={(map) => {
                         setMap(map);
                         // 초기 바운즈 설정
@@ -665,6 +682,7 @@ const MapContainer = ({
                             toast('🏁 출발지가 설정되었습니다. 이제 마커를 눌러 목적지를 선택하세요.', 'success');
                         }}
                     />
+                </div>
                 </div>
             </div>
         </div>
