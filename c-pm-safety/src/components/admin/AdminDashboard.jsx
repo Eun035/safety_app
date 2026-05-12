@@ -17,7 +17,11 @@ const AdminDashboard = ({ onClose }) => {
     avgSafetyScore: 0
   });
   const [recentRides, setRecentRides] = useState([]);
+  const [hazards, setHazards] = useState([]);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedType, setSelectedType] = useState('ALL');
+
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -57,7 +61,14 @@ const AdminDashboard = ({ onClose }) => {
         
         setRecentRides(rides || []);
 
+        // 3. Fetch All Hazards for Map
+        const { data: hazardsData } = await supabase
+          .from('hazards')
+          .select('*');
+        setHazards(hazardsData || []);
+
       } catch (error) {
+
         console.error('[C-Safe Admin] Error fetching data:', error);
       } finally {
         setIsLoading(false);
@@ -176,9 +187,13 @@ const AdminDashboard = ({ onClose }) => {
                 {stats.totalHazards}
               </div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Current active reports</p>
-              <button className="w-full bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+              <button 
+                onClick={() => setIsMapOpen(true)}
+                className="w-full bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+              >
                 Map Analysis
               </button>
+
             </div>
 
             <div className="bg-gray-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8">
@@ -202,13 +217,131 @@ const AdminDashboard = ({ onClose }) => {
         </div>
       </div>
 
+
+      {/* 🗺️ Hazard Map Overlay */}
+      {isMapOpen && (
+        <div className="fixed inset-0 z-[2000] bg-black flex flex-col animate-in fade-in slide-in-from-bottom duration-500">
+          {/* Map Header */}
+          <div className="flex justify-between items-center px-6 py-4 border-b border-white/10 bg-gray-900/90 backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-black italic">Hazard Heatmap</h2>
+              <div className="flex gap-2">
+                {['ALL', 'SLOPE', 'PARKING', 'SCHOOL', 'CROSSING'].map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedType(type)}
+                    className={`px-3 py-1 rounded-full text-[10px] font-black border transition-all ${
+                      selectedType === type 
+                        ? 'bg-cyber-cyan text-black border-cyber-cyan' 
+                        : 'bg-white/5 text-gray-400 border-white/10'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsMapOpen(false)}
+              className="text-gray-400 hover:text-white font-black text-sm"
+            >
+              EXIT MAP
+            </button>
+          </div>
+
+          {/* Map Area */}
+          <div className="flex-1 relative bg-gray-800">
+            <div id="admin-hazard-map" className="w-full h-full"></div>
+            
+            {/* Map Overlay Stats */}
+            <div className="absolute top-6 left-6 z-10 bg-black/60 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+              <p className="text-[10px] font-black text-cyber-cyan uppercase tracking-widest mb-1">Displaying</p>
+              <p className="text-xl font-black italic">
+                {selectedType === 'ALL' ? hazards.length : hazards.filter(h => h.type === selectedType).length} Reports
+              </p>
+            </div>
+          </div>
+          
+          <AdminMapInitializer 
+            hazards={hazards} 
+            selectedType={selectedType} 
+          />
+        </div>
+      )}
+
       {isLoading && (
+
         <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-sm flex items-center justify-center">
           <div className="w-12 h-12 border-4 border-cyber-cyan border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
     </div>
   );
+};
+
+const AdminMapInitializer = ({ hazards, selectedType }) => {
+  useEffect(() => {
+    if (!window.kakao || !window.kakao.maps) return;
+
+    const container = document.getElementById('admin-hazard-map');
+    if (!container) return;
+
+    const options = {
+      center: new window.kakao.maps.LatLng(36.833, 127.179), // Default center (Cheonan)
+      level: 5
+    };
+
+    const map = new window.kakao.maps.Map(container, options);
+
+    // Filter hazards
+    const filteredHazards = selectedType === 'ALL' 
+      ? hazards 
+      : hazards.filter(h => h.type === selectedType);
+
+    // Add Markers
+    filteredHazards.forEach(hazard => {
+      const position = new window.kakao.maps.LatLng(hazard.lat, hazard.lng);
+      
+      // Marker Design based on type
+      const markerColor = hazard.type === 'SLOPE' ? '#f43f5e' : 
+                          hazard.type === 'PARKING' ? '#10b981' : 
+                          hazard.type === 'SCHOOL' ? '#f59e0b' : '#3b82f6';
+
+      const content = `
+        <div style="
+          padding: 5px 10px;
+          background: ${markerColor};
+          border-radius: 20px;
+          color: white;
+          font-size: 10px;
+          font-weight: 900;
+          box-shadow: 0 0 10px ${markerColor}66;
+          border: 2px solid white;
+          white-space: nowrap;
+        ">
+          ${hazard.type}
+        </div>
+      `;
+
+      const customOverlay = new window.kakao.maps.CustomOverlay({
+        position: position,
+        content: content,
+        yAnchor: 1
+      });
+
+      customOverlay.setMap(map);
+    });
+
+    // Auto-fit bounds if hazards exist
+    if (filteredHazards.length > 0) {
+      const bounds = new window.kakao.maps.LatLngBounds();
+      filteredHazards.forEach(h => bounds.extend(new window.kakao.maps.LatLng(h.lat, h.lng)));
+      map.setBounds(bounds);
+    }
+
+  }, [hazards, selectedType]);
+
+  return null;
 };
 
 export default AdminDashboard;

@@ -181,6 +181,77 @@ const ESGDashboard = ({ isOpen, onClose, metrics, history = [] }) => {
                         </div>
                     </section>
 
+                    {/* 3.5 Real-time Safety Trend Chart (New Engagement Feature) */}
+                    <section>
+                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6">
+                            <Activity size={14} className="text-cyber-cyan" /> Real-time Safety Performance
+                        </h3>
+                        <div className="bg-[#12161b] p-6 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Stability Trend</p>
+                                    <p className="text-xl font-black italic text-white italic">AI Core Analysis</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="flex items-center gap-1 text-emerald-400 font-black text-sm italic">
+                                        <TrendingUp size={14} /> +4.2%
+                                    </div>
+                                    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">vs Last Week</p>
+                                </div>
+                            </div>
+
+                            {/* SVG Trend Chart */}
+                            <div className="w-full h-32 relative">
+                                <svg viewBox="0 0 100 40" className="w-full h-full overflow-visible">
+                                    <defs>
+                                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stopColor="#40ffdc" stopOpacity="0.4" />
+                                            <stop offset="100%" stopColor="#40ffdc" stopOpacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    {/* Area */}
+                                    <path 
+                                        d="M0,40 L0,30 C15,28 25,35 40,25 S65,5 85,15 L100,10 L100,40 Z" 
+                                        fill="url(#chartGradient)" 
+                                        className="animate-in fade-in duration-1000"
+                                    />
+                                    {/* Line */}
+                                    <path 
+                                        d="M0,30 C15,28 25,35 40,25 S65,5 85,15 L100,10" 
+                                        fill="none" 
+                                        stroke="#40ffdc" 
+                                        strokeWidth="1.5" 
+                                        strokeLinecap="round"
+                                        strokeDasharray="200"
+                                        strokeDashoffset="0"
+                                        className="animate-chart-draw"
+                                    />
+                                    {/* Points */}
+                                    {[0, 20, 40, 60, 80, 100].map((x, i) => {
+                                        const y = [30, 28, 25, 12, 15, 10][i];
+                                        return (
+                                            <circle 
+                                                key={i} 
+                                                cx={x} cy={y} r="1" 
+                                                fill="#40ffdc" 
+                                                className="animate-pulse"
+                                                style={{ animationDelay: `${i * 200}ms` }}
+                                            />
+                                        );
+                                    })}
+                                </svg>
+                                
+                                {/* Labels */}
+                                <div className="flex justify-between mt-4 text-[8px] font-bold text-gray-600 uppercase tracking-widest">
+                                    <span>Mon</span>
+                                    <span>Wed</span>
+                                    <span>Fri</span>
+                                    <span>Sun</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* 4. Social Contribution Section */}
                     <section>
                         <div className="flex justify-between items-end mb-6">

@@ -4,6 +4,8 @@ import TargetedAdBanner from './TargetedAdBanner';
 import { toast } from '../../hooks/useToast';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0 }) => {
+
+
     const [currentTime, setCurrentTime] = useState("");
 
     useEffect(() => {
@@ -152,6 +154,8 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
 
                     {/* Ride Memories */}
                     <div className="mb-8">
+
+
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-black text-white">Ride Memories</h3>
                             <span className="text-[10px] font-bold text-cyber-cyan tracking-widest uppercase">4 Photos</span>

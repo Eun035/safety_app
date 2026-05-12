@@ -32,7 +32,9 @@ const MapContainer = ({
     setRouteDestination
 }) => {
     const mapRef = useRef(null);
+    const hasNotifiedReady = useRef(false);
     const { speak } = useVoiceGuidance();
+
     const [map, setMap] = useState(null);
     const pmParkings = usePMParkingData();
     const [pmStations, setPmStations] = useState([]);
@@ -54,11 +56,14 @@ const MapContainer = ({
         });
     }, [tagoPms, rideConfig?.brandFilters]);
 
-    // 1. 카카오맵 SDK 로딩
-    const [loading, error] = useKakaoLoader({
+    // 1. 카카오맵 SDK 로딩 (설정 객체 메모이제이션으로 무한 루프 방지)
+    const loaderConfig = useMemo(() => ({
         appkey: import.meta.env.VITE_KAKAO_API_KEY || '40e6d1b5e849c283027335cbba22bf32',
         libraries: ['services', 'clusterer', 'drawing'],
-    });
+    }), []);
+
+    const [loading, error] = useKakaoLoader(loaderConfig);
+
 
     const { location: userLocation, error: geoError, isTracking, startTracking } = useGeolocation();
 
@@ -192,32 +197,56 @@ const MapContainer = ({
         const targetParkings = visibleParkings.slice(0, displayLimit);
 
         return targetParkings.map((station, idx) => (
-            <MapMarker
+            <CustomOverlayMap
                 key={`parking-${idx}`}
                 position={{ lat: station.lat, lng: station.lng }}
-                image={{
-                    src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                    size: { width: 24, height: 35 }
-                }}
-                onClick={() => {
-                    if (navStep === 'select_destination') {
-                        setRouteDestination({
-                            title: station.locationName || '주차 구역',
-                            lat: station.lat,
-                            lng: station.lng
-                        });
-                        setNavStep('route_ready');
-                        toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
-                    }
-                }}
+                yAnchor={1}
+                zIndex={10}
             >
-                {currentLevel <= 3 && (
-                    <div className="p-1 bg-cyber-panel/90 text-white text-[10px] rounded border border-white/10 font-bold whitespace-nowrap">
-                        {station.locationName}
+                <div 
+                    onClick={() => {
+                        // 🚀 목적지 선택 모드일 때 클릭 시 목적지로 설정
+                        if (navStep === 'select_destination') {
+                            setRouteDestination({
+                                title: station.locationName || '주차 구역',
+                                lat: station.lat,
+                                lng: station.lng,
+                                type: 'parking'
+                            });
+                            setNavStep('route_ready');
+                            speak(`${station.locationName || '주차 구역'}이 목적지로 설정되었습니다.`);
+                            toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                        } else {
+                            // 일반 모드에서는 정보 표시
+                            setSelectedLocation({
+                                title: station.locationName || '주차 구역',
+                                desc: '안전 주차 및 리워드 적립이 가능한 구역입니다.',
+                                lat: station.lat,
+                                lng: station.lng,
+                                type: 'parking'
+                            });
+                            speak(`${station.locationName || '주차 구역'}입니다. 안전 주차 구역입니다.`);
+                        }
+                    }}
+                    className="group cursor-pointer flex flex-col items-center transition-all duration-300 hover:scale-110"
+                >
+                    {/* 주차장 명칭 툴팁 (확대 시 표시) */}
+                    {currentLevel <= 3 && (
+                        <div className="mb-1 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap shadow-xl">
+                            <p className="text-[9px] font-black text-white">{station.locationName}</p>
+                        </div>
+                    )}
+                    
+                    {/* P 아이콘 배지 */}
+                    <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.5)] border border-white/50 relative">
+                        <span className="font-black text-xs text-white">P</span>
+                        {/* 말꼬리 디자인 */}
+                        <div className="absolute -bottom-1.5 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-blue-500"></div>
                     </div>
-                )}
-            </MapMarker>
+                </div>
+            </CustomOverlayMap>
         ));
+
     }, [pmParkings, showHeatmap, navStep, setNavStep, setRouteDestination, currentLevel, mapBounds]);
 
     const findNearestPM = () => {
@@ -373,9 +402,9 @@ const MapContainer = ({
         );
     }
 
-    const hasNotifiedReady = useRef(false);
 
     return (
+
         <div className="relative w-full h-full bg-[#0a1118] overflow-hidden">
             {/* Map Placeholder / Skeleton */}
             {!map && (
@@ -406,16 +435,11 @@ const MapContainer = ({
                         updateBoundsDebounced(map);
                     }}
                     onBoundsChanged={updateBoundsDebounced}
-                    onCreate={(map) => {
-                        setMap(map);
-                        // 초기 바운즈 설정
-                        const bounds = map.getBounds();
-                        const sw = bounds.getSouthWest();
-                        const ne = bounds.getNorthEast();
-                        setMapBounds({
-                            sw: { lat: sw.getLat(), lng: sw.getLng() },
-                            ne: { lat: ne.getLat(), lng: ne.getLng() }
-                        });
+                    onCreate={(mapInstance) => {
+                        // 🚀 최적화: 이미 설정된 경우 중복 호출 방지
+                        if (!map) {
+                            setMap(mapInstance);
+                        }
                         
                         // 🚀 최적화: 무한 루프 방지를 위해 최초 1회만 신호 전송
                         if (!hasNotifiedReady.current) {
@@ -428,6 +452,7 @@ const MapContainer = ({
                         }
                     }}
                     onClick={() => setHighlightedStationId(null)}
+
                 >
                     {userLocation && (
                         <CustomOverlayMap position={userLocation} yAnchor={0.5} zIndex={10}>
@@ -625,8 +650,33 @@ const MapContainer = ({
                                 </div>
                             </div>
                             {navStep === 'route_ready' && (
-                                <button onClick={onRouteReady} className="mt-4 w-full py-3 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-lg">주행 시작</button>
+                                <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl p-3">
+                                            <p className="text-[10px] font-black text-cyber-cyan uppercase tracking-widest mb-1">Safety Index</p>
+                                            <p className="text-lg font-black text-white italic">98% <span className="text-[10px] not-italic text-gray-400">Stable</span></p>
+                                        </div>
+                                        <div className="bg-cyber-green/10 border border-cyber-green/30 rounded-xl p-3">
+                                            <p className="text-[10px] font-black text-cyber-green uppercase tracking-widest mb-1">Eco Saving</p>
+                                            <p className="text-lg font-black text-white italic">0.4 <span className="text-[10px] not-italic text-gray-400">kg CO2</span></p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-3">
+                                        <div className="p-2 bg-amber-500/20 rounded-lg shrink-0">
+                                            <AlertTriangle size={14} className="text-amber-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-0.5">Route Caution</p>
+                                            <p className="text-[11px] text-gray-300 font-bold leading-tight">경로 상에 급경사 구간이 1곳 포함되어 있습니다. 브레이크 점검 후 출발하세요.</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={onRouteReady} className="w-full py-4 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-neon-green flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                                        <Zap size={16} className="fill-black" />
+                                        Start Safe Ride
+                                    </button>
+                                </div>
                             )}
+
                         </div>
                     </div>
                 )}

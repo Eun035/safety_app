@@ -24,17 +24,22 @@ export const useGeolocation = (options = {}) => {
                     setError(null);
                 },
                 (err) => {
-                    // 모바일에서 HTTPS가 아니면 권한 에러(code: 1) 발생
                     setError(err.message);
-                    setIsTracking(false);
-                    console.error("Geolocation Error:", err);
+                    
+                    // 권한 거부(Code 1)인 경우에만 트래킹 중단
+                    if (err.code === 1) {
+                        setIsTracking(false);
+                    }
+                    
+                    console.warn(`[C-Safe] Geolocation Error (Code ${err.code}):`, err.message);
                 },
                 {
-                    enableHighAccuracy: true, // GPS 정확도 최대
-                    timeout: 10000,
-                    maximumAge: 0, // 캐시된 위치정보 사용안함
+                    enableHighAccuracy: true,
+                    timeout: 15000, // 15초로 연장
+                    maximumAge: 5000, // 5초 이내의 캐시 데이터는 허용 (빠른 초기 응답)
                     ...options
                 }
+
             );
         }
 
@@ -43,7 +48,8 @@ export const useGeolocation = (options = {}) => {
                 navigator.geolocation.clearWatch(watchId);
             }
         };
-    }, [isTracking, options]);
+    }, [isTracking]); // options를 의존성에서 제거하여 무한 루프 방지
+
 
     const startTracking = () => setIsTracking(true);
     const stopTracking = () => setIsTracking(false);

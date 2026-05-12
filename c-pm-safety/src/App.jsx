@@ -4,8 +4,11 @@ import {
   Shield, Cloud, AlertTriangle, MapPin, Moon, Activity,
   Layers, Play, Camera, Navigation, Search, Star,
   Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
-  Database, User, Map as MapIcon, Sliders, Box, Wallet
+  Database, User, Map as MapIcon, Sliders, Box, Wallet,
+  Unlock, Leaf, X
 } from 'lucide-react';
+
+
 import ErrorBoundary from './components/common/ErrorBoundary';
 import MapContainer from './components/map/MapContainer';
 import SafetyQuiz from './components/quiz/SafetyQuiz';
@@ -41,6 +44,9 @@ import StationUnlockScreen from './components/common/StationUnlockScreen';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
+import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
+
+
 import pmParkingData from './data/pm_parking_data.json';
 import { calculateDistance } from './utils/distance';
 import { useUserStore } from './hooks/useUserStore';
@@ -159,6 +165,9 @@ function App() {
   const [qrScanMode, setQrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [panToLocation, setPanToLocation] = useState(null);
+
+
+
 
   // 🚀 최적화: 무한 루프 방지를 위한 콜백 안정화
   const handleMapReady = React.useCallback(() => {
@@ -646,6 +655,15 @@ function App() {
               >
                 <Unlock size={18} />
               </button>
+              <button
+                onClick={() => setIsESGDashboardOpen(true)}
+                className="w-10 h-10 bg-cyber-green/80 backdrop-blur-md rounded-xl border border-cyber-green/30 flex items-center justify-center text-white shadow-neon-green"
+                title="ESG 임팩트 대시보드"
+              >
+                <Leaf size={18} />
+              </button>
+
+
             </div>
           )}
           
@@ -668,8 +686,22 @@ function App() {
               <button
                 onClick={() => {
                   speak(''); // TTS 권한 획득 겸용
+                  // 🚀 복구: 주행 중이 아닐 때도 시뮬레이터를 볼 수 있도록 기본 데이터 세팅
+                  if (!isRiding && !digitalTwinData) {
+                    setDigitalTwinData({
+                      speed: 0,
+                      reactionDist: 0,
+                      brakingDist: 0,
+                      totalDist: 0,
+                      riskLevel: 'safe',
+                      mu: 0.7,
+                      incline: 0,
+                      reactionTime: 1.0
+                    });
+                  }
                   setIsDigitalTwinOpen(true);
                 }}
+
                 className={`bg-cyber-panel/80 backdrop-blur-lg py-2 px-5 rounded-full shadow-glass border transition-all duration-500 flex items-center gap-3 active:scale-95 outline-none ${
                   digitalTwinData?.riskLevel === 'danger' ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
                   digitalTwinData?.riskLevel === 'warning' ? 'border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.4)]' :
@@ -727,21 +759,8 @@ function App() {
           {/* Phase 11: Core Action Buttons (Neon Cyan & Zen Mode) */}
           <div className="absolute bottom-6 left-0 w-full px-6 flex flex-col gap-3 pointer-events-none z-[100]">
             {/* Compact Ready Status Badge (Shrunk from large card) */}
-            {!isRiding && !selectedLocation && navStep === 'idle' && (
-              <div className="flex justify-center animate-in slide-in-from-bottom duration-500">
-                <div className="bg-cyber-panel/90 backdrop-blur-xl rounded-full py-1.5 px-4 flex items-center gap-3 border border-white/10 shadow-glass pointer-events-auto">
-                   <div className="flex items-center gap-2">
-                     <div className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse shadow-neon-cyan" />
-                     <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{t("Ready to Ride")}</span>
-                   </div>
-                   <div className="h-3 w-[1px] bg-white/20" />
-                   <div className="flex items-center gap-1.5">
-                     <span className="text-xs font-black text-white italic">24.5</span>
-                     <span className="text-[8px] font-bold text-gray-500 uppercase">km</span>
-                   </div>
-                </div>
-              </div>
-            )}
+
+
 
             {!isRiding && !selectedLocation && (
               <div className="flex gap-3 mt-1 animate-in slide-in-from-bottom">
@@ -759,7 +778,7 @@ function App() {
                     toast('📍 안전 주행을 위해 목적지(주차 구역)를 선택해 주세요.', 'info');
                   }}
                   disabled={isHardwareSyncing || navStep !== 'idle'}
-                  className="pointer-events-auto flex-[3] bg-cyber-cyan text-black h-14 rounded-2xl font-black text-lg shadow-neon-cyan flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
+                  className="pointer-events-auto flex-1 bg-cyber-cyan text-black h-14 rounded-2xl font-black text-lg shadow-neon-cyan flex items-center justify-center gap-3 active:scale-95 transition-all disabled:opacity-50"
                 >
                   {isHardwareSyncing ? (
                     <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
@@ -772,15 +791,9 @@ function App() {
                     </>
                   )}
                 </button>
-
-                <button
-                  onClick={() => setIsParkingOpen(true)}
-                  className="pointer-events-auto flex-[1] bg-cyber-panel/80 backdrop-blur-xl h-14 rounded-2xl flex items-center justify-center border border-white/10 active:scale-95 transition-all text-white shadow-glass"
-                >
-                  <Camera size={22} className="text-cyber-green" />
-                </button>
               </div>
             )}
+
           </div>
         </main>
 
@@ -924,6 +937,8 @@ function App() {
             setIsFeedbackOpen(true);
           }}
         />
+
+
         <FeedbackReport
           isOpen={isFeedbackOpen}
           onClose={() => {
@@ -1083,8 +1098,13 @@ function App() {
         {isAdminDashboardOpen && (
           <AdminDashboard onClose={() => setIsAdminDashboardOpen(false)} />
         )}
+
+
+        <HardwareStatusOverlay isSyncing={isHardwareSyncing} isRiding={isRiding} />
+
       </div>
     </ErrorBoundary>
+
   );
 }
 
