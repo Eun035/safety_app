@@ -69,28 +69,6 @@ function App() {
 
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false); // New: FAB Menu State
-  // 🌋 보행자 스트레스 존 정의 (관리자 설정 데이터와 연동됨)
-  const STRESS_ZONES = [
-    { id: 's1', lat: 36.833, lng: 127.179, radius: 150, name: "단국대 정문 보행자 보호구역" },
-    { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" }
-  ];
-
-  // 실시간 위치 감시를 통한 스트레스 존 진입 감지
-  useEffect(() => {
-    if (isRiding && location) {
-      STRESS_ZONES.forEach(zone => {
-        const dist = Math.sqrt(
-          Math.pow(location.lat - zone.lat, 2) + Math.pow(location.lng - zone.lng, 2)
-        ) * 111000; // 대략적인 미터 계산
-
-        if (dist < zone.radius) {
-          // 중복 알림 방지를 위해 현재 zoneId를 상태로 관리 가능
-          speak(`${zone.name}에 진입했습니다. 보행자 보호를 위해 감속해 주세요.`);
-        }
-      });
-    }
-  }, [location, isRiding]);
-
   const [showStressLayer, setShowStressLayer] = useState(false);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isParkingOpen, setIsParkingOpen] = useState(false);
@@ -135,6 +113,27 @@ function App() {
     stability: 98 // Added missing stability property to prevent ReferenceError
   };
   const { speak } = useVoiceGuidance();
+
+  // 🌋 보행자 스트레스 존 정의 (관리자 설정 데이터와 연동됨)
+  const STRESS_ZONES = [
+    { id: 's1', lat: 36.833, lng: 127.179, radius: 150, name: "단국대 정문 보행자 보호구역" },
+    { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" }
+  ];
+
+  // 실시간 위치 감시를 통한 스트레스 존 진입 감지
+  useEffect(() => {
+    if (isRiding && location) {
+      STRESS_ZONES.forEach(zone => {
+        const dist = Math.sqrt(
+          Math.pow(location.lat - zone.lat, 2) + Math.pow(location.lng - zone.lng, 2)
+        ) * 111000; // 대략적인 미터 계산
+
+        if (dist < zone.radius) {
+          speak(`${zone.name}에 진입했습니다. 보행자 보호를 위해 감속해 주세요.`);
+        }
+      });
+    }
+  }, [location, isRiding, speak]);
 
   // Phase 9 & 11 & 16: Route Vibe Aesthetic Modals
   const [showEcoBadge, setShowEcoBadge] = useState(false);
