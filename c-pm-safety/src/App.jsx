@@ -183,15 +183,23 @@ function App() {
     setShowSplash(false);
   }, []);
 
+  // 🚀 개발 단계: 흐름 확인을 위해 매번 온보딩 초기화
+  useEffect(() => {
+    setHasAgreedDisclaimer(false);
+    setHasCompletedOnboarding(false);
+    console.log("[C-Safe] Forced Reset for Testing:", { showSplash, hasAgreedDisclaimer, hasCompletedOnboarding });
+  }, []);
+
   // Phase 20: Emergency Splash Timeout (Fail-Safe)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (showSplash) {
         console.warn("[C-Safe] Emergency Splash Exit triggered.");
         setShowSplash(false);
+        // 로딩이 멈춘 경우를 대비해 강제로 데이터 로딩 상태도 해제
         useUserStore.setState({ isLoading: false });
       }
-    }, 5000);
+    }, 5000); // 5초 후 강제 진입
     return () => clearTimeout(timer);
   }, [showSplash]);
 
@@ -477,39 +485,41 @@ function App() {
       {showSplash && (
         <SplashScreen 
           isDataLoading={mapLoading || authLoading || !isMapReady} 
-          onComplete={handleSplashComplete} 
+          onComplete={() => {
+            console.log("[C-Safe] Splash complete, entering main flow.");
+            setShowSplash(false);
+          }} 
         />
+      )}
+
+      {/* 🚀 Onboarding Flow (Sequential Overlays) */}
+      {!showSplash && !hasAgreedDisclaimer && (
+        <DisclaimerModal onAgree={() => {
+          speak('');
+          setHasAgreedDisclaimer(true);
+        }} />
+      )}
+
+      {!showSplash && hasAgreedDisclaimer && !hasCompletedOnboarding && (
+        <SafetyQuiz onComplete={() => {
+          setHasCompletedOnboarding(true);
+          if (user?.id) {
+             supabase.from('profiles').select('points').eq('id', user.id).single()
+             .then(({ data }) => {
+               if (data) {
+                  supabase.from('profiles').update({ points: (data.points || 0) + 500 }).eq('id', user.id)
+                  .then(() => loadUser());
+               }
+             });
+          }
+        }} />
       )}
 
       {/* Global Cyberpunk Chill Background */}
       <div
-        className="h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-colors duration-1000"
+        className={`h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-all duration-1000 ${(!showSplash && hasAgreedDisclaimer && hasCompletedOnboarding) ? 'opacity-100' : 'opacity-0'}`}
         style={{ boxShadow: `inset 0 0 40px ${gridBorderColor}40`, border: `2px solid ${gridBorderColor}80` }}
       >
-        {/* Phase 19: Mandatory Disclaimer Overlay (Highest Priority) */}
-        {!hasAgreedDisclaimer && (
-          <DisclaimerModal onAgree={() => {
-            speak(''); // 브라우저 자동 재생 정책에 의해 막힌 TTS 권한 획득 (사용자 클릭)
-            setHasAgreedDisclaimer(true);
-          }} />
-        )}
-
-        {/* Phase 15: Mandatory Onboarding Quiz Overlay (Second Priority) */}
-        {hasAgreedDisclaimer && !hasCompletedOnboarding && (
-          <SafetyQuiz onComplete={() => {
-            setHasCompletedOnboarding(true);
-            // 퀴즈 완료 시 보너스 500P (최초 1회)
-            if (user?.id) {
-               supabase.from('profiles').select('points').eq('id', user.id).single()
-               .then(({ data }) => {
-                 if (data) {
-                    supabase.from('profiles').update({ points: (data.points || 0) + 500 }).eq('id', user.id)
-                    .then(() => loadUser());
-                 }
-               });
-            }
-          }} />
-        )}
 
         {/* Phase Station: Unlock & Sterilization Screen */}
         {isStationUnlockOpen && (
@@ -612,13 +622,6 @@ function App() {
         <div className="absolute left-4 bottom-[160px] z-[100] flex flex-col gap-2 pointer-events-auto items-center">
           {isToolsOpen && (
             <div className="flex flex-col gap-2 mb-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
-              <button
-                onClick={() => setIsESGDashboardOpen(true)}
-                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white"
-                title="ESG 리포트"
-              >
-                <Shield size={18} />
-              </button>
               <button
                 onClick={() => setShowHeatmap(prev => !prev)}
                 className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
@@ -807,10 +810,10 @@ function App() {
           <div className="max-w-xl mx-auto flex justify-between items-center px-10">
             <button
               onClick={() => setIsVibeRouteOpen(true)}
-              className="flex flex-col items-center gap-1 text-cyber-cyan outline-none border-none group active:scale-95 transition-all"
+              className="flex flex-col items-center gap-1 text-[#FF8C94] outline-none border-none group active:scale-95 transition-all"
             >
-              <Moon size={24} className="fill-cyber-cyan/20 animate-pulse drop-shadow-[0_0_8px_rgba(64,255,220,0.4)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-cyber-cyan/90">VIBE</span>
+              <Moon size={24} className="fill-[#FF8C94]/20 animate-pulse drop-shadow-[0_0_8px_rgba(255,140,148,0.5)]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-[#FF8C94]/90">VIBE</span>
             </button>
 
 

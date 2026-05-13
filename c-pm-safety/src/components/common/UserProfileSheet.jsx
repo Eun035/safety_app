@@ -269,7 +269,14 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 {/* === Section 5: Admin Entry === */}
                                 <div className="pt-2 border-t border-white/5 mt-4">
                                     <button 
-                                        onClick={onAdminOpen}
+                                        onClick={() => {
+                                            const pwd = prompt("관리자 비밀번호를 입력하세요:");
+                                            if (pwd === "admin1234") {
+                                                onAdminOpen();
+                                            } else if (pwd !== null) {
+                                                alert("비밀번호가 올바르지 않습니다.");
+                                            }
+                                        }}
                                         className="w-full bg-white/5 hover:bg-white/10 text-gray-500 py-3 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-2 border border-white/5"
                                     >
                                         <Settings size={12} /> B2G ADMIN CONSOLE

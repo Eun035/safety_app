@@ -38,8 +38,6 @@ const VIBE_OPTIONS = [
     }
 ];
 
-
-
 const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
     const { t } = useTranslation();
     const [selectedId, setSelectedId] = useState('sunset');
