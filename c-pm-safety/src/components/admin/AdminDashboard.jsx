@@ -52,8 +52,22 @@ const AdminDashboard = ({ onClose }) => {
         { id: 101, lat: 36.835, lng: 127.142, name: "두정동 사고 다발 사거리", reduction: "45%", reason: "급정거 로그 집중 구역" }
       ],
       vibeProposals: [
-        { id: 'v1', type: 'SAFETY', name: '안전 최우선', color: '#10b981', icon: ShieldCheck, desc: '사고 위험 지점 100% 우회 경로' },
-        { id: 'v2', type: 'SUNSET', name: '노을 맛집', color: '#fb923c', icon: Waves, desc: '조망권 및 일몰 시간 데이터 반영' }
+        { 
+          id: 'v1', type: 'SAFETY', name: '안전 최우선', color: '#10b981', icon: ShieldCheck, desc: '사고 위험 지점 100% 우회 경로',
+          path: [
+            { lat: 36.833, lng: 127.179 },
+            { lat: 36.835, lng: 127.185 },
+            { lat: 36.839, lng: 127.182 }
+          ]
+        },
+        { 
+          id: 'v2', type: 'SUNSET', name: '노을 맛집', color: '#fb923c', icon: Waves, desc: '조망권 및 일몰 시간 데이터 반영',
+          path: [
+            { lat: 36.818, lng: 127.156 },
+            { lat: 36.815, lng: 127.150 },
+            { lat: 36.811, lng: 127.148 }
+          ]
+        }
       ]
     };
   }, []);
@@ -262,6 +276,44 @@ const AdminDashboard = ({ onClose }) => {
                   ))}
                 </div>
               )}
+
+              {analysisMode === 'SAFETY' && (
+                <div className="space-y-6">
+                  <div className="p-4 bg-red-600/10 border border-red-500/30 rounded-2xl">
+                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">AI Recommendation</p>
+                    <p className="text-sm font-bold text-white">사고 저감율 기반 최적 헬멧 스테이션 설치 지점</p>
+                  </div>
+                  {recommendations.optimization.concat(recommendations.safety).map(item => (
+                    <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 border-l-4 border-l-red-500">
+                      <p className="text-sm font-black text-white mb-2">{item.name}</p>
+                      <div className="flex items-center gap-2 text-red-400 mb-2">
+                        <Award size={14} />
+                        <span className="text-[10px] font-bold">예상 사고 저감율: {item.reduction || '35%'}</span>
+                      </div>
+                      <p className="text-[9px] text-gray-400 leading-tight">{item.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {analysisMode === 'VIBE' && (
+                <div className="space-y-6">
+                  <div className="p-4 bg-emerald-600/10 border border-emerald-500/30 rounded-2xl">
+                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Vibe Proposal</p>
+                    <p className="text-sm font-bold text-white">사용자 주행 패턴 기반 목적별 안전 경로 설계</p>
+                  </div>
+                  {recommendations.vibeProposals.map(item => (
+                    <div key={item.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 border-l-4" style={{ borderLeftColor: item.color }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <item.icon size={16} style={{ color: item.color }} />
+                        <p className="text-sm font-black text-white">{item.name}</p>
+                      </div>
+                      <p className="text-[9px] text-gray-400 leading-tight mb-3">{item.desc}</p>
+                      <button className="w-full py-2 bg-emerald-600 text-white text-[10px] font-black rounded-lg uppercase">Apply to App</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex-1 relative">
@@ -269,7 +321,13 @@ const AdminDashboard = ({ onClose }) => {
               
               <div className="absolute bottom-6 left-6 z-10 flex gap-2">
                 <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] font-black text-white flex items-center gap-2">
-                  <div className="w-3 h-3 bg-gradient-to-r from-orange-600 to-red-600 rounded-full animate-pulse"></div> STRESS HEATMAP ACTIVE
+                  <div className={`w-3 h-3 rounded-full animate-pulse ${
+                    analysisMode === 'STRESS' ? 'bg-orange-500 shadow-neon-orange' :
+                    analysisMode === 'SAFETY' ? 'bg-red-500 shadow-neon-red' :
+                    'bg-emerald-500 shadow-neon-green'
+                  }`}></div>
+                  {analysisMode === 'STRESS' ? 'STRESS HEATMAP ACTIVE' : 
+                   analysisMode === 'SAFETY' ? 'AI RECOMMENDATION ACTIVE' : 'VIBE PROPOSAL ACTIVE'}
                 </div>
               </div>
             </div>
@@ -329,23 +387,62 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData, recommendation
       });
     }
 
-    // AI 스테이션 추천 모드
+    // AI 스테이션 추천 모드 (빨간색)
     if (analysisMode === 'SAFETY') {
-      // 🚨 AI 스테이션 추천 (빨간색 고가시성)
       recommendations.optimization.concat(recommendations.safety).forEach(item => {
         const pos = new window.kakao.maps.LatLng(item.lat, item.lng);
+        
+        // 더 화려하고 눈에 띄는 빨간색 효과 (이중 원)
         new window.kakao.maps.Circle({
           center: pos,
-          radius: 120,
-          strokeWeight: 3,
-          strokeColor: '#f43f5e',
-          strokeOpacity: 0.9,
-          fillColor: '#f43f5e',
-          fillOpacity: 0.3
+          radius: 150,
+          strokeWeight: 4,
+          strokeColor: '#ff0000',
+          strokeOpacity: 0.8,
+          fillColor: '#ff0000',
+          fillOpacity: 0.2
         }).setMap(map);
 
-        const content = `<div style="padding: 8px 12px; background: rgba(244,63,94,0.9); border-radius: 14px; color: white; font-size: 10px; font-weight: 900; border: 2px solid white; white-space: nowrap;">🎯 RECOM: ${item.name}</div>`;
+        new window.kakao.maps.Circle({
+          center: pos,
+          radius: 50,
+          strokeWeight: 0,
+          fillColor: '#ff0000',
+          fillOpacity: 0.8
+        }).setMap(map);
+
+        const content = `
+          <div style="padding: 10px 16px; background: #ff0000; border-radius: 20px; color: white; font-size: 11px; font-weight: 900; border: 3px solid white; box-shadow: 0 0 20px rgba(255,0,0,0.5); white-space: nowrap;">
+            🎯 STATION RECOM: ${item.name}
+          </div>
+        `;
         new window.kakao.maps.CustomOverlay({ position: pos, content: content, yAnchor: 2.2 }).setMap(map);
+      });
+    }
+
+    // Vibe Designer 추천 경로 모드 (초록색)
+    if (analysisMode === 'VIBE') {
+      recommendations.vibeProposals.forEach(route => {
+        if (!route.path) return;
+        
+        const pathCoords = route.path.map(p => new window.kakao.maps.LatLng(p.lat, p.lng));
+        
+        new window.kakao.maps.Polyline({
+          path: pathCoords,
+          strokeWeight: 8,
+          strokeColor: route.color,
+          strokeOpacity: 0.8,
+          strokeStyle: 'solid'
+        }).setMap(map);
+
+        // 경로 시작점에 아이콘 표시
+        const startPos = pathCoords[0];
+        const content = `
+          <div style="padding: 8px 12px; background: #111; border-radius: 12px; color: ${route.color}; font-size: 10px; font-weight: 900; border: 2px solid ${route.color}; box-shadow: 0 0 15px ${route.color}50; white-space: nowrap;">
+            🌿 ${route.name} Route Start
+          </div>
+        `;
+        new window.kakao.maps.CustomOverlay({ position: startPos, content: content, yAnchor: 2.5 }).setMap(map);
       });
     }
 

@@ -77,7 +77,7 @@ function App() {
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  const [isFollowMode, setIsFollowMode] = useState(true); // 🛰️ GPS 추적 모드 상태 추가
+  const [gpsFollowMode, setGpsFollowMode] = useState(true); // 🛰️ GPS 추적 모드 상태 추가
   const [panToLocation, setPanToLocation] = useState(null); // New: Signal for map movement
   const [isCouponBoxOpen, setIsCouponBoxOpen] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
@@ -768,8 +768,8 @@ function App() {
                 setCameraAction('start');
               }}
               onMapReady={handleMapReady}
-              isFollowMode={isFollowMode}
-              setIsFollowMode={setIsFollowMode}
+              gpsFollowMode={gpsFollowMode}
+              setGpsFollowMode={setGpsFollowMode}
               // Lifted Props
               navStep={navStep}
               setNavStep={setNavStep}
@@ -838,16 +838,16 @@ function App() {
 
             <button
               onClick={() => {
-                setIsFollowMode(true);
+                setGpsFollowMode(true);
                 if (location) setPanToLocation({ ...location, timestamp: Date.now() });
               }}
               className={`w-14 h-14 rounded-[22px] flex flex-col items-center justify-center transition-all duration-300 border-2 shadow-2xl ${
-                isFollowMode 
+                gpsFollowMode 
                   ? 'bg-cyber-cyan border-white text-black shadow-neon-cyan' 
                   : 'bg-gray-900/90 border-cyber-cyan/30 text-cyber-cyan backdrop-blur-xl'
               }`}
             >
-              <LocateFixed size={24} className={isFollowMode ? 'animate-pulse' : ''} />
+              <LocateFixed size={24} className={gpsFollowMode ? 'animate-pulse' : ''} />
               <span className="text-[7px] font-black uppercase tracking-tighter mt-0.5">GPS</span>
             </button>
           </div>
