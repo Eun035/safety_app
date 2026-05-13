@@ -81,6 +81,7 @@ function App() {
   const [gpsFollowMode, setGpsFollowMode] = useState(true); // 🛰️ GPS 추적 모드 상태 추가
   const [panToLocation, setPanToLocation] = useState(null); // New: Signal for map movement
   const [isCouponBoxOpen, setIsCouponBoxOpen] = useState(false);
+  const [showPMs, setShowPMs] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
   // Phase 15 & 19: Mandatory Onboarding & Disclaimer
@@ -432,6 +433,28 @@ function App() {
     toast("🎁 보관 완료! 천안사랑카드 500P 적립", 'success');
   };
 
+  const handleShareApp = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'C-Safe PM Safety',
+        text: '안전한 개인용 이동장치 이용, C-Safe와 함께하세요!',
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      copyToClipboard(window.location.href);
+      toast('🔗 앱 링크가 클립보드에 복사되었습니다.', 'info');
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
 
 
   const handleParkingComplete = (photoUrl) => {
@@ -770,6 +793,8 @@ function App() {
               onMapReady={handleMapReady}
               gpsFollowMode={gpsFollowMode}
               setGpsFollowMode={setGpsFollowMode}
+              showPMs={showPMs}
+              setShowPMs={setShowPMs}
               // Lifted Props
               navStep={navStep}
               setNavStep={setNavStep}
@@ -818,9 +843,25 @@ function App() {
             )}
           </div>
 
-          {/* Fab Group (Layers & Location) */}
-          <div className="absolute bottom-32 right-6 flex flex-col gap-4 z-[100] pointer-events-auto">
+          {/* Fab Group (Layers & Location) - Shifted Up to avoid overlap */}
+          <div className="absolute bottom-40 right-6 flex flex-col gap-3 z-[100] pointer-events-auto">
+            <button
+              onClick={handleShareApp}
+              className="w-12 h-12 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all shadow-xl"
+            >
+              <Share2 size={18} />
+            </button>
+            
+            <button
+              onClick={() => setShowPMs(!showPMs)}
+              className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all shadow-xl ${
+                showPMs ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
+              }`}
+            >
+              <Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} />
+            </button>
 
+            <div className="h-[1px] w-6 bg-white/10 mx-auto my-1" />
 
             <button
               onClick={() => {

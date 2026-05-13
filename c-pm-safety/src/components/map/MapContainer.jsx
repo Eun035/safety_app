@@ -32,7 +32,9 @@ const MapContainer = ({
     routeDestination,
     setRouteDestination,
     gpsFollowMode, // 🛰️ 프롭으로 수신
-    setGpsFollowMode // 🛰️ 프롭으로 수신
+    setGpsFollowMode, // 🛰️ 프롭으로 수신
+    showPMs, // 🛰️ 프롭으로 수신
+    setShowPMs // 🛰️ 프롭으로 수신
 }) => {
     const mapRef = useRef(null);
     const hasNotifiedReady = useRef(false);
@@ -45,7 +47,7 @@ const MapContainer = ({
     const [highlightedStationId, setHighlightedStationId] = useState(null);
     const [selectedDangerZone, setSelectedDangerZone] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
-    const [showPMs, setShowPMs] = useState(false); // Phase 26: PM 가시성 토글
+
 
     const { isRiding, currentPath } = useRideSession();
 
@@ -679,13 +681,7 @@ const MapContainer = ({
                     </div>
                 )}
 
-                {/* Fab Group */}
-                <div className="absolute bottom-36 right-4 flex flex-col gap-3 pointer-events-auto">
-                    <button onClick={handleShareApp} className="w-10 h-10 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all"><Share2 size={18} /></button>
-                    <button onClick={() => setShowPMs(prev => !prev)} className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${showPMs ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'}`}><Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} /></button>
-                    <div className="h-[1px] w-6 bg-white/10 mx-auto" />
-                    <button onClick={locateMe} className={`w-12 h-12 rounded-2xl shadow-neon-blue flex items-center justify-center active:scale-90 transition-all border-2 ${gpsFollowMode ? 'bg-blue-500 text-white border-white' : 'bg-gray-900/90 text-blue-400 border-blue-500/30'}`}><LocateFixed size={24} className={gpsFollowMode ? 'animate-pulse' : ''} /></button>
-                </div>
+
 
                 {/* Info Card */}
                 <div className="absolute bottom-6 w-full px-4 pointer-events-auto">
