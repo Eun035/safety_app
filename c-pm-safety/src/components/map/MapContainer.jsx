@@ -17,6 +17,7 @@ const MapContainer = ({
     data,
     tagoPms = [],
     showHeatmap,
+    showStressLayer, // 🌋 추가
     selectedLocation,
     setSelectedLocation,
     onStationClick,
@@ -595,30 +596,26 @@ const MapContainer = ({
                                         </div>
                                     </CustomOverlayMap>
                                 )}
-                                {isSelected && (
-                                    <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={1.15} zIndex={50}>
-                                        <div
-                                            className="pointer-events-auto w-52 rounded-2xl overflow-hidden shadow-2xl border border-white/10"
-                                            style={{ background: 'rgba(10,10,20,0.92)', backdropFilter: 'blur(16px)' }}
-                                        >
-                                            <div className="px-3 pt-2.5 pb-1 flex items-center gap-2 border-b border-white/10" style={{ borderLeft: `4px solid ${color}` }}>
-                                                <span className="text-sm">⚠️</span>
-                                                <span className="text-white text-[11px] font-black tracking-tight leading-tight">{acc.desc}</span>
-                                            </div>
-                                            <div className="px-3 py-2">
-                                                <p className="text-gray-300 text-[10px] leading-tight">{acc.detourGuide}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => setSelectedDangerZone(null)}
-                                                className="w-full py-1.5 text-[9px] font-black tracking-widest uppercase"
-                                                style={{ color, background: `${color}22` }}
-                                            >닫기</button>
-                                        </div>
-                                    </CustomOverlayMap>
-                                )}
                             </React.Fragment>
                         );
                     })}
+
+                    {/* 🌋 보행자 스트레스 존 레이어 시각화 */}
+                    {showStressLayer && [
+                        { id: 's1', lat: 36.833, lng: 127.179, radius: 150, name: "단국대 정문 보행자 보호구역" },
+                        { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" }
+                    ].map(zone => (
+                        <Circle
+                            key={`stress-${zone.id}`}
+                            center={{ lat: zone.lat, lng: zone.lng }}
+                            radius={zone.radius}
+                            strokeWeight={2}
+                            strokeColor="#f97316"
+                            strokeOpacity={0.8}
+                            fillColor="#f97316"
+                            fillOpacity={0.2}
+                        />
+                    ))}
                 </Map>
             </div>
 
