@@ -130,6 +130,13 @@ const AdminDashboard = ({ onClose }) => {
           </div>
           <div className="flex items-center gap-3">
             <button 
+              onClick={() => { setAnalysisMode('SAFETY'); setIsMapOpen(true); }}
+              className="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 px-5 py-3 rounded-2xl border border-rose-500/30 flex items-center gap-2 transition-all shadow-neon-rose"
+            >
+              <Zap size={18} />
+              <span className="text-xs font-bold uppercase tracking-widest">AI Station Recommend</span>
+            </button>
+            <button 
               onClick={() => { setAnalysisMode('STRESS'); setIsMapOpen(true); }}
               className="bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 px-5 py-3 rounded-2xl border border-orange-500/30 flex items-center gap-2 transition-all shadow-neon-orange"
             >
@@ -272,6 +279,7 @@ const AdminDashboard = ({ onClose }) => {
             hazards={hazards} 
             analysisMode={analysisMode}
             stressData={stressData}
+            recommendations={recommendations}
           />
         </div>
       )}
@@ -285,7 +293,7 @@ const AdminDashboard = ({ onClose }) => {
   );
 };
 
-const AdminMapInitializer = ({ hazards, analysisMode, stressData }) => {
+const AdminMapInitializer = ({ hazards, analysisMode, stressData, recommendations }) => {
   useEffect(() => {
     if (!window.kakao || !window.kakao.maps) return;
     const container = document.getElementById('admin-strategy-map');
@@ -321,14 +329,32 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData }) => {
       });
     }
 
-    // 기본 위험 구역 표시
-    // 🛡️ 기본 위험 구역 복구 (빨간색 고가시성 레이어)
+    // AI 스테이션 추천 모드
+    if (analysisMode === 'SAFETY') {
+      // 🚨 AI 스테이션 추천 (빨간색 고가시성)
+      recommendations.optimization.concat(recommendations.safety).forEach(item => {
+        const pos = new window.kakao.maps.LatLng(item.lat, item.lng);
+        new window.kakao.maps.Circle({
+          center: pos,
+          radius: 120,
+          strokeWeight: 3,
+          strokeColor: '#f43f5e',
+          strokeOpacity: 0.9,
+          fillColor: '#f43f5e',
+          fillOpacity: 0.3
+        }).setMap(map);
+
+        const content = `<div style="padding: 8px 12px; background: rgba(244,63,94,0.9); border-radius: 14px; color: white; font-size: 10px; font-weight: 900; border: 2px solid white; white-space: nowrap;">🎯 RECOM: ${item.name}</div>`;
+        new window.kakao.maps.CustomOverlay({ position: pos, content: content, yAnchor: 2.2 }).setMap(map);
+      });
+    }
+
+    // 🛡️ 기본 위험 구역 상시 노출
     hazards.forEach(hazard => {
       const isCritical = hazard.type === 'SLOPE' || hazard.type === 'ACCIDENT';
       const circleColor = isCritical ? '#f43f5e' : '#f59e0b';
       
-      // 위험 구역 원형 렌더링
-      const circle = new window.kakao.maps.Circle({
+      new window.kakao.maps.Circle({
         center: new window.kakao.maps.LatLng(hazard.lat, hazard.lng),
         radius: isCritical ? 50 : 30,
         strokeWeight: 1,
@@ -336,18 +362,10 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData }) => {
         strokeOpacity: 0.8,
         fillColor: circleColor,
         fillOpacity: 0.2
-      });
-      circle.setMap(map);
-
-      // 중앙 미세 도트 추가
-      const content = `<div style="width: 4px; height: 4px; background: ${circleColor}; border-radius: 50%;"></div>`;
-      new window.kakao.maps.CustomOverlay({
-        position: new window.kakao.maps.LatLng(hazard.lat, hazard.lng),
-        content: content
       }).setMap(map);
     });
 
-  }, [hazards, analysisMode, stressData]);
+  }, [hazards, analysisMode, stressData, recommendations]);
 
   return null;
 };
