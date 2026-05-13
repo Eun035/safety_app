@@ -546,12 +546,11 @@ function App() {
         <SafetyQuiz onComplete={() => {
           setHasCompletedOnboarding(true);
           if (user?.id) {
-             supabase.from('profiles').select('points').eq('id', user.id).single()
+             supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
              .then(({ data }) => {
-               if (data) {
-                  supabase.from('profiles').update({ points: (data.points || 0) + 500 }).eq('id', user.id)
-                  .then(() => loadUser());
-               }
+                const currentPoints = data?.points || 0;
+                supabase.from('profiles').upsert({ id: user.id, points: currentPoints + 500 })
+                .then(() => loadUser());
              });
           }
         }} />
