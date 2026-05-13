@@ -84,10 +84,10 @@ function App() {
   const [showPMs, setShowPMs] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
-  // Phase 15 & 19: Mandatory Onboarding & Disclaimer
-  const [hasSelectedLanguage, setHasSelectedLanguage] = useLocalStorage('csafe_language_selected_v7', false);
-  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useLocalStorage('csafe_disclaimer_agreed_v7', false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useLocalStorage('csafe_onboarding_completed_v7', false);
+  // Phase 15 & 19: Mandatory Onboarding & Disclaimer (Forced to run every session for presentation)
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
+  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
