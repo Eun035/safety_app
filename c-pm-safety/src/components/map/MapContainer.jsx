@@ -565,10 +565,6 @@ const MapContainer = ({
                         <CustomOverlayMap key={`parking-${idx}`} position={{ lat: parking.lat, lng: parking.lng }} yAnchor={1} zIndex={2} clickable={true}>
                             <div
                                 onClick={() => handleMarkerClick({ id: `parking-${idx}`, lat: parking.lat, lng: parking.lng, title: parking.locationName, desc: `주차가능 대수: ${parking.capacity}`, type: 'parking' })}
-                                onTouchEnd={(e) => {
-                                    e.preventDefault(); // 지도 스크롤 등 다른 기본 동작 방지
-                                    handleMarkerClick({ id: `parking-${idx}`, lat: parking.lat, lng: parking.lng, title: parking.locationName, desc: `주차가능 대수: ${parking.capacity}`, type: 'parking' });
-                                }}
                                 className="pointer-events-auto w-8 h-8 rounded-full bg-cyan-600 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.8)] hover:scale-110 transition-transform cursor-pointer relative"
                             >
                                 <div className="absolute -bottom-1 h-0 w-0 border-x-4 border-x-transparent border-t-[6px] border-t-cyan-600 pointer-events-none"></div>
