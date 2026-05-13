@@ -32,7 +32,7 @@ C-Safe는 전동 킥보드(PM) 사용자의 안전을 최우선으로 하는 스
 - **UI Components**: Lucide React, Framer Motion
 
 ## 📦 배포 및 실행
-- **Production**: Vercel (https://pm-onaj.vercel.app/)
+- **Production**: Vercel (https://safety-app-seven.vercel.app/)
 - **Local Dev**: `npm run dev`
 
 ---
