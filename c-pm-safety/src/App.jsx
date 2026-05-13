@@ -5,13 +5,16 @@ import {
   Layers, Play, Camera, Navigation, Search, Star,
   Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
   Database, User, Map as MapIcon, Sliders, Box, Wallet,
-  Unlock, Leaf, X
+  Unlock, Leaf, X, Compass, Sparkles
+
 } from 'lucide-react';
 
 
 import ErrorBoundary from './components/common/ErrorBoundary';
 import MapContainer from './components/map/MapContainer';
 import SafetyQuiz from './components/quiz/SafetyQuiz';
+
+
 import SplashScreen from './components/common/SplashScreen';
 import LanguageSelectorScreen from './components/common/LanguageSelectorScreen';
 import DisclaimerModal from './components/common/DisclaimerModal';
@@ -113,6 +116,8 @@ function App() {
   // Phase 9 & 11 & 16: Route Vibe Aesthetic Modals
   const [showEcoBadge, setShowEcoBadge] = useState(false);
   const [isVibeRouteOpen, setIsVibeRouteOpen] = useState(false);
+
+
   const [parkingGeofenceModal, setParkingGeofenceModal] = useState({ isOpen: false, success: false });
 
   // Phase 26: Geofencing Hazard Warning Hook
@@ -517,6 +522,7 @@ function App() {
           />
         )}
 
+
         {/* Phase 26: Real-time Hazard Alert Overlay */}
         <HazardAlertOverlay activeHazard={activeHazard} />
 
@@ -664,6 +670,7 @@ function App() {
               </button>
 
 
+
             </div>
           )}
           
@@ -677,16 +684,14 @@ function App() {
           </button>
         </div>
 
-
-
         <header className="p-4 transition-all duration-300 z-50 pt-4">
+
           <div className="max-w-xl mx-auto flex items-center justify-between">
             {/* Branding */}
             <div className="relative">
               <button
                 onClick={() => {
                   speak(''); // TTS 권한 획득 겸용
-                  // 🚀 복구: 주행 중이 아닐 때도 시뮬레이터를 볼 수 있도록 기본 데이터 세팅
                   if (!isRiding && !digitalTwinData) {
                     setDigitalTwinData({
                       speed: 0,
@@ -727,6 +732,7 @@ function App() {
         </header>
 
         <main className="flex-1 w-full relative">
+
           {/* Main Map Background */}
           <div className="absolute inset-0 z-10">
             <MapContainer
@@ -801,11 +807,16 @@ function App() {
           <div className="max-w-xl mx-auto flex justify-between items-center px-10">
             <button
               onClick={() => setIsVibeRouteOpen(true)}
-              className="flex flex-col items-center gap-1 text-cyber-cyan outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
+              className="flex flex-col items-center gap-1 text-cyber-cyan outline-none border-none group active:scale-95 transition-all"
             >
-              <MapPin size={24} className="bg-transparent" />
-              <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Explore")}</span>
+              <Moon size={24} className="fill-cyber-cyan/20 animate-pulse drop-shadow-[0_0_8px_rgba(64,255,220,0.4)]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-cyber-cyan/90">VIBE</span>
             </button>
+
+
+
+
+
             <button 
               onClick={() => setIsShadowSheetOpen(true)}
               className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
@@ -925,18 +936,13 @@ function App() {
 
         <RideSummaryModal
           isOpen={isRideSummaryOpen}
-          onClose={() => {
-            setIsRideSummaryOpen(false);
-          }}
+          onClose={() => setIsRideSummaryOpen(false)}
           metrics={finalRideSummary}
           vibeName="Safety Route"
-          capturedPhoto={rideSummaryPhoto}
-          suddenBrakeCount={suddenBrakeCount}
-          onFeedbackNext={() => {
-            setIsRideSummaryOpen(false);
-            setIsFeedbackOpen(true);
-          }}
+          suddenBrakeCount={0}
         />
+
+
 
 
         <FeedbackReport

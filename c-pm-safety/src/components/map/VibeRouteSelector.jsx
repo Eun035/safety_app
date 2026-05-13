@@ -38,6 +38,8 @@ const VIBE_OPTIONS = [
     }
 ];
 
+
+
 const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
     const { t } = useTranslation();
     const [selectedId, setSelectedId] = useState('sunset');
@@ -144,8 +146,9 @@ const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
                         <h2 className="text-[22px] font-bold text-white tracking-tight">
                             Choose Vibe
                         </h2>
-                    </div>
 
+
+                    </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setMode('CHILL')}
@@ -156,11 +159,14 @@ const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
                         </button>
 
                         <button
+                            onClick={() => setMode('FAST')}
                             className={`px-4 py-[14px] rounded-full text-[11px] font-bold tracking-widest flex items-center justify-center gap-2 transition-all flex-[0.9] bg-[#141414] text-[#888888]`}
                         >
                             <Zap size={14} className="fill-[#888888]" /> FAST
                         </button>
                     </div>
+
+
                 </div>
 
                 <RoutePreferenceSelector selectedMode={selectedPreference} onModeChange={setSelectedPreference} />
