@@ -755,7 +755,6 @@ function App() {
               rideConfig={rideConfig}
               tagoPms={tagoPms}
               showHeatmap={showHeatmap}
-              showStressLayer={showStressLayer} // 🌋 추가
               selectedLocation={selectedLocation}
               setSelectedLocation={setSelectedLocation}
               panToLocation={panToLocation}
@@ -821,21 +820,7 @@ function App() {
 
           {/* Fab Group (Layers & Location) */}
           <div className="absolute bottom-32 right-6 flex flex-col gap-4 z-[100] pointer-events-auto">
-            {/* 🌋 보행자 스트레스 맵 토글 FAB */}
-            <button
-              onClick={() => {
-                setShowStressLayer(!showStressLayer);
-                toast(`🌋 보행자 스트레스 맵이 ${!showStressLayer ? '활성화' : '비활성화'}되었습니다.`, 'info');
-              }}
-              className={`w-14 h-14 rounded-[22px] flex flex-col items-center justify-center transition-all duration-300 border-2 shadow-2xl ${
-                showStressLayer 
-                  ? 'bg-orange-500 border-white text-white shadow-neon-orange scale-110' 
-                  : 'bg-gray-900/90 border-orange-500/30 text-orange-500 backdrop-blur-xl'
-              }`}
-            >
-              <HeartPulse size={24} className={showStressLayer ? 'animate-pulse' : ''} />
-              <span className="text-[7px] font-black uppercase tracking-tighter mt-0.5">Stress</span>
-            </button>
+
 
             <button
               onClick={() => {
