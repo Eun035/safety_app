@@ -183,11 +183,9 @@ function App() {
     setShowSplash(false);
   }, []);
 
-  // 🚀 개발 단계: 흐름 확인을 위해 매번 온보딩 초기화
+  // 🚀 배포 단계: 온보딩 상태 유지 (강제 초기화 코드 제거)
   useEffect(() => {
-    setHasAgreedDisclaimer(false);
-    setHasCompletedOnboarding(false);
-    console.log("[C-Safe] Forced Reset for Testing:", { showSplash, hasAgreedDisclaimer, hasCompletedOnboarding });
+    console.log("[C-Safe] App Initialized. State persistence active.");
   }, []);
 
   // Phase 20: Emergency Splash Timeout (Fail-Safe)
@@ -651,13 +649,6 @@ function App() {
                 <Download size={16} />
               </button>
               <button
-                onClick={resetOnboarding}
-                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white/30"
-                title="온보딩 리셋"
-              >
-                <RefreshCw size={14} />
-              </button>
-              <button
                 onClick={() => setIsStationUnlockOpen(true)}
                 className="w-10 h-10 bg-blue-600/80 backdrop-blur-md rounded-xl border border-blue-400/30 flex items-center justify-center text-white"
                 title="스테이션 언락 테스트"
@@ -851,12 +842,10 @@ function App() {
                   <img
                     src={profile.profile_image}
                     alt="profile"
-                    onDoubleClick={resetOnboarding}
                     className="w-full h-full object-cover bg-transparent border-none outline-none"
-                    title="Double click to reset onboarding"
                   />
                 ) : (
-                  <span onDoubleClick={resetOnboarding} className="text-cyber-cyan text-xs font-bold leading-none select-none">Me</span>
+                  <span className="text-cyber-cyan text-xs font-bold leading-none select-none">Me</span>
                 )}
               </div>
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent text-cyber-cyan">{profile?.nickname || t("Profile")}</span>
