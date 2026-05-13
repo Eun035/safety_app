@@ -5,7 +5,7 @@ import {
   TrendingUp, Map as MapIcon, ChevronRight, 
   ArrowUpRight, ArrowDownRight, Search, 
   ShieldCheck, Clock, Download, Sparkles,
-  MapPin, Info, BrainCircle, ShieldAlert,
+  MapPin, Info, BrainCircuit, ShieldAlert,
   Route, Waves, Zap, Landmark, Trees, 
   Navigation2, CheckCircle2, HeartPulse,
   Footprints, Sliders
@@ -318,25 +318,6 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData }) => {
     });
 
   }, [hazards, analysisMode, stressData]);
-
-  return null;
-};
-
-export default AdminDashboard;
-indow.kakao.maps.CustomOverlay({ position: pos, content: content, yAnchor: 1.5 }).setMap(map);
-      });
-    }
-
-    // 기본 위험 구역 표시
-    hazards.forEach(hazard => {
-      const circle = new window.kakao.maps.Circle({
-        center: new window.kakao.maps.LatLng(hazard.lat, hazard.lng),
-        radius: 50, strokeWeight: 1, strokeColor: '#f43f5e', strokeOpacity: 0.8, fillStyle: 'solid', fillColor: '#f43f5e', fillOpacity: 0.2
-      });
-      circle.setMap(map);
-    });
-
-  }, [hazards, analysisMode, recommendations]);
 
   return null;
 };
