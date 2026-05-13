@@ -322,9 +322,25 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData }) => {
     }
 
     // 기본 위험 구역 표시
+    // 🛡️ 기본 위험 구역 복구 (빨간색 고가시성 레이어)
     hazards.forEach(hazard => {
-      const markerColor = hazard.type === 'SLOPE' ? '#f43f5e' : hazard.type === 'PARKING' ? '#10b981' : '#f59e0b';
-      const content = `<div style="width: 8px; height: 8px; background: ${markerColor}; border-radius: 50%; border: 1px solid white;"></div>`;
+      const isCritical = hazard.type === 'SLOPE' || hazard.type === 'ACCIDENT';
+      const circleColor = isCritical ? '#f43f5e' : '#f59e0b';
+      
+      // 위험 구역 원형 렌더링
+      const circle = new window.kakao.maps.Circle({
+        center: new window.kakao.maps.LatLng(hazard.lat, hazard.lng),
+        radius: isCritical ? 50 : 30,
+        strokeWeight: 1,
+        strokeColor: circleColor,
+        strokeOpacity: 0.8,
+        fillColor: circleColor,
+        fillOpacity: 0.2
+      });
+      circle.setMap(map);
+
+      // 중앙 미세 도트 추가
+      const content = `<div style="width: 4px; height: 4px; background: ${circleColor}; border-radius: 50%;"></div>`;
       new window.kakao.maps.CustomOverlay({
         position: new window.kakao.maps.LatLng(hazard.lat, hazard.lng),
         content: content
