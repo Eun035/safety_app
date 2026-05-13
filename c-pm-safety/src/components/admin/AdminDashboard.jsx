@@ -18,7 +18,14 @@ const AdminDashboard = ({ onClose }) => {
     totalRides: 0,
     totalPoints: 0,
     totalHazards: 0,
-    avgSafetyScore: 0
+    pedestrianReports: 0,
+    avgSafetyScore: 0,
+    trends: {
+      users: 0,
+      rides: 0,
+      hazards: 0,
+      stress: 0
+    }
   });
   const [recentRides, setRecentRides] = useState([]);
   const [hazards, setHazards] = useState([]);
@@ -27,12 +34,12 @@ const AdminDashboard = ({ onClose }) => {
   const [selectedType, setSelectedType] = useState('ALL');
   const [analysisMode, setAnalysisMode] = useState('NORMAL'); // 'NORMAL' | 'SAFETY' | 'VIBE' | 'STRESS'
 
-  // 🚀 보행자 스트레스 맵 분석 데이터
+  // 🚀 보행자 스트레스 맵 분석 데이터 (고도화 예정)
   const stressData = useMemo(() => {
     return [
       { id: 's1', lat: 36.833, lng: 127.179, level: 85, name: "천안 단국대 정문 보도", reason: "보도 폭 대비 PM 통행량 과다 및 보도 중앙 방치 사례 빈번" },
-      { id: 's2', lat: 36.818, lng: 127.156, name: "천안 종합터미널 앞", level: 94, reason: "보행자 유동인구 극대 구역 내 PM 고속 주행 로그 다수 감지" },
-      { id: 's3', lat: 36.811, lng: 127.108, name: "신불당 상업지구 보행자 전용도로", level: 78, reason: "PM 진입 금지 구역 내 무단 주행으로 인한 보행자 민원 집중" }
+      { id: 's2', lat: 36.818, lng: 127.156, level: 94, name: "천안 종합터미널 앞", reason: "보행자 유동인구 극대 구역 내 PM 고속 주행 로그 다수 감지" },
+      { id: 's3', lat: 36.811, lng: 127.108, level: 78, name: "신불당 상업지구 보행자 전용도로", reason: "PM 진입 금지 구역 내 무단 주행으로 인한 보행자 민원 집중" }
     ];
   }, []);
 
@@ -57,8 +64,10 @@ const AdminDashboard = ({ onClose }) => {
       try {
         const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
         const { count: rideCount } = await supabase.from('rides').select('*', { count: 'exact', head: true });
-        const { count: hazardCount } = await supabase.from('hazards').select('*', { count: 'exact', head: true });
+        const { data: hazardsData } = await supabase.from('hazards').select('*');
         
+        const pedestrianCount = hazardsData?.filter(h => h.type === 'PEDESTRIAN' || h.type === 'PARKING').length || 0;
+
         const { data: profileData } = await supabase.from('profiles').select('points, safety_score');
         const pointsTotal = profileData?.reduce((acc, curr) => acc + (curr.points || 0), 0) || 0;
         const avgScore = profileData?.length > 0 
@@ -69,14 +78,19 @@ const AdminDashboard = ({ onClose }) => {
           totalUsers: userCount || 0,
           totalRides: rideCount || 0,
           totalPoints: pointsTotal,
-          totalHazards: hazardCount || 0,
-          avgSafetyScore: Math.round(avgScore)
+          totalHazards: hazardsData?.length || 0,
+          pedestrianReports: pedestrianCount,
+          avgSafetyScore: Math.round(avgScore),
+          trends: {
+            users: 12,
+            rides: 24,
+            hazards: -5,
+            stress: -2
+          }
         });
 
-        const { data: rides } = await supabase.from('rides').select('*, profiles(nickname)').order('start_time', { ascending: false }).limit(6);
+        const { data: rides } = await supabase.from('rides').select('*, profiles(nickname)').order('start_time', { ascending: false }).limit(10);
         setRecentRides(rides || []);
-
-        const { data: hazardsData } = await supabase.from('hazards').select('*');
         setHazards(hazardsData || []);
       } catch (error) {
         console.error('[C-Safe Admin] Fetch error:', error);
@@ -135,10 +149,10 @@ const AdminDashboard = ({ onClose }) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard icon={Users} label="Total Riders" value={stats.totalUsers} trend={12} color="blue" />
-          <StatCard icon={Footprints} label="Pedestrian Reports" value={42} trend={15} color="orange" />
-          <StatCard icon={ShieldAlert} label="Safety Incidents" value={stats.totalHazards} trend={-5} color="rose" />
-          <StatCard icon={HeartPulse} label="Avg Stress Level" value="68/100" trend={-2} color="amber" />
+          <StatCard icon={Users} label="Total Riders" value={stats.totalUsers} trend={stats.trends.users} color="blue" />
+          <StatCard icon={Footprints} label="Pedestrian Reports" value={stats.pedestrianReports} trend={stats.trends.stress} color="orange" />
+          <StatCard icon={ShieldAlert} label="Safety Incidents" value={stats.totalHazards} trend={stats.trends.hazards} color="rose" />
+          <StatCard icon={HeartPulse} label="Avg Safety Score" value={`${stats.avgSafetyScore}%`} trend={2} color="emerald" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
