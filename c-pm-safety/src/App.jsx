@@ -77,8 +77,8 @@ function App() {
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  // Serverless Phase 1: O2O & SOS
-  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [isFollowMode, setIsFollowMode] = useState(true); // 🛰️ GPS 추적 모드 상태 추가
+  const [panToLocation, setPanToLocation] = useState(null); // New: Signal for map movement
   const [isCouponBoxOpen, setIsCouponBoxOpen] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
@@ -190,7 +190,6 @@ function App() {
   const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
   const [qrScanMode, setQrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
-  const [panToLocation, setPanToLocation] = useState(null);
 
 
 
@@ -769,6 +768,8 @@ function App() {
                 setCameraAction('start');
               }}
               onMapReady={handleMapReady}
+              isFollowMode={isFollowMode}
+              setIsFollowMode={setIsFollowMode}
               // Lifted Props
               navStep={navStep}
               setNavStep={setNavStep}

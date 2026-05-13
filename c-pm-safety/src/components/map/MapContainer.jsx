@@ -30,7 +30,9 @@ const MapContainer = ({
     routeOrigin,
     setRouteOrigin,
     routeDestination,
-    setRouteDestination
+    setRouteDestination,
+    isFollowMode, // 🛰️ 프롭으로 수신
+    setIsFollowMode // 🛰️ 프롭으로 수신
 }) => {
     const mapRef = useRef(null);
     const hasNotifiedReady = useRef(false);
@@ -40,7 +42,6 @@ const MapContainer = ({
     const pmParkings = usePMParkingData();
     const [pmStations, setPmStations] = useState([]);
     const [mapCenter, setMapCenter] = useState({ lat: 36.833, lng: 127.179 });
-    const [isFollowMode, setIsFollowMode] = useState(true);
     const [highlightedStationId, setHighlightedStationId] = useState(null);
     const [selectedDangerZone, setSelectedDangerZone] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
