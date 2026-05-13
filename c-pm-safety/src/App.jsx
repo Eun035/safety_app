@@ -5,8 +5,7 @@ import {
   Layers, Play, Camera, Navigation, Search, Star,
   Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
   Database, User, Map as MapIcon, Sliders, Box, Wallet,
-  Unlock, Leaf, X, Compass, Sparkles
-
+  Unlock, Leaf, X, Compass, Sparkles, HeartPulse, LocateFixed
 } from 'lucide-react';
 
 
