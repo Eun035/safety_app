@@ -73,6 +73,7 @@ function App() {
   const [isParkingOpen, setIsParkingOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
