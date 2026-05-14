@@ -48,6 +48,7 @@ import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
 import DrivingConsoleUI from './components/common/DrivingConsoleUI';
+import ProfileEditModal from './components/common/ProfileEditModal';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -77,6 +78,7 @@ function App() {
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const [isDrivingConsoleOpen, setIsDrivingConsoleOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
@@ -972,10 +974,16 @@ function App() {
           userName={profile?.nickname || "사용자 K"}
           userPoints={profile?.points || 0}
           userScore={profile?.safety_score || 0}
+          profileImage={profile?.profile_image}
           onAdminOpen={() => {
             setIsProfileSheetOpen(false);
             setIsAdminDashboardOpen(true);
           }}
+          onEditProfile={() => setIsProfileEditOpen(true)}
+        />
+        <ProfileEditModal
+          isOpen={isProfileEditOpen}
+          onClose={() => setIsProfileEditOpen(false)}
         />
         <RewardWalletSheet
           isOpen={isWalletSheetOpen}

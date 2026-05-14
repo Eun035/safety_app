@@ -88,7 +88,6 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
-    // 익명 로그인
     signInAnonymously: async () => {
         try {
             set({ isLoading: true });
@@ -106,7 +105,8 @@ export const useUserStore = create((set, get) => ({
                         nickname: '천안안전라이더_' + Math.floor(Math.random() * 1000),
                         safety_score: 100,
                         points: 0,
-                        total_distance: 0
+                        total_distance: 0,
+                        age: 25 // Default age for testing
                     })
                     .select()
                     .maybeSingle();
@@ -127,6 +127,7 @@ export const useUserStore = create((set, get) => ({
                         points: 0,
                         safety_score: 100,
                         total_distance: 0,
+                        age: 25,
                         is_guest: true
                     }
                 });
@@ -145,12 +146,34 @@ export const useUserStore = create((set, get) => ({
                     points: 0,
                     safety_score: 100,
                     total_distance: 0,
+                    age: 25,
                     is_guest: true
                 },
                 isLoading: false
             });
         } finally {
             set({ isLoading: false });
+        }
+    },
+
+    updateProfile: async (updates) => {
+        const { user, profile } = get();
+        if (!profile) return;
+        
+        // Optimistic UI update
+        const updatedProfile = { ...profile, ...updates };
+        set({ profile: updatedProfile });
+
+        try {
+            if (!profile.is_guest && user) {
+                await supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', user.id);
+            }
+        } catch (error) {
+            console.error('Failed to update profile to DB:', error);
+            // Ignore error for now to keep local state updated
         }
     },
 

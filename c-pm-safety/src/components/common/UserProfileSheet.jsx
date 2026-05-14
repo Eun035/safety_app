@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings } from 'lucide-react';
+import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2 } from 'lucide-react';
 
 // Radar Chart (Spider Web) component using SVG
 const RadarChart = ({ data }) => {
@@ -83,7 +83,7 @@ const RadarChart = ({ data }) => {
 // Hexagonal avatar border using SVG clip
 const HexAvatar = ({ src, name }) => (
     <div className="relative w-14 h-14 shrink-0">
-        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
+        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full z-10 pointer-events-none">
             <defs>
                 <clipPath id="hex-clip">
                     <polygon points="50,3 93,25 93,75 50,97 7,75 7,25" />
@@ -97,11 +97,13 @@ const HexAvatar = ({ src, name }) => (
                 strokeWidth="3"
                 className="drop-shadow-[0_0_8px_rgba(64,255,220,0.8)]"
             />
-            {/* Avatar background */}
-            <rect x="0" y="0" width="100" height="100" fill="#1a1f2e" clipPath="url(#hex-clip)" />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-lg font-black text-cyber-cyan">{name?.[0] || 'K'}</span>
+        <div className="absolute inset-0 bg-[#1a1f2e] flex items-center justify-center overflow-hidden" style={{ clipPath: 'polygon(50% 3%, 93% 25%, 93% 75%, 50% 97%, 7% 75%, 7% 25%)' }}>
+            {src ? (
+                <img src={src} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+                <span className="text-lg font-black text-cyber-cyan">{name?.[0] || 'K'}</span>
+            )}
         </div>
     </div>
 );
@@ -129,7 +131,7 @@ const badges = [
     { icon: '⚡', name: '스피드킹', color: 'from-purple-500/10 to-purple-900/10', border: 'border-purple-500/40', text: 'text-purple-400' },
 ];
 
-const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, onAdminOpen }) => {
+const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, profileImage, onAdminOpen, onEditProfile }) => {
     const { t } = useTranslation();
 
     return (
@@ -178,10 +180,15 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 {/* === Section 1: Safety Identity === */}
                                 <div className="bg-gradient-to-br from-[#12161b] to-black p-3 rounded-[1.5rem] border border-white/5 shadow-xl">
                                     <div className="flex items-center gap-3">
-                                        <HexAvatar name={userName || '사용자 K'} />
+                                        <HexAvatar name={userName || '사용자 K'} src={profileImage} />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-0.5">Safety Identity</p>
-                                            <p className="text-base font-black text-white truncate">{userName || '사용자 K'}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-base font-black text-white truncate">{userName || '사용자 K'}</p>
+                                                <button onClick={onEditProfile} className="text-gray-500 hover:text-cyber-cyan transition-colors active:scale-90" title="Edit Profile">
+                                                    <Edit2 size={12} />
+                                                </button>
+                                            </div>
                                             <div className="flex items-center gap-1.5 mt-1 overflow-x-auto scrollbar-hide">
                                                 <span className="text-[9px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">상위 5%</span>
                                                 <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">🏅 Gold Rider</span>
