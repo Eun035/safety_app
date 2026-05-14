@@ -44,34 +44,34 @@ const RadarChart = ({ data }) => {
     }).join(' ');
 
     return (
-        <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+        <svg viewBox="-20 -20 140 140" width={110} height={110} className="overflow-visible">
             {/* Web background polygons */}
             {webLines.map((pts, i) => (
-                <polygon key={i} points={pts} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+                <polygon key={i} points={pts} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8" />
             ))}
             {/* Axis lines */}
             {axisLines.map((p, i) => (
-                <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" />
+                <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
             ))}
             {/* Data polygon fill */}
             <polygon
                 points={dataPoints}
-                fill="rgba(168, 85, 247, 0.3)"
+                fill="rgba(168, 85, 247, 0.4)"
                 stroke="#a855f7"
-                strokeWidth="1.5"
-                className="drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]"
+                strokeWidth="2"
+                className="drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"
             />
             {/* Data dots */}
             {values.map((v, i) => {
                 const p = getPoint(i * angleStep, v * (center - 8));
-                return <circle key={i} cx={p.x} cy={p.y} r="2" fill="#a855f7" />;
+                return <circle key={i} cx={p.x} cy={p.y} r="3" fill="#d8b4fe" />;
             })}
             {/* Labels */}
             {labels.map((label, i) => {
-                const p = getPoint(i * angleStep, center + 1);
+                const p = getPoint(i * angleStep, center + 12);
                 return (
                     <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-                        fontSize="6" fill="rgba(255,255,255,0.55)" fontWeight="bold">
+                        fontSize="11" fill="rgba(255,255,255,0.95)" fontWeight="900" className="drop-shadow-md">
                         {label}
                     </text>
                 );
