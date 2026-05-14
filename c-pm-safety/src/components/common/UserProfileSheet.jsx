@@ -182,9 +182,9 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                         <div className="flex-1 min-w-0">
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-0.5">Safety Identity</p>
                                             <p className="text-base font-black text-white truncate">{userName || '사용자 K'}</p>
-                                            <div className="flex items-center gap-1.5 mt-1">
-                                                <span className="text-[9px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1.5 py-0.5 rounded-full">상위 5%</span>
-                                                <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded-full">🏅 Gold Rider</span>
+                                            <div className="flex items-center gap-1.5 mt-1 overflow-x-auto scrollbar-hide">
+                                                <span className="text-[9px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">상위 5%</span>
+                                                <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">🏅 Gold Rider</span>
                                             </div>
                                         </div>
                                         {/* Radar chart */}
