@@ -5,6 +5,17 @@ C-Safe는 전동 킥보드(PM) 사용자의 안전을 최우선으로 하는 스
 
 ## 📜 개발 일지 및 업데이트 내역 (Changelog)
 
+### [2026-05-14] Epic 1: PM 전용 '안전 경로 내비게이션 (Safe-Route API)'
+1. **Safe-Route API 백엔드 로직 연동**
+   - 지자체 교통량 데이터 및 자전거도로 비율을 점수화하여 최적의 안전 경로 알고리즘(`SafeRouteService`) 구현.
+   - 우회 거리에 비례하여 Safe-to-Earn 포인트 자동 계산 및 지급 로직 구축.
+2. **50m 전 햅틱 및 음성(TTS) 알림 지원**
+   - `navigator.geolocation` 기반 사용자 실시간 위치 추적 훅(`useSafeNavigation`) 적용.
+   - 경로 상 사고 다발 교차로 진입 50m 전 모바일 기기 진동 및 Web Speech API 기반 경고 알림 송출.
+3. **지도 내 UI/UX 시각화 반영**
+   - Kakao Map 상에 추천된 안전 경로(Polyline)와 위험 지역(Circle) 동적 렌더링.
+   - 주행 준비(`route_ready`) 단계에서 추가 획득 포인트 및 예상 소요 시간 직관적 노출.
+
 ### [2026-05-13] 관리자 허브 고도화 및 안정성 대폭 향상
 1. **시스템 안정성 및 크래시(ReferenceError) 완벽 대응**
    - 시스템 초기화를 방해하던 고질적인 `isFollowMode` 참조 에러를 추적하여 전역 `gpsFollowMode`로 전면 교체함으로써 충돌 원천 차단.

@@ -12,6 +12,8 @@ import stationData from '../../data/station_data.json';
 import { useRideSession } from '../../hooks/useRideSession';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from '../../hooks/useToast';
+import { SafeRouteService } from '../../services/SafeRouteService';
+import { useSafeNavigation } from '../../hooks/useSafeNavigation';
 
 const MapContainer = ({
     data,
@@ -48,6 +50,25 @@ const MapContainer = ({
     const [selectedDangerZone, setSelectedDangerZone] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
 
+    const [safeRouteInfo, setSafeRouteInfo] = useState(null);
+    useSafeNavigation(safeRouteInfo?.warningPoints || []);
+
+    useEffect(() => {
+        if (navStep === 'route_ready' && routeOrigin && routeDestination) {
+            SafeRouteService.getSafeRoute(
+                { latitude: routeOrigin.lat, longitude: routeOrigin.lng },
+                { latitude: routeDestination.lat, longitude: routeDestination.lng }
+            ).then(res => {
+                setSafeRouteInfo(res);
+                toast(`안전 경로 탐색 완료! 추가 보상: ${res.safeToEarnPoints}P`, 'success');
+            }).catch(err => {
+                console.error(err);
+                toast("안전 경로 생성에 실패했습니다.", 'error');
+            });
+        } else if (navStep === 'idle') {
+            setSafeRouteInfo(null);
+        }
+    }, [navStep, routeOrigin, routeDestination]);
 
     const { isRiding, currentPath } = useRideSession();
 
@@ -470,6 +491,28 @@ const MapContainer = ({
                     {ridingPath}
                     {safetyGridOverlay}
 
+                    {safeRouteInfo?.routePath && !isRiding && (
+                        <Polyline
+                            path={safeRouteInfo.routePath.map(p => ({ lat: p.latitude, lng: p.longitude }))}
+                            strokeWeight={6}
+                            strokeColor="#3b82f6"
+                            strokeOpacity={0.9}
+                            strokeStyle="solid"
+                        />
+                    )}
+
+                    {safeRouteInfo?.warningPoints && !isRiding && safeRouteInfo.warningPoints.map((wp, i) => (
+                        <Circle
+                            key={`wp-${i}`}
+                            center={{ lat: wp.latitude, lng: wp.longitude }}
+                            radius={50}
+                            strokeWeight={2}
+                            strokeColor="#f59e0b"
+                            fillColor="#f59e0b"
+                            fillOpacity={0.4}
+                        />
+                    ))}
+
                     {!showHeatmap && (
                         <MarkerClusterer
                             averageCenter={true}
@@ -652,13 +695,13 @@ const MapContainer = ({
                             {navStep === 'route_ready' && (
                                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <div className="grid grid-cols-2 gap-2">
-                                        <div className="bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl p-3">
-                                            <p className="text-[10px] font-black text-cyber-cyan uppercase tracking-widest mb-1">Safety Index</p>
-                                            <p className="text-lg font-black text-white italic">98% <span className="text-[10px] not-italic text-gray-400">Stable</span></p>
+                                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+                                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Safe-to-Earn</p>
+                                            <p className="text-lg font-black text-white italic">+{safeRouteInfo?.safeToEarnPoints || 0} <span className="text-[10px] not-italic text-gray-400">Points</span></p>
                                         </div>
-                                        <div className="bg-cyber-green/10 border border-cyber-green/30 rounded-xl p-3">
-                                            <p className="text-[10px] font-black text-cyber-green uppercase tracking-widest mb-1">Eco Saving</p>
-                                            <p className="text-lg font-black text-white italic">0.4 <span className="text-[10px] not-italic text-gray-400">kg CO2</span></p>
+                                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Est. Time</p>
+                                            <p className="text-lg font-black text-white italic">{safeRouteInfo?.estimatedTime || 0} <span className="text-[10px] not-italic text-gray-400">Min</span></p>
                                         </div>
                                     </div>
                                     <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-3">
@@ -667,10 +710,17 @@ const MapContainer = ({
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-0.5">Route Caution</p>
-                                            <p className="text-[11px] text-gray-300 font-bold leading-tight">경로 상에 급경사 구간이 1곳 포함되어 있습니다. 브레이크 점검 후 출발하세요.</p>
+                                            <p className="text-[11px] text-gray-300 font-bold leading-tight">
+                                                사고 다발 구역이 {safeRouteInfo?.warningPoints?.length || 0}곳 있습니다. 진입 50m 전 햅틱 알림이 송출됩니다.
+                                            </p>
                                         </div>
                                     </div>
-                                    <button onClick={onRouteReady} className="w-full py-4 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-neon-green flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
+                                    <button onClick={() => {
+                                        if (safeRouteInfo) {
+                                            toast(`안전 경로 주행 시작 (예상 리워드: ${safeRouteInfo.safeToEarnPoints}P)`, 'info');
+                                        }
+                                        onRouteReady();
+                                    }} className="w-full py-4 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-neon-green flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
                                         <Zap size={16} className="fill-black" />
                                         Start Safe Ride
                                     </button>
