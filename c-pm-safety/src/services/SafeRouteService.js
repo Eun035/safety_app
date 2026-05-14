@@ -18,8 +18,8 @@ export class SafeRouteService {
       });
 
       // 3. 안전 점수가 가장 높은 경로 선택 (Epic 1 핵심 로직)
-      const bestSafeRoute = evaluatedRoutes.sort((a, b) => b.safetyScore - a.safetyScore)[0];
-      const shortestRoute = evaluatedRoutes.sort((a, b) => a.distance - b.distance)[0];
+      const bestSafeRoute = [...evaluatedRoutes].sort((a, b) => b.safetyScore - a.safetyScore)[0];
+      const shortestRoute = [...evaluatedRoutes].sort((a, b) => a.distance - b.distance)[0];
 
       // 4. 경로 상의 '사고 다발 교차로' 노드 추출
       const warningPoints = this.extractAccidentProneNodes(bestSafeRoute);

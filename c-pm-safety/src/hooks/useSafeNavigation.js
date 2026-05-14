@@ -25,6 +25,7 @@ export const useSafeNavigation = (warningPoints) => {
   };
 
   useEffect(() => {
+    warnedPoints.current.clear(); // 경로 변경 시 알림 초기화
     let watchId;
 
     const startTracking = () => {

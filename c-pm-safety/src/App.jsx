@@ -47,6 +47,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
+import DrivingConsoleUI from './components/common/DrivingConsoleUI';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -74,6 +75,7 @@ function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [isDrivingConsoleOpen, setIsDrivingConsoleOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -705,6 +707,13 @@ function App() {
               >
                 <Leaf size={18} />
               </button>
+              <button
+                onClick={() => setIsDrivingConsoleOpen(true)}
+                className="w-10 h-10 bg-[#1C1C1E]/80 backdrop-blur-md rounded-xl border border-gray-600/50 flex items-center justify-center text-white shadow-lg"
+                title="맞춤형 주행 콘솔"
+              >
+                <Sliders size={18} />
+              </button>
 
 
 
@@ -1101,6 +1110,11 @@ function App() {
           onClose={() => setIsRideSettingsOpen(false)}
           config={rideConfig}
           setConfig={setRideConfig}
+        />
+
+        <DrivingConsoleUI
+          isOpen={isDrivingConsoleOpen}
+          onClose={() => setIsDrivingConsoleOpen(false)}
         />
 
         {/* Carbon Saved / Eco Badge Modal (New Engagement Feature) */}

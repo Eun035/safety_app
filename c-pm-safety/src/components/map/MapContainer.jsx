@@ -51,7 +51,7 @@ const MapContainer = ({
     const [safetyGridScores, setSafetyGridScores] = useState([]);
 
     const [safeRouteInfo, setSafeRouteInfo] = useState(null);
-    useSafeNavigation(safeRouteInfo?.warningPoints || []);
+    useSafeNavigation(safeRouteInfo?.warningPoints);
 
     useEffect(() => {
         if (navStep === 'route_ready' && routeOrigin && routeDestination) {
