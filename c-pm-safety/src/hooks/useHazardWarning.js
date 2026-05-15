@@ -9,8 +9,12 @@ export const useHazardWarning = (locations = []) => {
     // 이전에 경고한 사고 구역의 ID나 식별자를 저장하여 반복 재생 방지
     const warnedHazards = useRef(new Set());
 
+    // [성능 개선] 마지막으로 거리 연산을 수행한 좌표 저장 (과부하 방지용)
+    const lastSearchedPos = useRef(null);
+
     // 쿨타임 (예: 같은 구역이라도 3분 지났으면 다시 울리게 할지 등, 현재는 1회만 울림)
     const HAZARD_RADIUS_METERS = 50;
+    const THROTTLE_DISTANCE_METERS = 10; // 최소 10m를 이동해야만 재탐색 수행
 
     const triggerVoiceWarning = (text) => {
         if ('speechSynthesis' in window) {
@@ -41,6 +45,20 @@ export const useHazardWarning = (locations = []) => {
                     lng: position.coords.longitude
                 };
                 setUserLocation(currentPos);
+
+                // [성능 개선] 쓰로틀링 로직: 마지막 탐색 위치로부터 10m 이내면 O(N) 거리 탐색 생략
+                if (lastSearchedPos.current) {
+                    const distFromLastSearch = calculateDistance(
+                        currentPos.lat, currentPos.lng,
+                        lastSearchedPos.current.lat, lastSearchedPos.current.lng
+                    );
+                    if (distFromLastSearch < THROTTLE_DISTANCE_METERS) {
+                        return; // 연산 무시 (메인 스레드 블로킹 및 프레임 드랍 방지)
+                    }
+                }
+                
+                // 탐색 기준 위치 업데이트
+                lastSearchedPos.current = currentPos;
 
                 // 사고 구역(또는 위험 구역) 데이터 필터링. (기존 데이터 구조상 type='accident' 혹은 위험 지역을 포괄)
                 const hazards = locations.filter(loc =>
