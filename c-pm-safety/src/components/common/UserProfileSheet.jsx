@@ -189,9 +189,9 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                                     <Edit2 size={12} />
                                                 </button>
                                             </div>
-                                            <div className="flex items-center gap-1.5 mt-1 overflow-x-auto scrollbar-hide">
-                                                <span className="text-[9px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">상위 5%</span>
-                                                <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">🏅 Gold Rider</span>
+                                            <div className="flex items-center gap-1 mt-1 w-full">
+                                                <span className="text-[8px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1 py-0.5 rounded-full whitespace-nowrap">상위 5%</span>
+                                                <span className="text-[8px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1 py-0.5 rounded-full whitespace-nowrap">🏅 Gold Rider</span>
                                             </div>
                                         </div>
                                         {/* Radar chart */}
