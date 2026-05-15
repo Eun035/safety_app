@@ -4,7 +4,7 @@ import { ShieldCheck, AlertCircle, AlertTriangle, Zap, Gauge, Timer, Mountain } 
 const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
     if (!isOpen || !data) return null;
 
-    const { speed, reactionDist, brakingDist, totalDist, riskLevel, mu, incline, reactionTime } = data;
+    const { speed, reactionDist, brakingDist, totalDist, riskLevel, mu, incline, reactionTime, surface } = data;
 
     const theme = {
         safe: {
@@ -103,7 +103,7 @@ const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
                             <Zap size={12} />
                             <span className="text-[9px] font-black uppercase">Surface</span>
                         </div>
-                        <p className="text-lg font-black text-white">μ={mu}</p>
+                        <p className="text-lg font-black text-white uppercase">{surface || 'dry'} <span className="text-[10px] font-normal text-gray-400">μ={mu}</span></p>
                     </div>
                     <div className="bg-white/5 border border-white/5 rounded-2xl py-3 px-4 text-left">
                         <div className="flex items-center gap-2 text-gray-500 mb-1">

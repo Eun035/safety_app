@@ -257,17 +257,17 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 px-1 flex items-center gap-1.5">
                                         <Zap size={10} className="text-amber-400" /> 업적 배지
                                     </p>
-                                    <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
+                                    <div className="grid grid-cols-4 gap-2 pb-1">
                                         {badges.map((badge, i) => (
                                             <motion.div
                                                 key={i}
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: 0.1 * i }}
-                                                className={`flex-shrink-0 w-18 bg-gradient-to-br ${badge.color} border ${badge.border} rounded-xl p-2.5 flex flex-col items-center gap-1 shadow-lg`}
+                                                className={`w-full bg-gradient-to-br ${badge.color} border ${badge.border} rounded-xl p-2 flex flex-col items-center justify-center gap-1 shadow-lg`}
                                             >
-                                                <span className="text-xl">{badge.icon}</span>
-                                                <span className={`text-[8px] font-black ${badge.text} text-center leading-tight uppercase tracking-tight`}>{badge.name}</span>
+                                                <span className="text-lg">{badge.icon}</span>
+                                                <span className={`text-[8px] font-black ${badge.text} text-center leading-tight uppercase tracking-tighter w-full truncate`}>{badge.name}</span>
                                             </motion.div>
                                         ))}
                                     </div>

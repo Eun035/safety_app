@@ -51,6 +51,10 @@ export const useRideSession = create((set, get) => ({
         if (pastRides.length === 0) {
             pastRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
         }
+        
+        // 이전 기록이 무조건 상태에 남아있도록 설정
+        set({ rideHistory: pastRides });
+
         if (pastRides.length === 0) return;
 
         // Calculate Safety Streak
