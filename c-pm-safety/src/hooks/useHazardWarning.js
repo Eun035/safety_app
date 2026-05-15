@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { calculateDistance } from '../utils/distance';
+import { supabase } from '../lib/supabaseClient';
 
 export const useHazardWarning = (locations = []) => {
     const [userLocation, setUserLocation] = useState(null);
@@ -60,51 +61,86 @@ export const useHazardWarning = (locations = []) => {
                 // 탐색 기준 위치 업데이트
                 lastSearchedPos.current = currentPos;
 
-                // 사고 구역(또는 위험 구역) 데이터 필터링. (기존 데이터 구조상 type='accident' 혹은 위험 지역을 포괄)
-                const hazards = locations.filter(loc =>
-                    loc.type === 'accident' ||
-                    loc.type === 'SLOPE' ||
-                    loc.type === '도로파손' // 확장성을 위해 여러 위험 타입 포함 가능
-                );
-
-                let foundHazard = null;
-
-                for (const hazard of hazards) {
-                    const dist = calculateDistance(
-                        currentPos.lat, currentPos.lng,
-                        hazard.lat, hazard.lng
-                    );
-
-                    if (dist <= HAZARD_RADIUS_METERS) {
-                        foundHazard = hazard;
-                        break; // 가장 가까운 혹은 먼저 발견된 1개만 처리
-                    }
-                }
-
-                if (foundHazard) {
-                    // 고유 식별자로 id 사용, 없으면 좌표 결합
-                    const hazardId = foundHazard.id || `${foundHazard.lat},${foundHazard.lng}`;
-
-                    if (!warnedHazards.current.has(hazardId)) {
-                        // 새 위험 구역 진입!
-                        setActiveHazard({
-                            ...foundHazard,
-                            distance: Math.round(calculateDistance(currentPos.lat, currentPos.lng, foundHazard.lat, foundHazard.lng))
+                // 1. PostGIS 기반 초고속 서버 탐색 (RPC)
+                const fetchNearbyHazards = async () => {
+                    try {
+                        const { data, error } = await supabase.rpc('get_nearby_hazards', {
+                            user_lat: currentPos.lat,
+                            user_lng: currentPos.lng,
+                            radius_meters: HAZARD_RADIUS_METERS
                         });
 
-                        warnedHazards.current.add(hazardId);
-
-                        // TTS 음성 안내 실행
-                        let warningText = "🚨 위험 구역입니다. 브레이크를 잡아주세요.";
-                        if (foundHazard.detourGuide) {
-                            warningText = `🚨 위험 구역입니다. 브레이크를 잡아주세요. ${foundHazard.detourGuide}`;
+                        if (error) {
+                            console.warn('[C-Safe] PostGIS RPC 호출 실패, 로컬 연산으로 폴백합니다.', error);
+                            fallbackLocalSearch();
+                            return;
                         }
-                        triggerVoiceWarning(warningText);
+
+                        if (data && data.length > 0) {
+                            const foundHazard = data[0]; // 가장 가까운 위험 구역
+                            const hazardId = foundHazard.id || `${foundHazard.lat},${foundHazard.lng}`;
+
+                            if (!warnedHazards.current.has(hazardId)) {
+                                setActiveHazard({
+                                    ...foundHazard,
+                                    distance: Math.round(calculateDistance(currentPos.lat, currentPos.lng, foundHazard.lat, foundHazard.lng))
+                                });
+                                warnedHazards.current.add(hazardId);
+
+                                let warningText = "🚨 위험 구역입니다. 브레이크를 잡아주세요.";
+                                if (foundHazard.safety_tip || foundHazard.description) {
+                                    warningText = `🚨 위험 구역입니다. 브레이크를 잡아주세요. ${foundHazard.safety_tip || foundHazard.description}`;
+                                }
+                                triggerVoiceWarning(warningText);
+                            }
+                        } else {
+                            setActiveHazard(null);
+                        }
+                    } catch (err) {
+                        console.error('[C-Safe] PostGIS 알림 실패:', err);
+                        fallbackLocalSearch();
                     }
-                } else {
-                    // 반경 50m 이내에 아무것도 없으면 알림 해제
-                    setActiveHazard(null);
-                }
+                };
+
+                // 2. 서버 에러 시 기존 방식(로컬 연산)으로 안전장치 가동
+                const fallbackLocalSearch = () => {
+                    const hazards = locations.filter(loc =>
+                        loc.type === 'accident' || loc.type === 'SLOPE' || loc.type === '도로파손'
+                    );
+
+                    let foundHazard = null;
+                    for (const hazard of hazards) {
+                        const dist = calculateDistance(
+                            currentPos.lat, currentPos.lng,
+                            hazard.lat, hazard.lng
+                        );
+                        if (dist <= HAZARD_RADIUS_METERS) {
+                            foundHazard = hazard;
+                            break;
+                        }
+                    }
+
+                    if (foundHazard) {
+                        const hazardId = foundHazard.id || `${foundHazard.lat},${foundHazard.lng}`;
+                        if (!warnedHazards.current.has(hazardId)) {
+                            setActiveHazard({
+                                ...foundHazard,
+                                distance: Math.round(calculateDistance(currentPos.lat, currentPos.lng, foundHazard.lat, foundHazard.lng))
+                            });
+                            warnedHazards.current.add(hazardId);
+
+                            let warningText = "🚨 위험 구역입니다. 브레이크를 잡아주세요.";
+                            if (foundHazard.detourGuide || foundHazard.safetyTip) {
+                                warningText = `🚨 위험 구역입니다. 브레이크를 잡아주세요. ${foundHazard.detourGuide || foundHazard.safetyTip}`;
+                            }
+                            triggerVoiceWarning(warningText);
+                        }
+                    } else {
+                        setActiveHazard(null);
+                    }
+                };
+
+                fetchNearbyHazards();
             },
             (err) => {
                 console.error('Geolocation watch error:', err);
