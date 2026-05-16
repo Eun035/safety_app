@@ -38,7 +38,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15MB
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // 30MB (ONNX WASM 허용)
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,

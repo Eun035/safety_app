@@ -38,8 +38,7 @@ export class ProfileControlService {
         config.maxSpeedConfigured = Math.min(config.maxSpeedConfigured, 15);
       }
 
-      // TODO: 산출된 config 값을 MQTT 또는 TCP 소켓을 통해 PM IoT 컨트롤러로 전송하는 로직 추가
-      await this.sendConfigToIoT(user.userId, config);
+      // IoT 통신 대신, 클라이언트 측(앱 내부)의 속도 감시(알람/TTS) 로직에서 사용하기 위해 config만 반환합니다.
 
       return config;
     } catch (error) {
@@ -48,9 +47,4 @@ export class ProfileControlService {
     }
   }
 
-  static async sendConfigToIoT(userId, config) {
-    // IoT 통신 모킹
-    console.log(`[IoT Command] Device for User ${userId} configured:`, config);
-    return true;
-  }
 }

@@ -4,7 +4,7 @@ import { ProfileControlService } from '../../services/ProfileControlService';
 import { X } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
 
-const DrivingConsoleUI = ({ isOpen, onClose }) => {
+const DrivingConsoleUI = ({ isOpen, onClose, onApply }) => {
   const [targetSpeed, setTargetSpeed] = useState(20);
   const [status, setStatus] = useState({
     isBeginner: false,
@@ -43,7 +43,10 @@ const DrivingConsoleUI = ({ isOpen, onClose }) => {
       if (status.isSenior) user.age = 65;
       
       const config = await ProfileControlService.generateDeviceConfig(user, targetSpeed);
-      toast(`✅ 맞춤형 기기 제어 파라미터가 전송되었습니다. (최고속도: ${config.maxSpeedConfigured}km/h)`, 'success');
+      toast(`✅ 주행 설정이 적용되었습니다. (최고속도 제한: ${config.maxSpeedConfigured}km/h)`, 'success');
+      if (onApply) {
+        onApply(config.maxSpeedConfigured);
+      }
       onClose(); // 적용 완료 후 닫기
     } catch (e) {
       console.error(e);

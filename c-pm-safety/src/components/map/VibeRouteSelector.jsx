@@ -2,14 +2,13 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sun, TreePine, Zap, Navigation, ArrowRight, Layers, Leaf, MapPin } from 'lucide-react';
 import RoutePreferenceSelector from '../common/RoutePreferenceSelector';
+import { calculateDistance } from '../../utils/distance';
 
 const VIBE_OPTIONS = [
     {
         id: 'sunset',
         title: 'Riverside Chill',
         subTitle: '노을 맛집 (Sunset View)',
-        time: '12 min',
-        distance: '2.4 km',
         icon: <Sun size={20} className="text-white" />,
         tags: ['River Side', 'Easy Path'],
         gradient: 'bg-gradient-to-br from-[#38bdf8] to-[#d946ef] border-transparent shadow-[0_0_20px_rgba(217,70,239,0.5)]',
@@ -19,8 +18,6 @@ const VIBE_OPTIONS = [
         id: 'quiet',
         title: 'Quiet Street',
         subTitle: '가로수길 (The Garden Way)',
-        time: '15 min',
-        distance: '2.8 km',
         icon: <TreePine size={20} className="text-white" />,
         tags: ['No Noise', 'Scenic'],
         gradient: 'bg-gradient-to-br from-[#059669] to-[#047857] border-transparent shadow-[0_0_20px_rgba(16,185,129,0.5)]',
@@ -30,18 +27,16 @@ const VIBE_OPTIONS = [
         id: 'urban',
         title: 'Street Runner',
         subTitle: '도심 숏컷 (Urban Shortcut)',
-        time: '8 min',
-        distance: '1.8 km',
         icon: <Zap size={20} className="text-black" />,
         tags: ['Fast', 'City Lights'],
         gradient: 'bg-gradient-to-br from-cyber-cyan to-[#0284c7] border-transparent shadow-[0_0_20px_rgba(64,255,220,0.5)] text-black',
     }
 ];
 
-const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
+const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute, routeOrigin, routeDestination }) => {
     const { t } = useTranslation();
     const [selectedId, setSelectedId] = useState('sunset');
-    const [selectedPreference, setSelectedPreference] = useState('safe');
+    const [selectedPreference, setSelectedPreference] = useState('eco');
     const [mode, setMode] = useState('CHILL');
 
     // Swipe down to start logic
@@ -172,6 +167,34 @@ const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
                 <div className="flex flex-col gap-4 mb-4 max-h-[55vh] overflow-y-auto hide-scrollbar px-2 pb-8">
                     {VIBE_OPTIONS.map((vibe) => {
                         const isActive = selectedId === vibe.id;
+                        
+                        // 동적 거리 및 시간 계산
+                        let baseDistKm = 2.0; // 기본 거리 (목적지 미설정 시)
+                        if (routeOrigin && routeDestination && routeOrigin.lat && routeDestination.lat) {
+                            const distMeters = calculateDistance(routeOrigin.lat, routeOrigin.lng, routeDestination.lat, routeDestination.lng);
+                            baseDistKm = distMeters / 1000;
+                        }
+                        
+                        let distanceMultiplier = 1.0;
+                        let speedKmH = 15;
+                        if (vibe.id === 'sunset') {
+                            distanceMultiplier = 1.2;
+                            speedKmH = 12;
+                        } else if (vibe.id === 'quiet') {
+                            distanceMultiplier = 1.1;
+                            speedKmH = 10;
+                        } else if (vibe.id === 'urban') {
+                            distanceMultiplier = 0.95;
+                            speedKmH = 18;
+                        }
+                        
+                        const finalDistKm = baseDistKm * distanceMultiplier;
+                        const timeHours = finalDistKm / speedKmH;
+                        const timeMinutes = Math.max(1, Math.round(timeHours * 60));
+                        
+                        const displayTime = `${timeMinutes} min`;
+                        const displayDistance = `${finalDistKm.toFixed(1)} km`;
+
                         return (
                             <div
                                 key={vibe.id}
@@ -199,10 +222,10 @@ const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute }) => {
                                     </div>
                                     <div className="text-right">
                                         <p className={`text-2xl font-black italic tracking-tighter shadow-sm ${isActive ? (vibe.id === 'urban' ? 'text-black' : 'text-white') : 'text-gray-300'}`}>
-                                            {vibe.time.split(' ')[0]} <span className="text-sm not-italic opacity-80">{vibe.time.split(' ')[1]}</span>
+                                            {displayTime.split(' ')[0]} <span className="text-sm not-italic opacity-80">{displayTime.split(' ')[1]}</span>
                                         </p>
                                         <p className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? (vibe.id === 'urban' ? 'text-gray-800' : 'text-white/80') : 'text-gray-500'}`}>
-                                            {vibe.distance}
+                                            {displayDistance}
                                         </p>
                                     </div>
                                 </div>

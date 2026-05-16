@@ -2,9 +2,9 @@ import React from 'react';
 
 const routeOptions = [
     { id: 'safe', label: '🛡️ 안전 최우선' },
+    { id: 'eco', label: '🍃 유유자적 에코모드' },
     { id: 'bike_lane', label: '🚲 자전거 도로' },
-    { id: 'fastest', label: '⚡ 최단 거리' },
-    { id: 'reward', label: '💰 리워드 최대' }
+    { id: 'fastest', label: '⚡ 최단 거리' }
 ];
 
 const RoutePreferenceSelector = ({ selectedMode, onModeChange }) => {
