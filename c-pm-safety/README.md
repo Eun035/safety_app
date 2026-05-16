@@ -5,6 +5,17 @@ C-Safe는 전동 킥보드(PM) 사용자의 안전을 최우선으로 하는 스
 
 ## 📜 개발 일지 및 업데이트 내역 (Changelog)
 
+### [2026-05-16] Epic 4: Edge AI 헬멧 검증 MVP 및 안전 주행 제어 고도화
+1. **Edge AI 헬멧 검증 파이프라인 MVP 완성 (`useEdgeAI.js`, `HelmetDetectionCamera.jsx`)**
+   - 서버 통신 없이 브라우저 내장 WASM(`onnxruntime-web`)을 활용하여 실시간 카메라 프레임을 텐서로 변환해 분석하는 파이프라인 뼈대 구축.
+   - 첫 렌더링 시 과도한 로딩 시간이 Time Delta에 포함되어 게이지가 즉시 100%로 차오르던 타이머 산출 로직(Bug) 수정 및 2초 검증 로직 최적화.
+2. **인앱(In-App) 속도 제어 및 경고 시스템 도입 (`ProfileControlService.js`, `DrivingConsoleUI.jsx`)**
+   - 불안정한 외부 IoT 기기 제어 연동 방식을 덜어내고, 기기 GPS 기반으로 설정된 최고 속도(초보/시니어) 초과 시 TTS 및 알람을 통해 즉각 감속을 유도하도록 단순화.
+   - 주행 콘솔에서 변경한 속도 제한 설정이 메인 전역 상태(`rideConfig`)에 즉시 반영되도록 양방향 연결 완료.
+3. **VIBE 경로 시스템 고도화 및 에코모드 추가 (`VibeRouteSelector.jsx`, `RoutePreferenceSelector.jsx`)**
+   - 경로 선호도 UI에 '🍃 유유자적 에코모드(Zen Mode)' 옵션 정식 추가.
+   - 하드코딩된 예상 시간/거리를 걷어내고, 목적지 좌표 기반 `calculateDistance`(Haversine) 직선거리를 바탕으로 노선별 예상 소요 시간 및 거리를 동적으로 계산하여 표출.
+
 ### [2026-05-15] Epic 3: 시스템 성능 최적화 및 PostGIS 기반 공간 데이터 아키텍처 전환
 1. **PostGIS 기반 '서버 사이드 근접 알림' 시스템 구축**
    - 클라이언트(폰)에서 수행하던 O(N) 거리 연산 부하를 서버의 공간 인덱스(GiST)로 이관.
