@@ -1096,6 +1096,7 @@ function App() {
             setCoupons(prev => [newPoint, ...prev]);
             
             setCameraAction(null); // 모달 닫기
+            setNavStep('idle'); // 주행 시작 시 목적지 설정 팝업(navStep) 닫기
             startRide();
             startTracking(); // 실제 GPS 트래킹 시작
             speak(t("Zen Mode"));
