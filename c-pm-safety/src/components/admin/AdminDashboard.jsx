@@ -8,9 +8,12 @@ import {
   MapPin, Info, BrainCircuit, ShieldAlert,
   Route, Waves, Zap, Landmark, Trees, 
   Navigation2, CheckCircle2, HeartPulse,
-  Footprints, Sliders
+  Navigation2, CheckCircle2, HeartPulse,
+  Footprints, Sliders, Copy
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { B2GExportService } from '../../services/B2GExportService';
+import { toast } from '../../hooks/useToast';
 
 const AdminDashboard = ({ onClose }) => {
   const [stats, setStats] = useState({
@@ -33,6 +36,30 @@ const AdminDashboard = ({ onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedType, setSelectedType] = useState('ALL');
   const [analysisMode, setAnalysisMode] = useState('NORMAL'); // 'NORMAL' | 'SAFETY' | 'VIBE' | 'STRESS'
+  const [receiptData, setReceiptData] = useState(null);
+
+  const handleExportB2G = async () => {
+    try {
+      const csvContent = B2GExportService.generateCSV(stats);
+      const hash = await B2GExportService.generateSHA256Hash(csvContent);
+      const filename = `C-Safe_B2G_Report_${new Date().toISOString().split('T')[0]}.csv`;
+      
+      B2GExportService.triggerDownload(csvContent, filename);
+      setReceiptData({ hash, date: new Date().toLocaleString() });
+    } catch (err) {
+      console.error("Export failed:", err);
+      toast('데이터 추출에 실패했습니다.', 'error');
+    }
+  };
+
+  const handleCopyHash = async () => {
+    try {
+      await navigator.clipboard.writeText(receiptData.hash);
+      toast('무결성 해시 키가 복사되었습니다.', 'success');
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  };
 
   // 🚀 보행자 스트레스 맵 분석 데이터 (고도화 예정)
   const stressData = useMemo(() => {
@@ -144,6 +171,13 @@ const AdminDashboard = ({ onClose }) => {
           </div>
           <div className="flex items-center gap-3">
             <button 
+              onClick={handleExportB2G}
+              className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 px-5 py-3 rounded-2xl border border-blue-500/30 flex items-center gap-2 transition-all shadow-neon-blue"
+            >
+              <Download size={18} />
+              <span className="text-xs font-bold uppercase tracking-widest">B2G Report</span>
+            </button>
+            <button 
               onClick={() => { setAnalysisMode('SAFETY'); setIsMapOpen(true); }}
               className="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 px-5 py-3 rounded-2xl border border-rose-500/30 flex items-center gap-2 transition-all shadow-neon-rose"
             >
@@ -242,6 +276,56 @@ const AdminDashboard = ({ onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* Integrity Receipt Modal */}
+      <AnimatePresence>
+        {receiptData && (
+          <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-gray-900 border border-cyber-cyan/50 p-8 rounded-3xl max-w-lg w-full relative shadow-neon-cyan overflow-hidden"
+            >
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-6 text-cyber-cyan">
+                  <ShieldCheck size={40} />
+                </div>
+                <h2 className="text-2xl font-black italic text-center mb-2">INTEGRITY RECEIPT</h2>
+                <p className="text-center text-xs text-gray-400 mb-8 uppercase tracking-widest">
+                  B2G Data Export Verified
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="bg-black/50 border border-white/10 p-4 rounded-xl">
+                    <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Issue Date</p>
+                    <p className="text-sm font-mono text-white">{receiptData.date}</p>
+                  </div>
+                  
+                  <div className="bg-black/50 border border-cyber-cyan/30 p-4 rounded-xl relative group">
+                    <p className="text-[10px] text-cyber-cyan uppercase font-bold mb-2">SHA-256 Checksum</p>
+                    <p className="text-xs font-mono text-gray-300 break-all pr-12">{receiptData.hash}</p>
+                    <button 
+                      onClick={handleCopyHash}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-cyber-cyan/10 hover:bg-cyber-cyan/20 text-cyber-cyan rounded-lg transition-colors flex flex-col items-center gap-1"
+                      title="Copy Hash"
+                    >
+                      <Copy size={16} />
+                    </button>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => setReceiptData(null)}
+                  className="w-full mt-8 bg-cyber-cyan text-black py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-colors"
+                >
+                  Close Receipt
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* 🗺️ Map Overlay (Modified for Stress Map) */}
       {isMapOpen && (
