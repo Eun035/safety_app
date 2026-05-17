@@ -804,8 +804,8 @@ function App() {
               }}
               onRouteReady={() => {
                 // 목적지 선택 완료 후 헬멧 인증 카메라 호출
-                speak("목적지 설정이 완료되었습니다. 안전 주행을 위해 헬멧을 인증해 주세요.");
-                setCameraAction('start');
+                speak("목적지 설정이 완료되었습니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.");
+                setIsHelmetAIOpen(true);
               }}
               onMapReady={handleMapReady}
               gpsFollowMode={gpsFollowMode}
