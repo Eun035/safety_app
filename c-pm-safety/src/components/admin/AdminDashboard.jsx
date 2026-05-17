@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Users, Activity, Award, AlertCircle, 
-  TrendingUp, Map as MapIcon, ChevronRight, 
-  ArrowUpRight, ArrowDownRight, Search, 
+import {
+  Users, Activity, Award, AlertCircle,
+  TrendingUp, Map as MapIcon, ChevronRight,
+  ArrowUpRight, ArrowDownRight, Search,
   ShieldCheck, Clock, Download, Sparkles,
   MapPin, Info, BrainCircuit, ShieldAlert,
-  Route, Waves, Zap, Landmark, Trees, 
-  Navigation2, CheckCircle2, HeartPulse,
+  Route, Waves, Zap, Landmark, Trees,
   Navigation2, CheckCircle2, HeartPulse,
   Footprints, Sliders, Copy
 } from 'lucide-react';
@@ -43,7 +42,7 @@ const AdminDashboard = ({ onClose }) => {
       const csvContent = B2GExportService.generateCSV(stats);
       const hash = await B2GExportService.generateSHA256Hash(csvContent);
       const filename = `C-Safe_B2G_Report_${new Date().toISOString().split('T')[0]}.csv`;
-      
+
       B2GExportService.triggerDownload(csvContent, filename);
       setReceiptData({ hash, date: new Date().toLocaleString() });
     } catch (err) {
@@ -79,7 +78,7 @@ const AdminDashboard = ({ onClose }) => {
         { id: 101, lat: 36.835, lng: 127.142, name: "두정동 사고 다발 사거리", reduction: "45%", reason: "급정거 로그 집중 구역" }
       ],
       vibeProposals: [
-        { 
+        {
           id: 'v1', type: 'SAFETY', name: '안전 최우선', color: '#10b981', icon: ShieldCheck, desc: '사고 위험 지점 100% 우회 경로',
           path: [
             { lat: 36.833, lng: 127.179 },
@@ -87,7 +86,7 @@ const AdminDashboard = ({ onClose }) => {
             { lat: 36.839, lng: 127.182 }
           ]
         },
-        { 
+        {
           id: 'v2', type: 'SUNSET', name: '노을 맛집', color: '#fb923c', icon: Waves, desc: '조망권 및 일몰 시간 데이터 반영',
           path: [
             { lat: 36.818, lng: 127.156 },
@@ -106,13 +105,13 @@ const AdminDashboard = ({ onClose }) => {
         const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
         const { count: rideCount } = await supabase.from('rides').select('*', { count: 'exact', head: true });
         const { data: hazardsData } = await supabase.from('hazards').select('*');
-        
+
         const pedestrianCount = hazardsData?.filter(h => h.type === 'PEDESTRIAN' || h.type === 'PARKING').length || 0;
 
         const { data: profileData } = await supabase.from('profiles').select('points, safety_score');
         const pointsTotal = profileData?.reduce((acc, curr) => acc + (curr.points || 0), 0) || 0;
-        const avgScore = profileData?.length > 0 
-          ? profileData.reduce((acc, curr) => acc + (curr.safety_score || 0), 0) / profileData.length 
+        const avgScore = profileData?.length > 0
+          ? profileData.reduce((acc, curr) => acc + (curr.safety_score || 0), 0) / profileData.length
           : 0;
 
         setStats({
@@ -170,28 +169,28 @@ const AdminDashboard = ({ onClose }) => {
             <h1 className="text-4xl font-black italic tracking-tighter">Pedestrian Safety Hub</h1>
           </div>
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={handleExportB2G}
               className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 px-5 py-3 rounded-2xl border border-blue-500/30 flex items-center gap-2 transition-all shadow-neon-blue"
             >
               <Download size={18} />
               <span className="text-xs font-bold uppercase tracking-widest">B2G Report</span>
             </button>
-            <button 
+            <button
               onClick={() => { setAnalysisMode('SAFETY'); setIsMapOpen(true); }}
               className="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 px-5 py-3 rounded-2xl border border-rose-500/30 flex items-center gap-2 transition-all shadow-neon-rose"
             >
               <Zap size={18} />
               <span className="text-xs font-bold uppercase tracking-widest">AI Station Recommend</span>
             </button>
-            <button 
+            <button
               onClick={() => { setAnalysisMode('STRESS'); setIsMapOpen(true); }}
               className="bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 px-5 py-3 rounded-2xl border border-orange-500/30 flex items-center gap-2 transition-all shadow-neon-orange"
             >
               <HeartPulse size={18} />
               <span className="text-xs font-bold uppercase tracking-widest">Pedestrian Stress Map</span>
             </button>
-            <button 
+            <button
               onClick={() => { setAnalysisMode('VIBE'); setIsMapOpen(true); }}
               className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-5 py-3 rounded-2xl border border-emerald-500/30 flex items-center gap-2 transition-all"
             >
@@ -216,7 +215,7 @@ const AdminDashboard = ({ onClose }) => {
               <h2 className="text-xl font-black italic">Pedestrian Safety Insights</h2>
               <button className="text-xs font-bold text-cyber-cyan uppercase tracking-widest">Live Safety Feed</button>
             </div>
-            
+
             <div className="space-y-4">
               {recentRides.map((ride) => (
                 <div key={ride.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
@@ -237,40 +236,40 @@ const AdminDashboard = ({ onClose }) => {
 
           <div className="space-y-8">
             <div className="bg-gradient-to-br from-orange-600/20 to-amber-600/20 backdrop-blur-xl border border-orange-500/20 rounded-[2.5rem] p-8 shadow-neon-orange group">
-               <div className="flex items-center gap-3 mb-6">
-                  <HeartPulse className="text-orange-400" size={24} />
-                  <h2 className="text-xl font-black italic">Stress Hotspots</h2>
-               </div>
-               <div className="space-y-4">
-                 {stressData.map(item => (
-                   <div key={item.id} className="bg-black/40 p-4 rounded-2xl border border-white/5">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-[10px] font-black text-orange-400 uppercase">Index: {item.level}</span>
-                        <div className="w-12 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                           <div className="h-full bg-orange-500" style={{ width: `${item.level}%` }}></div>
-                        </div>
+              <div className="flex items-center gap-3 mb-6">
+                <HeartPulse className="text-orange-400" size={24} />
+                <h2 className="text-xl font-black italic">Stress Hotspots</h2>
+              </div>
+              <div className="space-y-4">
+                {stressData.map(item => (
+                  <div key={item.id} className="bg-black/40 p-4 rounded-2xl border border-white/5">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-[10px] font-black text-orange-400 uppercase">Index: {item.level}</span>
+                      <div className="w-12 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-orange-500" style={{ width: `${item.level}%` }}></div>
                       </div>
-                      <p className="text-xs font-black text-white">{item.name}</p>
-                      <p className="text-[9px] text-gray-400 mt-1 leading-tight">{item.reason}</p>
-                   </div>
-                 ))}
-               </div>
-               <button onClick={() => { setAnalysisMode('STRESS'); setIsMapOpen(true); }} className="w-full mt-6 bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">Launch Stress Map</button>
+                    </div>
+                    <p className="text-xs font-black text-white">{item.name}</p>
+                    <p className="text-[9px] text-gray-400 mt-1 leading-tight">{item.reason}</p>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => { setAnalysisMode('STRESS'); setIsMapOpen(true); }} className="w-full mt-6 bg-white text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">Launch Stress Map</button>
             </div>
 
             <div className="bg-gray-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8">
               <div className="flex items-center gap-2 mb-6">
-                 <Sliders size={18} className="text-cyber-cyan" />
-                 <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Policy Controls</h2>
+                <Sliders size={18} className="text-cyber-cyan" />
+                <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Policy Controls</h2>
               </div>
               <div className="space-y-3">
-                 <button className="w-full p-3 bg-white/5 rounded-xl border border-white/5 text-[10px] font-bold text-left flex justify-between items-center">
-                    <span>Set Speed Limit (10km/h)</span>
-                    <CheckCircle2 size={14} className="text-emerald-400" />
-                 </button>
-                 <button className="w-full p-3 bg-white/5 rounded-xl border border-white/5 text-[10px] font-bold text-left">
-                    Define Geo-No-Ride Zones
-                 </button>
+                <button className="w-full p-3 bg-white/5 rounded-xl border border-white/5 text-[10px] font-bold text-left flex justify-between items-center">
+                  <span>Set Speed Limit (10km/h)</span>
+                  <CheckCircle2 size={14} className="text-emerald-400" />
+                </button>
+                <button className="w-full p-3 bg-white/5 rounded-xl border border-white/5 text-[10px] font-bold text-left">
+                  Define Geo-No-Ride Zones
+                </button>
               </div>
             </div>
           </div>
@@ -281,7 +280,7 @@ const AdminDashboard = ({ onClose }) => {
       <AnimatePresence>
         {receiptData && (
           <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -295,17 +294,17 @@ const AdminDashboard = ({ onClose }) => {
                 <p className="text-center text-xs text-gray-400 mb-8 uppercase tracking-widest">
                   B2G Data Export Verified
                 </p>
-                
+
                 <div className="space-y-4">
                   <div className="bg-black/50 border border-white/10 p-4 rounded-xl">
                     <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Issue Date</p>
                     <p className="text-sm font-mono text-white">{receiptData.date}</p>
                   </div>
-                  
+
                   <div className="bg-black/50 border border-cyber-cyan/30 p-4 rounded-xl relative group">
                     <p className="text-[10px] text-cyber-cyan uppercase font-bold mb-2">SHA-256 Checksum</p>
                     <p className="text-xs font-mono text-gray-300 break-all pr-12">{receiptData.hash}</p>
-                    <button 
+                    <button
                       onClick={handleCopyHash}
                       className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-cyber-cyan/10 hover:bg-cyber-cyan/20 text-cyber-cyan rounded-lg transition-colors flex flex-col items-center gap-1"
                       title="Copy Hash"
@@ -314,8 +313,8 @@ const AdminDashboard = ({ onClose }) => {
                     </button>
                   </div>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => setReceiptData(null)}
                   className="w-full mt-8 bg-cyber-cyan text-black py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-colors"
                 >
@@ -402,23 +401,22 @@ const AdminDashboard = ({ onClose }) => {
 
             <div className="flex-1 relative">
               <div id="admin-strategy-map" className="w-full h-full"></div>
-              
+
               <div className="absolute bottom-6 left-6 z-10 flex gap-2">
                 <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] font-black text-white flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full animate-pulse ${
-                    analysisMode === 'STRESS' ? 'bg-orange-500 shadow-neon-orange' :
-                    analysisMode === 'SAFETY' ? 'bg-red-500 shadow-neon-red' :
-                    'bg-emerald-500 shadow-neon-green'
-                  }`}></div>
-                  {analysisMode === 'STRESS' ? 'STRESS HEATMAP ACTIVE' : 
-                   analysisMode === 'SAFETY' ? 'AI RECOMMENDATION ACTIVE' : 'VIBE PROPOSAL ACTIVE'}
+                  <div className={`w-3 h-3 rounded-full animate-pulse ${analysisMode === 'STRESS' ? 'bg-orange-500 shadow-neon-orange' :
+                      analysisMode === 'SAFETY' ? 'bg-red-500 shadow-neon-red' :
+                        'bg-emerald-500 shadow-neon-green'
+                    }`}></div>
+                  {analysisMode === 'STRESS' ? 'STRESS HEATMAP ACTIVE' :
+                    analysisMode === 'SAFETY' ? 'AI RECOMMENDATION ACTIVE' : 'VIBE PROPOSAL ACTIVE'}
                 </div>
               </div>
             </div>
           </div>
-          
-          <AdminMapInitializer 
-            hazards={hazards} 
+
+          <AdminMapInitializer
+            hazards={hazards}
             analysisMode={analysisMode}
             stressData={stressData}
             recommendations={recommendations}
@@ -448,7 +446,7 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData, recommendation
       // 🌋 보행자 스트레스 히트맵 (시뮬레이션: 원형 오버레이)
       stressData.forEach(item => {
         const center = new window.kakao.maps.LatLng(item.lat, item.lng);
-        
+
         // 스트레스 강도에 따른 반경 및 색상 조절
         const circle = new window.kakao.maps.Circle({
           center: center,
@@ -475,7 +473,7 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData, recommendation
     if (analysisMode === 'SAFETY') {
       recommendations.optimization.concat(recommendations.safety).forEach(item => {
         const pos = new window.kakao.maps.LatLng(item.lat, item.lng);
-        
+
         // 더 화려하고 눈에 띄는 빨간색 효과 (이중 원)
         new window.kakao.maps.Circle({
           center: pos,
@@ -508,9 +506,9 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData, recommendation
     if (analysisMode === 'VIBE') {
       recommendations.vibeProposals.forEach(route => {
         if (!route.path) return;
-        
+
         const pathCoords = route.path.map(p => new window.kakao.maps.LatLng(p.lat, p.lng));
-        
+
         new window.kakao.maps.Polyline({
           path: pathCoords,
           strokeWeight: 8,
@@ -534,7 +532,7 @@ const AdminMapInitializer = ({ hazards, analysisMode, stressData, recommendation
     hazards.forEach(hazard => {
       const isCritical = hazard.type === 'SLOPE' || hazard.type === 'ACCIDENT';
       const circleColor = isCritical ? '#f43f5e' : '#f59e0b';
-      
+
       new window.kakao.maps.Circle({
         center: new window.kakao.maps.LatLng(hazard.lat, hazard.lng),
         radius: isCritical ? 50 : 30,
