@@ -5,6 +5,14 @@ C-Safe는 전동 킥보드(PM) 사용자의 안전을 최우선으로 하는 스
 
 ## 📜 개발 일지 및 업데이트 내역 (Changelog)
 
+### [2026-05-20] Epic 5: Vibe 동적 TTS 연동 및 Supabase RLS 보안 강화
+1. **Vibe 및 경로 선호도 기반 동적 TTS 연동 (`App.jsx`)**
+   - 사용자가 **Choose Vibe** 메뉴에서 선택한 Vibe 경로(노을 맛집, 가로수길, 도심 숏컷)와 4가지 선호도(안전, 에코, 자전거, 최단거리) 및 운행 모드(CHILL, FAST)를 상태에 실시간 동기화하고, 주행 시작 시 이를 결합한 동적 한국어 TTS(음성 안내)를 제공하도록 전면 고도화했습니다.
+   - 주행 종료 요약창(`RideSummaryModal`)에도 실제 선택한 Vibe명이 노출되도록 연동했습니다.
+2. **Supabase RLS(Row Level Security) 보안 정책 수립 (`supabase_rls_security_update.sql`)**
+   - 개인정보 및 상세 주행 궤적 유출을 원천 방지하기 위해 `rides` 및 `ride_paths` 테이블에 철저한 행 단위 보안(RLS) 정책을 수립했습니다.
+   - 이를 통해 **오직 주행 기록을 생성한 당사자 및 최고 권한 관리자(service_role)**만 해당 위경도 좌표 및 요약 내역을 열람/제어할 수 있도록 완벽하게 격리했습니다. (보안 배지 `UNRESTRICTED` -> `RESTRICTED` 전환)
+
 ### [2026-05-16] Epic 4: Edge AI 헬멧 검증 MVP 및 안전 주행 제어 고도화
 1. **Edge AI 헬멧 검증 파이프라인 MVP 완성 (`useEdgeAI.js`, `HelmetDetectionCamera.jsx`)**
    - 서버 통신 없이 브라우저 내장 WASM(`onnxruntime-web`)을 활용하여 실시간 카메라 프레임을 텐서로 변환해 분석하는 파이프라인 뼈대 구축.
