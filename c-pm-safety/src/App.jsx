@@ -179,7 +179,7 @@ function App() {
     speedLimit: 20
   });
   const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
-  
+
   // Phase 45: Lifted Navigation / Route States from MapContainer
   const [navStep, setNavStep] = useState('idle'); // 'idle' | 'select_origin' | 'select_destination' | 'route_ready'
   const [routeOrigin, setRouteOrigin] = useState(null);
@@ -262,7 +262,7 @@ function App() {
 
   useEffect(() => {
     console.log("PWA: Initializing Install Prompt listener...");
-    
+
     // Check if already installed (standalone mode)
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
       console.log("PWA: App is already running in standalone mode.");
@@ -312,7 +312,7 @@ function App() {
     // 사용자의 응답 대기
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`PWA: User choice outcome: ${outcome}`);
-    
+
     if (outcome === 'accepted') {
       console.log('사용자가 PWA 설치를 수락했습니다.');
     } else {
@@ -338,9 +338,9 @@ function App() {
     let distanceDelta = 0;
     if (lastLocationRef.current) {
       distanceDelta = calculateDistance(
-        lastLocationRef.current.lat, 
-        lastLocationRef.current.lng, 
-        location.lat, 
+        lastLocationRef.current.lat,
+        lastLocationRef.current.lng,
+        location.lat,
         location.lng
       );
     }
@@ -352,11 +352,11 @@ function App() {
     if (activeHazard?.type === 'ICE') surface = 'ice';
     else if (activeHazard?.type === 'WET') surface = 'wet';
     else if (activeHazard?.type === 'TILE') surface = 'tile';
-    
+
     const speed = location?.speed || 0;
     const reactionTime = historyMetrics?.avgReactionTime || 1.0;
     const result = calculateStopDistance(speed, activeHazard?.type === 'SLOPE' ? 10 : 0, reactionTime, surface);
-    
+
     setDigitalTwinData({
       ...result,
       speed,
@@ -395,7 +395,7 @@ function App() {
   // Vibe & Preference 기반 동적 TTS 안내 함수
   const announceVibeStart = (vibe) => {
     if (!vibe) {
-      speak("유유자적 에코 모드로 주행을 시작합니다. 안전 운행하세요!");
+      speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
       return;
     }
 
@@ -416,7 +416,7 @@ function App() {
     const vibeName = vibeNames[vibe.id] || "안전 경로";
     const modeName = vibe.drivingMode === 'FAST' ? "빠른 주행" : "여유로운 주행";
 
-    speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
+    //speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
   };
 
   const handleQRScanSuccess = (decodedText) => {
@@ -559,15 +559,15 @@ function App() {
   return (
     <ErrorBoundary>
       <ToastContainer />
-      
+
       {/* Phase Transition: Splash Screen Overlay */}
       {showSplash && (
-        <SplashScreen 
-          isDataLoading={mapLoading || authLoading || !isMapReady} 
+        <SplashScreen
+          isDataLoading={mapLoading || authLoading || !isMapReady}
           onComplete={() => {
             console.log("[C-Safe] Splash complete, entering main flow.");
             setShowSplash(false);
-          }} 
+          }}
         />
       )}
 
@@ -583,12 +583,12 @@ function App() {
         <SafetyQuiz onComplete={() => {
           setHasCompletedOnboarding(true);
           if (user?.id) {
-             supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
-             .then(({ data }) => {
+            supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
+              .then(({ data }) => {
                 const currentPoints = data?.points || 0;
                 supabase.from('profiles').upsert({ id: user.id, points: currentPoints + 500 })
-                .then(() => loadUser());
-             });
+                  .then(() => loadUser());
+              });
           }
         }} />
       )}
@@ -601,8 +601,8 @@ function App() {
 
         {/* Phase Station: Unlock & Sterilization Screen */}
         {isStationUnlockOpen && (
-          <StationUnlockScreen 
-            onClose={() => setIsStationUnlockOpen(false)} 
+          <StationUnlockScreen
+            onClose={() => setIsStationUnlockOpen(false)}
             onUnlockComplete={() => {
               setIsStationUnlockOpen(false);
               toast("🔓 스테이션 잠금이 해제되었습니다. 주행을 시작하세요!", "success");
@@ -702,25 +702,23 @@ function App() {
             <div className="flex flex-col gap-2 mb-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
               <button
                 onClick={() => setShowHeatmap(prev => !prev)}
-                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
-                  showHeatmap ? 'text-orange-500 border-orange-500/50 shadow-neon-orange' : 'text-white border-white/10'
-                }`}
+                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${showHeatmap ? 'text-orange-500 border-orange-500/50 shadow-neon-orange' : 'text-white border-white/10'
+                  }`}
                 title="위험 구역 히트맵"
               >
                 <Activity size={18} />
               </button>
               <button
                 onClick={() => setIsDashboardOpen(true)}
-                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
-                  isDashboardOpen ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10'
-                }`}
+                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${isDashboardOpen ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10'
+                  }`}
                 title="종합 대시보드"
               >
                 <Layers size={18} />
               </button>
-              
+
               <div className="h-[1px] w-6 bg-white/10 mx-auto my-1" />
-              
+
               <button
                 onClick={handleInstallClick}
                 className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white/60"
@@ -761,12 +759,11 @@ function App() {
               </button>
             </div>
           )}
-          
+
           <button
             onClick={() => setIsToolsOpen(!isToolsOpen)}
-            className={`w-12 h-12 rounded-2xl shadow-glass flex items-center justify-center transition-all duration-300 border ${
-              isToolsOpen ? 'bg-orange-500 text-black border-orange-400 rotate-45' : 'bg-gray-900/90 text-white border-white/20'
-            }`}
+            className={`w-12 h-12 rounded-2xl shadow-glass flex items-center justify-center transition-all duration-300 border ${isToolsOpen ? 'bg-orange-500 text-black border-orange-400 rotate-45' : 'bg-gray-900/90 text-white border-white/20'
+              }`}
           >
             {isToolsOpen ? <X size={24} /> : <Layers size={24} />}
           </button>
@@ -795,17 +792,15 @@ function App() {
                   setIsDigitalTwinOpen(true);
                 }}
 
-                className={`bg-cyber-panel/80 backdrop-blur-lg py-2 px-5 rounded-full shadow-glass border transition-all duration-500 flex items-center gap-3 active:scale-95 outline-none ${
-                  digitalTwinData?.riskLevel === 'danger' ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
+                className={`bg-cyber-panel/80 backdrop-blur-lg py-2 px-5 rounded-full shadow-glass border transition-all duration-500 flex items-center gap-3 active:scale-95 outline-none ${digitalTwinData?.riskLevel === 'danger' ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
                   digitalTwinData?.riskLevel === 'warning' ? 'border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.4)]' :
-                  'border-cyber-cyan/30 shadow-glass'
-                }`}
+                    'border-cyber-cyan/30 shadow-glass'
+                  }`}
               >
-                <div className={`p-1.5 rounded-lg transition-colors duration-500 ${
-                  digitalTwinData?.riskLevel === 'danger' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]' :
+                <div className={`p-1.5 rounded-lg transition-colors duration-500 ${digitalTwinData?.riskLevel === 'danger' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]' :
                   digitalTwinData?.riskLevel === 'warning' ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]' :
-                  'bg-cyber-cyan shadow-[0_0_10px_rgba(64,255,220,0.5)]'
-                }`}>
+                    'bg-cyber-cyan shadow-[0_0_10px_rgba(64,255,220,0.5)]'
+                  }`}>
                   <Shield size={16} className={digitalTwinData?.riskLevel === 'danger' || digitalTwinData?.riskLevel === 'warning' ? 'text-white' : 'text-black'} />
                 </div>
                 <h1 className="text-lg font-black text-white tracking-tighter italic">C-Safe</h1>
@@ -866,9 +861,9 @@ function App() {
                   onClick={() => {
                     speak(''); // TTS 권한 획득
                     // 주행 시작 클릭 시 바로 시작 대신 목적지 설정 모드 진입
-                    setRouteOrigin({ 
-                      title: '현재 위치', 
-                      lat: userLat, 
+                    setRouteOrigin({
+                      title: '현재 위치',
+                      lat: userLat,
                       lng: userLng,
                       type: 'CURRENT_LOC'
                     });
@@ -901,12 +896,11 @@ function App() {
             >
               <Share2 size={18} />
             </button>
-            
+
             <button
               onClick={() => setShowPMs(!showPMs)}
-              className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all shadow-xl ${
-                showPMs ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
-              }`}
+              className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all shadow-xl ${showPMs ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10 bg-gray-900/80'
+                }`}
             >
               <Zap size={18} className={showPMs ? "fill-cyber-cyan" : "fill-white/30"} />
             </button>
@@ -918,11 +912,10 @@ function App() {
                 setGpsFollowMode(true);
                 if (location) setPanToLocation({ ...location, timestamp: Date.now() });
               }}
-              className={`w-14 h-14 rounded-[22px] flex flex-col items-center justify-center transition-all duration-300 border-2 shadow-2xl ${
-                gpsFollowMode 
-                  ? 'bg-cyber-cyan border-white text-black shadow-neon-cyan' 
-                  : 'bg-gray-900/90 border-cyber-cyan/30 text-cyber-cyan backdrop-blur-xl'
-              }`}
+              className={`w-14 h-14 rounded-[22px] flex flex-col items-center justify-center transition-all duration-300 border-2 shadow-2xl ${gpsFollowMode
+                ? 'bg-cyber-cyan border-white text-black shadow-neon-cyan'
+                : 'bg-gray-900/90 border-cyber-cyan/30 text-cyber-cyan backdrop-blur-xl'
+                }`}
             >
               <LocateFixed size={24} className={gpsFollowMode ? 'animate-pulse' : ''} />
               <span className="text-[7px] font-black uppercase tracking-tighter mt-0.5">GPS</span>
@@ -944,14 +937,14 @@ function App() {
 
 
 
-            <button 
+            <button
               onClick={() => setIsShadowSheetOpen(true)}
               className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
             >
               <TrendingUp size={24} className="bg-transparent" />
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Activity")}</span>
             </button>
-            <button 
+            <button
               onClick={() => setIsWalletSheetOpen(true)}
               className="flex flex-col items-center gap-1 text-amber-400 hover:text-amber-300 transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
             >
@@ -1128,7 +1121,7 @@ function App() {
               status: 'active'
             };
             setCoupons(prev => [newPoint, ...prev]);
-            
+
             setCameraAction(null); // 모달 닫기
             setNavStep('idle'); // 주행 시작 시 목적지 설정 팝업(navStep) 닫기
             startRide();
@@ -1138,8 +1131,8 @@ function App() {
         />
 
         {/* Digital Twin Indicator Modal */}
-        <DigitalTwinIndicator 
-          isOpen={isDigitalTwinOpen} 
+        <DigitalTwinIndicator
+          isOpen={isDigitalTwinOpen}
           onClose={() => setIsDigitalTwinOpen(false)}
           data={digitalTwinData}
         />
