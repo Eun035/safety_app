@@ -140,9 +140,15 @@ function App() {
     }
   }, [location, isRiding, speak]);
 
-  // Phase 9 & 11 & 16: Route Vibe Aesthetic Modals
   const [showEcoBadge, setShowEcoBadge] = useState(false);
   const [isVibeRouteOpen, setIsVibeRouteOpen] = useState(false);
+  const [currentVibeRoute, setCurrentVibeRoute] = useState({
+    id: 'sunset',
+    title: 'Riverside Chill',
+    subTitle: '노을 맛집 (Sunset View)',
+    preference: 'eco',
+    drivingMode: 'CHILL'
+  });
 
 
   const [parkingGeofenceModal, setParkingGeofenceModal] = useState({ isOpen: false, success: false });
@@ -386,6 +392,33 @@ function App() {
     toast("온보딩이 초기화되었습니다. 재시작합니다.", 'info');
   };
 
+  // Vibe & Preference 기반 동적 TTS 안내 함수
+  const announceVibeStart = (vibe) => {
+    if (!vibe) {
+      speak("유유자적 에코 모드로 주행을 시작합니다. 안전 운행하세요!");
+      return;
+    }
+
+    const prefNames = {
+      safe: "안전 최우선 모드",
+      eco: "유유자적 에코 모드",
+      bike_lane: "자전거 도로 우선 모드",
+      fastest: "최단 거리 모드"
+    };
+
+    const vibeNames = {
+      sunset: "리버사이드 칠 노을 맛집 경로",
+      quiet: "콰이어트 스트리트 가로수길 경로",
+      urban: "스트리트 러너 도심 숏컷 경로"
+    };
+
+    const prefName = prefNames[vibe.preference] || "유유자적 에코 모드";
+    const vibeName = vibeNames[vibe.id] || "안전 경로";
+    const modeName = vibe.drivingMode === 'FAST' ? "빠른 주행" : "여유로운 주행";
+
+    speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
+  };
+
   const handleQRScanSuccess = (decodedText) => {
     setIsQRScannerOpen(false);
 
@@ -405,7 +438,7 @@ function App() {
       setCameraAction(null); // 모달 닫기
       startRide();
       startTracking(); // 실제 GPS 트래킹 시작
-      speak(t("Zen Mode"));
+      announceVibeStart(currentVibeRoute);
       return;
     }
 
@@ -507,7 +540,7 @@ function App() {
       if (!photoData) {
         speak("헬멧 미착용 개인 주행 모드를 시작합니다. 이동 데이터만 집계됩니다.");
       } else {
-        speak(t("Zen Mode"));
+        announceVibeStart(currentVibeRoute);
       }
       await startRide(); // 기기 제어 타이머 등 비동기 대기
       startTracking();   // 시작 즉시 GPS 수집
@@ -1010,6 +1043,7 @@ function App() {
           isOpen={isVibeRouteOpen}
           onClose={() => setIsVibeRouteOpen(false)}
           onSelectRoute={(vibe) => {
+            setCurrentVibeRoute(vibe);
             setIsVibeRouteOpen(false);
           }}
           routeOrigin={routeOrigin}
@@ -1038,7 +1072,7 @@ function App() {
           isOpen={isRideSummaryOpen}
           onClose={() => setIsRideSummaryOpen(false)}
           metrics={finalRideSummary}
-          vibeName="Safety Route"
+          vibeName={currentVibeRoute ? `${currentVibeRoute.title} (${currentVibeRoute.subTitle.split(' ')[0]})` : "Safety Route"}
           suddenBrakeCount={0}
         />
 
@@ -1099,7 +1133,7 @@ function App() {
             setNavStep('idle'); // 주행 시작 시 목적지 설정 팝업(navStep) 닫기
             startRide();
             startTracking(); // 실제 GPS 트래킹 시작
-            speak(t("Zen Mode"));
+            announceVibeStart(currentVibeRoute);
           }}
         />
 
