@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Star, MapPin, X, Navigation } from 'lucide-react';
 import { useLocalStorage } from '../../../src/hooks/useLocalStorage';
 import { calculateDistance } from '../../../src/utils/distance';

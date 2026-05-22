@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Wallet, Ticket, CheckCircle, Gift, ArrowRightLeft, Sparkles } from 'lucide-react';
 import { toast } from '../../hooks/useToast';

@@ -2,10 +2,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap, MarkerClusterer } from 'react-kakao-maps-sdk';
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
 import InfoCard from './InfoCard';
-import { AlertTriangle, MapPin, Navigation, Info, ShieldAlert, Zap, LocateFixed, Share2, X } from 'lucide-react';
+import { AlertTriangle, Navigation, Zap, X } from 'lucide-react';
 import accidentData from '../../data/accidentHeatmap.json';
 import { useGeolocation } from '../../hooks/useGeolocation';
-import { calculateDistance } from '../../utils/distance';
 
 import usePMParkingData from '../../hooks/usePMParkingData';
 import stationData from '../../data/station_data.json';
@@ -130,7 +129,6 @@ const MapContainer = ({
     gpsFollowMode, // 🛰️ 프롭으로 수신
     setGpsFollowMode, // 🛰️ 프롭으로 수신
     showPMs, // 🛰️ 프롭으로 수신
-    setShowPMs, // 🛰️ 프롭으로 수신
     panToLocation // 🔍 검색 이동용 프롭 수신
 }) => {
     const mapRef = useRef(null);
@@ -281,7 +279,7 @@ const MapContainer = ({
     const [loading, error] = useKakaoLoader(loaderConfig);
 
 
-    const { location: userLocation, error: geoError, isTracking, startTracking, stopTracking } = useGeolocation();
+    const { location: userLocation, startTracking, stopTracking } = useGeolocation();
 
     useEffect(() => {
         startTracking();
@@ -307,13 +305,6 @@ const MapContainer = ({
             setGpsFollowMode(false); // 수동 검색 시 GPS 자동 추적 해제
         }
     }, [panToLocation, setGpsFollowMode]);
-
-    const locateMe = () => {
-        setGpsFollowMode(true);
-        if (userLocation) {
-            setMapCenter(userLocation);
-        }
-    };
 
     const handleDragStart = () => {
         setGpsFollowMode(false);
@@ -473,32 +464,6 @@ const MapContainer = ({
 
     }, [pmParkings, showHeatmap, navStep, setNavStep, setRouteDestination, currentLevel, mapBounds]);
 
-    const findNearestPM = () => {
-        if (!userLocation || tagoPms.length === 0) {
-            speak("현재 위치를 찾을 수 없거나 주변에 킥보드가 없습니다.");
-            return;
-        }
-
-        setGpsFollowMode(false);
-
-        let nearestPM = null;
-        let minDistance = Infinity;
-
-        tagoPms.forEach(pm => {
-            const dist = calculateDistance(userLocation.lat, userLocation.lng, pm.lat, pm.lng);
-            if (dist < minDistance) {
-                minDistance = dist;
-                nearestPM = pm;
-            }
-        });
-
-        if (nearestPM) {
-            setMapCenter({ lat: nearestPM.lat, lng: nearestPM.lng });
-            setSelectedLocation(nearestPM);
-            speak(`가장 가까운 킥보드를 찾았습니다. 거리 약 ${Math.round(minDistance)}미터 앞, 배터리 ${nearestPM.battery}퍼센트 입니다.`);
-        }
-    };
-
     useEffect(() => {
         if (!loading && !error && window.kakao?.maps?.services) {
             const places = new window.kakao.maps.services.Places();
@@ -586,25 +551,6 @@ const MapContainer = ({
         setHighlightedStationId(null);
         setSelectedLocation(location);
         speak(`${location.title || ''} 지역입니다. ${location.desc || ''}. ${location.safetyTip || ''}`);
-    };
-
-    const handleShareApp = async () => {
-        const shareData = {
-            title: 'C-Safe 천안 PM 안전 지도',
-            text: '제가 주로 쓰는 전동 킥보드 안전 지도 앱 C-Safe입니다! 합법 주차장 찾고 킥보드 탈 때 안전하게 이용해보세요 🛴✨',
-            url: window.location.origin
-        };
-
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                toast(`🔗 공유 링크 복사됨 — ${shareData.url}`, 'info');
-                navigator.clipboard.writeText(shareData.url);
-            }
-        } catch (err) {
-            console.error('공유 실패:', err);
-        }
     };
 
     if (loading) {
@@ -928,7 +874,7 @@ const MapContainer = ({
                             </div>
 
                             {/* 가이드 패널 내 실시간 검색 결과 드롭다운 */}
-                            {isSearchFocused && searchQuery.trim() && (
+                            {isSearchFocused && searchQuery.trim() && navStep !== 'route_ready' && (
                                 <div className="mt-2 max-h-[160px] overflow-y-auto bg-black/95 rounded-xl border border-white/10 divide-y divide-white/5 scrollbar-thin">
                                     {searchResults.length > 0 ? (
                                         searchResults.map((item) => (

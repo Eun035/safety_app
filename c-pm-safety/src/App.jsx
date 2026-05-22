@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Shield, Cloud, AlertTriangle, MapPin, Moon, Activity,
-  Layers, Play, Camera, Navigation, Search, Star,
-  Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
-  Database, User, Map as MapIcon, Sliders, Box, Wallet,
-  Unlock, Leaf, X, Compass, Sparkles, HeartPulse, LocateFixed, Share2,
+  Shield, Cloud, AlertTriangle, Moon, Activity,
+  Layers, Play, Star, Zap, TrendingUp, Download,
+  Sliders, Wallet, Unlock, Leaf, X, LocateFixed, Share2,
   Settings, Users
 } from 'lucide-react';
 
@@ -19,7 +17,6 @@ import MapSearchBar from './components/map/MapSearchBar';
 import SplashScreen from './components/common/SplashScreen';
 import LanguageSelectorScreen from './components/common/LanguageSelectorScreen';
 import DisclaimerModal from './components/common/DisclaimerModal';
-import SOSButton from './components/common/SOSButton';
 import EmergencyModal from './components/common/EmergencyModal';
 import ParkingVerification from './components/common/ParkingVerification';
 import PersonalInsights from './components/common/PersonalInsights';
@@ -70,7 +67,7 @@ const STRESS_ZONES = [
 ];
 
 function App() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { locations, tagoPms, weatherRisk, currentTemp, isLoading: mapLoading } = useSafeData();
   const { user, profile, isLoading: authLoading, signInAnonymously, loadUser } = useUserStore();
 
@@ -100,7 +97,7 @@ function App() {
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
-  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, currentPath } = useRideSession();
+  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory } = useRideSession();
 
   // Static location fallback for testing / permissions denied
   const DEFAULT_LAT = 36.833;
@@ -115,25 +112,6 @@ function App() {
 
   const { borderColor: gridBorderColor = '#40ffdc' } = useSafetyGrid(userLat, userLng);
 
-  // 실시간 안정성 지수 (0~100): 과속/급제동에 비례해 감점
-  // - 과속 1km/h당 5점 감점 (자전거 모드는 과속 평가 제외)
-  // - 급제동 1회당 10점 감점
-  const stability = React.useMemo(() => {
-    const speedNum = Number(location?.speed) || 0;
-    const overSpeed = rideConfig.isBicycleMode
-      ? 0
-      : Math.max(0, speedNum - rideConfig.speedLimit);
-    const raw = 100 - overSpeed * 5 - (suddenBrakeCount || 0) * 10;
-    return Math.round(Math.max(0, Math.min(100, raw)));
-  }, [location?.speed, rideConfig.speedLimit, rideConfig.isBicycleMode, suddenBrakeCount]);
-
-  // Helper variables to match old `currentMetrics` prop
-  const currentMetrics = {
-    mileage: totalDistance.toFixed(2),
-    savedCarbon: (totalDistance * 0.2).toFixed(1),
-    speed: location?.speed || 0,
-    stability
-  };
   const { speak } = useVoiceGuidance();
 
   // 각 스트레스 존에 "현재 안에 있는지" 를 기억해 진입 순간에만 1회 안내
@@ -189,7 +167,6 @@ function App() {
   const [isESGDashboardOpen, setIsESGDashboardOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
-  const [simSpeed, setSimSpeed] = useState(15);
   const [rideConfig, setRideConfig] = useState({
     brandFilters: [],
     isNightMode: true, // Always default to Dark Mode for premium feel
@@ -197,6 +174,26 @@ function App() {
     speedLimit: 20,
     isBicycleMode: false
   });
+
+  // 실시간 안정성 지수 (0~100): 과속/급제동에 비례해 감점
+  // - 과속 1km/h당 5점 감점 (자전거 모드는 과속 평가 제외)
+  // - 급제동 1회당 10점 감점
+  const stability = React.useMemo(() => {
+    const speedNum = Number(location?.speed) || 0;
+    const overSpeed = rideConfig.isBicycleMode
+      ? 0
+      : Math.max(0, speedNum - rideConfig.speedLimit);
+    const raw = 100 - overSpeed * 5 - (suddenBrakeCount || 0) * 10;
+    return Math.round(Math.max(0, Math.min(100, raw)));
+  }, [location?.speed, rideConfig.speedLimit, rideConfig.isBicycleMode, suddenBrakeCount]);
+
+  const currentMetrics = {
+    mileage: totalDistance.toFixed(2),
+    savedCarbon: (totalDistance * 0.2).toFixed(1),
+    speed: location?.speed || 0,
+    stability
+  };
+
   const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
   const [isVehicleSelectOpen, setIsVehicleSelectOpen] = useState(false);
 
@@ -205,21 +202,16 @@ function App() {
   const [routeOrigin, setRouteOrigin] = useState(null);
   const [routeDestination, setRouteDestination] = useState(null);
 
-  // Sync simulation speed with ride config
-  useEffect(() => {
-    setSimSpeed(rideConfig.speedLimit);
-  }, [rideConfig.speedLimit]);
-
   // Phase 26: PWA Manual Install Prompt
   // Phase 26: PWA Manual Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [, setShowInstallBtn] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
   const [showSplash, setShowSplash] = useState(true);
   const [, setRideSummaryPhoto] = useState(null);
   const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
-  const [qrScanMode, setQrScanMode] = useState('station');
+  const [qrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
 
@@ -228,10 +220,6 @@ function App() {
   // 🚀 최적화: 무한 루프 방지를 위한 콜백 안정화
   const handleMapReady = React.useCallback(() => {
     setIsMapReady(true);
-  }, []);
-
-  const handleSplashComplete = React.useCallback(() => {
-    setShowSplash(false);
   }, []);
 
   // 🚀 배포 단계: 온보딩 상태 유지 (강제 초기화 코드 제거)
@@ -397,19 +385,6 @@ function App() {
     }
   }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics]);
 
-  const [showLangMenu, setShowLangMenu] = useState(false);
-
-  // Phase 26: Debug 온보딩 초기화 함수
-  const resetOnboarding = () => {
-    setHasSelectedLanguage(false);
-    setHasAgreedDisclaimer(false);
-    setHasCompletedOnboarding(false);
-    setNavStep('idle');
-    setRouteOrigin(null);
-    setRouteDestination(null);
-    setShowSplash(true);
-    toast("온보딩이 초기화되었습니다. 재시작합니다.", 'info');
-  };
 
   // Vibe & Preference 기반 동적 TTS 안내 함수
   const announceVibeStart = (vibe) => {
@@ -437,7 +412,9 @@ function App() {
     setIsQRScannerOpen(false);
 
     if (qrScanMode === 'helmet') {
-      // 내 헬멧 인증 (프로필에 등록된 헬멧 코드와 일치하는지 확인. 데모를 위해 안내문과 함께 통과)
+      // DEMO: QR 헬멧 인증 — 시연용으로 검증 없이 통과/보상 지급.
+      // 실서비스 시 프로필의 등록 헬멧 시리얼과 디코딩 결과를 대조하고
+      // 일치할 때에만 setCoupons / startRide 호출하도록 게이팅 필요.
       const newPoint = {
         id: Date.now(),
         shopName: '안전 인증 마일리지 (선지급)',
@@ -514,19 +491,26 @@ function App() {
     if (isRiding) {
       stopTracking(); // 주차 완료 시 GPS 트래킹 중지
 
-      // 운행 중이었다면 주차 인증 직후 운행 종료 처리 및 요약 화면 표출
-      // Geofencing: 반경 10m 이내 주차장 검색 로직 (조용히 포인트만 지급하고 경고창은 간소화)
+      // Geofencing: 반경 10m 이내 지정 주차장 검색
       let minDistance = Infinity;
       if (Array.isArray(pmParkingData)) {
         const distances = pmParkingData.map(p => calculateDistance(userLat, userLng, p.lat, p.lng));
         minDistance = distances.length > 0 ? Math.min(...distances) : Infinity;
       }
 
-      if (minDistance <= 10) {
+      const isLegalPark = minDistance <= 10;
+
+      if (isLegalPark) {
         speak("주차 확인 성공. 리워드 100포인트가 적립되었습니다. 주차를 종료합니다.");
+      } else {
+        // 비합법 주차: 페널티 모달 표시 + 보상 차단
+        speak("주차 구역 이탈! 반경 10미터 이내 지정 주차장이 없습니다. 견인 및 페널티 위험이 있습니다.");
+        setParkingGeofenceModal({ isOpen: true, success: false });
+        await endRideSession(user?.id, { isLegalPark: false }); // 주행 기록은 저장하되 +100P 보상 제외
+        return; // 결제 모달 진입 차단
       }
 
-      const summary = await endRideSession(user?.id);
+      const summary = await endRideSession(user?.id, { isLegalPark: true });
       if (summary) setFinalRideSummary(summary);
     } else {
       // Mock data if not actively riding, allowing UI testing
@@ -876,7 +860,6 @@ function App() {
               gpsFollowMode={gpsFollowMode}
               setGpsFollowMode={setGpsFollowMode}
               showPMs={showPMs}
-              setShowPMs={setShowPMs}
               // Lifted Props
               navStep={navStep}
               setNavStep={setNavStep}
@@ -892,7 +875,7 @@ function App() {
 
 
 
-            {!isRiding && !selectedLocation && (
+            {!isRiding && !selectedLocation && navStep === 'idle' && (
               <div className="flex gap-3 mt-1 animate-in slide-in-from-bottom">
                 <button
                   onClick={() => {
@@ -1122,6 +1105,8 @@ function App() {
           isOpen={isHelmetAIOpen}
           onClose={() => setIsHelmetAIOpen(false)}
           onSuccess={() => {
+            // DEMO: Edge AI 헬멧 인증 — onSuccess는 useEdgeAI의 detectionProgress 100% 시점에 호출되지만
+            // 현재 더미 모델이라 실제 헬멧 미착용도 통과 가능. 실서비스 시 confidence threshold 강화 필요.
             const newPoint = {
               id: Date.now(),
               shopName: 'AI 헬멧 인증 (선지급)',

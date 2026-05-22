@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
   Users, Activity, Award, AlertCircle,
   TrendingUp, Map as MapIcon, ChevronRight,

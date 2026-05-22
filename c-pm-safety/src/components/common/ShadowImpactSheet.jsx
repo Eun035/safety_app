@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { X, Share2, Map as MapIcon, Zap, Shield, Cloud, TrendingUp, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 

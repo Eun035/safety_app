@@ -138,7 +138,7 @@ export const useRideSession = create((set, get) => ({
         };
     }),
 
-    endRideSession: async (userId) => {
+    endRideSession: async (userId, { isLegalPark = true } = {}) => {
         const state = get();
         if (!state.isRiding) return null;
 
@@ -195,9 +195,9 @@ export const useRideSession = create((set, get) => ({
                 }
 
                 // 2. 사용자 프로필 업데이트 (포인트 + 누적 거리)
-                // 기본 보상 100P + 거리 기반 가중치 (데모용)
-                const earnedPoints = 100; 
-                
+                // 합법 주차 시에만 +100P 보상. 비합법 주차는 누적 거리만 반영(보상 0).
+                const earnedPoints = isLegalPark ? 100 : 0;
+
                 const { error: profileError } = await supabase.rpc('increment_user_stats', {
                     user_id_in: userId,
                     inc_points: earnedPoints,

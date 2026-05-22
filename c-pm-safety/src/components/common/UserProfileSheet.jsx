@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2 } from 'lucide-react';
 
