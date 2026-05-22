@@ -498,7 +498,7 @@ function App() {
 
 
 
-  const handleParkingComplete = (photoUrl) => {
+  const handleParkingComplete = async (photoUrl) => {
     setIsParkingOpen(false);
     if (photoUrl) setRideSummaryPhoto(photoUrl);
 
@@ -517,7 +517,7 @@ function App() {
         speak("주차 확인 성공. 리워드 100포인트가 적립되었습니다. 주차를 종료합니다.");
       }
 
-      const summary = endRideSession(user?.id);
+      const summary = await endRideSession(user?.id);
       if (summary) setFinalRideSummary(summary);
     } else {
       // Mock data if not actively riding, allowing UI testing
