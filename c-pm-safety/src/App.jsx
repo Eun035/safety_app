@@ -177,7 +177,8 @@ function App() {
     brandFilters: [],
     isNightMode: true, // Always default to Dark Mode for premium feel
     isVoiceEnabled: true,
-    speedLimit: 20
+    speedLimit: 20,
+    isBicycleMode: false
   });
   const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
 
@@ -370,14 +371,14 @@ function App() {
     const now = Date.now();
     if (now - lastAlertTimeRef.current < 5000) return; // 5초 쿨타임
 
-    if (speed > rideConfig.speedLimit) {
+    if (!rideConfig.isBicycleMode && speed > rideConfig.speedLimit) {
       speak(`과속입니다! 현재 ${Math.round(speed)}km입니다. 속도를 줄이세요.`);
       lastAlertTimeRef.current = now;
     } else if (result.riskLevel === 'danger') {
       speak(`위험! 제동 거리가 ${Math.round(result.totalDist)}미터입니다. 감속하세요.`);
       lastAlertTimeRef.current = now;
     }
-  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, speak, historyMetrics, updateMetrics]);
+  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics]);
 
   const [showLangMenu, setShowLangMenu] = useState(false);
 

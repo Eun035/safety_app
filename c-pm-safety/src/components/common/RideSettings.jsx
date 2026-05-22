@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sliders, Moon, Zap, Shield, Filter, Check } from 'lucide-react';
+import { X, Sliders, Moon, Zap, Shield, Filter, Check, Bike } from 'lucide-react';
 
 const RideSettings = ({ isOpen, onClose, config, setConfig }) => {
     
@@ -78,6 +78,25 @@ const RideSettings = ({ isOpen, onClose, config, setConfig }) => {
                             className={`w-14 h-8 rounded-full transition-all relative ${config.isNightMode ? 'bg-purple-600 shadow-[0_4px_12px_rgba(147,51,234,0.3)]' : 'bg-gray-300'}`}
                         >
                             <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${config.isNightMode ? 'left-7' : 'left-1'}`}></div>
+                        </button>
+                    </section>
+
+                    {/* Bicycle Mode Toggle */}
+                    <section className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${config.isBicycleMode ? 'bg-emerald-600 text-white shadow-emerald-200' : 'bg-gray-200 text-gray-500'}`}>
+                                <Bike size={20} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-gray-800">자전거 모드 (Bicycle)</p>
+                                <p className="text-[10px] text-gray-400 font-bold">자전거 사용 시 초과속도 경고 해제</p>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setConfig({ ...config, isBicycleMode: !config.isBicycleMode })}
+                            className={`w-14 h-8 rounded-full transition-all relative ${config.isBicycleMode ? 'bg-emerald-600 shadow-[0_4px_12px_rgba(16,185,129,0.3)]' : 'bg-gray-300'}`}
+                        >
+                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${config.isBicycleMode ? 'left-7' : 'left-1'}`}></div>
                         </button>
                     </section>
 
