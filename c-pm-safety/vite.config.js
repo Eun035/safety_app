@@ -38,8 +38,33 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // 30MB (ONNX WASM 허용)
+        // ONNX WASM / 모델은 precache에서 제외 → 헬멧 검증을 실제로 켤 때만 다운로드
+        globIgnores: ['**/*.wasm', '**/models/**', '**/ort-*.js'],
         runtimeCaching: [
+          {
+            urlPattern: /\.(?:wasm)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'onnx-wasm-cache',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
+          },
+          {
+            urlPattern: /\/models\/.*\.onnx$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'onnx-models-cache',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
+          },
+          {
+            urlPattern: /\/assets\/ort.*\.js$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'onnx-runtime-cache',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 }
+            }
+          },
           {
             urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
             handler: 'NetworkFirst',

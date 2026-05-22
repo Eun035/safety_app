@@ -5,7 +5,8 @@ import {
   Layers, Play, Camera, Navigation, Search, Star,
   Calendar, Phone, Zap, TrendingUp, RefreshCw, Download,
   Database, User, Map as MapIcon, Sliders, Box, Wallet,
-  Unlock, Leaf, X, Compass, Sparkles, HeartPulse, LocateFixed, Share2
+  Unlock, Leaf, X, Compass, Sparkles, HeartPulse, LocateFixed, Share2,
+  Settings, Users
 } from 'lucide-react';
 
 
@@ -24,11 +25,8 @@ import ParkingVerification from './components/common/ParkingVerification';
 import PersonalInsights from './components/common/PersonalInsights';
 import RideSettings from './components/common/RideSettings';
 import QRScanner from './components/common/QRScanner';
-import CouponBox from './components/common/CouponBox';
 import VibeRouteSelector from './components/map/VibeRouteSelector';
 import RideSummaryModal from './components/common/RideSummaryModal';
-import FeedbackReport from './components/common/FeedbackReport';
-import RideCameraModal from './components/common/RideCameraModal';
 import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
 import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
@@ -64,6 +62,12 @@ import { supabase } from './lib/supabaseClient';
 import { toast } from './hooks/useToast';
 
 
+// 🌋 보행자 스트레스 존 정의 (관리자 설정 데이터와 연동됨)
+// 컴포넌트 외부 상수로 두어 매 렌더마다 재생성 → useEffect 재실행되는 것을 방지
+const STRESS_ZONES = [
+  { id: 's1', lat: 36.833, lng: 127.179, radius: 150, name: "단국대 정문 보행자 보호구역" },
+  { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" }
+];
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -86,7 +90,6 @@ function App() {
 
   const [gpsFollowMode, setGpsFollowMode] = useState(true); // 🛰️ GPS 추적 모드 상태 추가
   const [panToLocation, setPanToLocation] = useState(null); // New: Signal for map movement
-  const [isCouponBoxOpen, setIsCouponBoxOpen] = useState(false);
   const [showPMs, setShowPMs] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
@@ -112,34 +115,48 @@ function App() {
 
   const { borderColor: gridBorderColor = '#40ffdc' } = useSafetyGrid(userLat, userLng);
 
+  // 실시간 안정성 지수 (0~100): 과속/급제동에 비례해 감점
+  // - 과속 1km/h당 5점 감점 (자전거 모드는 과속 평가 제외)
+  // - 급제동 1회당 10점 감점
+  const stability = React.useMemo(() => {
+    const speedNum = Number(location?.speed) || 0;
+    const overSpeed = rideConfig.isBicycleMode
+      ? 0
+      : Math.max(0, speedNum - rideConfig.speedLimit);
+    const raw = 100 - overSpeed * 5 - (suddenBrakeCount || 0) * 10;
+    return Math.round(Math.max(0, Math.min(100, raw)));
+  }, [location?.speed, rideConfig.speedLimit, rideConfig.isBicycleMode, suddenBrakeCount]);
+
   // Helper variables to match old `currentMetrics` prop
   const currentMetrics = {
     mileage: totalDistance.toFixed(2),
     savedCarbon: (totalDistance * 0.2).toFixed(1),
     speed: location?.speed || 0,
-    stability: 98 // Added missing stability property to prevent ReferenceError
+    stability
   };
   const { speak } = useVoiceGuidance();
 
-  // 🌋 보행자 스트레스 존 정의 (관리자 설정 데이터와 연동됨)
-  const STRESS_ZONES = [
-    { id: 's1', lat: 36.833, lng: 127.179, radius: 150, name: "단국대 정문 보행자 보호구역" },
-    { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" }
-  ];
+  // 각 스트레스 존에 "현재 안에 있는지" 를 기억해 진입 순간에만 1회 안내
+  const stressZoneInsideRef = React.useRef({});
 
-  // 실시간 위치 감시를 통한 스트레스 존 진입 감지
+  // 실시간 위치 감시를 통한 스트레스 존 진입 감지 (Haversine + 진입 엣지 트리거)
   useEffect(() => {
-    if (isRiding && location) {
-      STRESS_ZONES.forEach(zone => {
-        const dist = Math.sqrt(
-          Math.pow(location.lat - zone.lat, 2) + Math.pow(location.lng - zone.lng, 2)
-        ) * 111000; // 대략적인 미터 계산
-
-        if (dist < zone.radius) {
-          speak(`${zone.name}에 진입했습니다. 보행자 보호를 위해 감속해 주세요.`);
-        }
-      });
+    if (!isRiding || !location) {
+      // 주행 종료 시 상태 리셋 → 다음 주행에서 다시 진입 시 알람
+      stressZoneInsideRef.current = {};
+      return;
     }
+
+    STRESS_ZONES.forEach(zone => {
+      const dist = calculateDistance(location.lat, location.lng, zone.lat, zone.lng);
+      const wasInside = stressZoneInsideRef.current[zone.id] || false;
+      const isInside = dist < zone.radius;
+
+      if (isInside && !wasInside) {
+        speak(`${zone.name}에 진입했습니다. 보행자 보호를 위해 감속해 주세요.`);
+      }
+      stressZoneInsideRef.current[zone.id] = isInside;
+    });
   }, [location, isRiding, speak]);
 
   const [showEcoBadge, setShowEcoBadge] = useState(false);
@@ -162,7 +179,6 @@ function App() {
   const [isPaymentReceiptOpen, setIsPaymentReceiptOpen] = useState(false);
   const [isStationRewardOpen, setIsStationRewardOpen] = useState(false);
   const [isRideSummaryOpen, setIsRideSummaryOpen] = useState(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [finalRideSummary, setFinalRideSummary] = useState(null);
   const [isDropAndGoOpen, setIsDropAndGoOpen] = useState(false);
   const [selectedDropStation, setSelectedDropStation] = useState(null);
@@ -201,8 +217,7 @@ function App() {
   const [isMapReady, setIsMapReady] = useState(false);
 
   const [showSplash, setShowSplash] = useState(true);
-  const [cameraAction, setCameraAction] = useState(null);
-  const [rideSummaryPhoto, setRideSummaryPhoto] = useState(null);
+  const [, setRideSummaryPhoto] = useState(null);
   const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
   const [qrScanMode, setQrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
@@ -398,11 +413,6 @@ function App() {
 
   // Vibe & Preference 기반 동적 TTS 안내 함수
   const announceVibeStart = (vibe) => {
-    if (!vibe) {
-      speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
-      return;
-    }
-
     const prefNames = {
       safe: "안전 최우선 모드",
       eco: "유유자적 에코 모드",
@@ -416,11 +426,11 @@ function App() {
       urban: "스트리트 러너 도심 숏컷 경로"
     };
 
-    const prefName = prefNames[vibe.preference] || "유유자적 에코 모드";
-    const vibeName = vibeNames[vibe.id] || "안전 경로";
-    const modeName = vibe.drivingMode === 'FAST' ? "빠른 주행" : "여유로운 주행";
+    const prefName = prefNames[vibe?.preference] || "유유자적 에코 모드";
+    const vibeName = vibeNames[vibe?.id] || "안전 경로";
+    const modeName = vibe?.drivingMode === 'FAST' ? "빠른 주행" : "여유로운 주행";
 
-    //speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
+    speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
   };
 
   const handleQRScanSuccess = (decodedText) => {
@@ -439,7 +449,6 @@ function App() {
       setCoupons(prev => [newPoint, ...prev]);
       toast("✅ 안전모 착용 확인! 선지급 마일리지 50P 적립 완료", 'success');
 
-      setCameraAction(null); // 모달 닫기
       startRide();
       startTracking(); // 실제 GPS 트래킹 시작
       announceVibeStart(currentVibeRoute);
@@ -537,20 +546,6 @@ function App() {
   const handlePaymentComplete = () => {
     setIsPaymentReceiptOpen(false);
     setIsStationRewardOpen(true);
-  };
-
-  const handleCameraConfirm = async (photoData) => {
-    if (cameraAction === 'start') {
-      if (!photoData) {
-        speak("헬멧 미착용 개인 주행 모드를 시작합니다. 이동 데이터만 집계됩니다.");
-      } else {
-        announceVibeStart(currentVibeRoute);
-      }
-      await startRide(); // 기기 제어 타이머 등 비동기 대기
-      startTracking();   // 시작 즉시 GPS 수집
-      setNavStep('idle'); // 주행 시작 시 네비 모드 종료
-    }
-    setCameraAction(null);
   };
 
   if (!hasSelectedLanguage) {
@@ -752,7 +747,21 @@ function App() {
                 <Sliders size={18} />
               </button>
 
+              <button
+                onClick={() => setIsRideSettingsOpen(true)}
+                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white"
+                title="주행 환경 설정 (Night/자전거 모드/브랜드 필터)"
+              >
+                <Settings size={18} />
+              </button>
 
+              <button
+                onClick={() => setShowStressLayer(prev => !prev)}
+                className={`w-10 h-10 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${showStressLayer ? 'bg-orange-500/30 text-orange-400 border-orange-400/50 shadow-neon-orange' : 'bg-gray-900/80 text-white border-white/10'}`}
+                title="보행자 스트레스 존 표시"
+              >
+                <Users size={18} />
+              </button>
 
               <button
                 onClick={() => setIsHelmetAIOpen(true)}
@@ -851,6 +860,7 @@ function App() {
               rideConfig={rideConfig}
               tagoPms={tagoPms}
               showHeatmap={showHeatmap}
+              showStressLayer={showStressLayer}
               selectedLocation={selectedLocation}
               setSelectedLocation={setSelectedLocation}
               panToLocation={panToLocation}
@@ -1058,7 +1068,6 @@ function App() {
           onClose={() => setIsQRScannerOpen(false)}
           onScanSuccess={handleQRScanSuccess}
         />
-        <CouponBox isOpen={isCouponBoxOpen} onClose={() => setIsCouponBoxOpen(false)} coupons={coupons} setCoupons={setCoupons} />
         <VibeRouteSelector
           isOpen={isVibeRouteOpen}
           onClose={() => setIsVibeRouteOpen(false)}
@@ -1099,18 +1108,6 @@ function App() {
 
 
 
-        <FeedbackReport
-          isOpen={isFeedbackOpen}
-          onClose={() => {
-            setIsFeedbackOpen(false);
-          }}
-          onSubmit={(feedback) => {
-            console.log("Feedback submitted:", feedback);
-            toast("피드백이 접수되었습니다. 감사합니다! 🙏", 'success');
-            setIsFeedbackOpen(false);
-          }}
-        />
-
         <FavoriteStations
           isOpen={isFavoritesOpen}
           onClose={() => setIsFavoritesOpen(false)}
@@ -1119,20 +1116,6 @@ function App() {
             setIsFavoritesOpen(false);
           }}
           userLocation={{ lat: 36.833, lng: 127.179 }} // Mock user location
-        />
-
-        <RideCameraModal
-          isOpen={!!cameraAction}
-          mode={cameraAction}
-          onClose={() => setCameraAction(null)}
-          onConfirm={handleCameraConfirm}
-          onQRScanRequest={() => {
-            setQrScanMode('helmet');
-            setIsQRScannerOpen(true);
-          }}
-          onAIScanRequest={() => {
-            setIsHelmetAIOpen(true);
-          }}
         />
 
         <HelmetDetectionCamera
@@ -1149,7 +1132,7 @@ function App() {
             };
             setCoupons(prev => [newPoint, ...prev]);
 
-            setCameraAction(null); // 모달 닫기
+            setIsHelmetAIOpen(false); // 모달 닫기
             setNavStep('idle'); // 주행 시작 시 목적지 설정 팝업(navStep) 닫기
             startRide();
             startTracking(); // 실제 GPS 트래킹 시작

@@ -268,19 +268,25 @@ const MapContainer = ({
     }, [tagoPms, rideConfig?.brandFilters]);
 
     // 1. 카카오맵 SDK 로딩 (설정 객체 메모이제이션으로 무한 루프 방지)
+    const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
+    if (!kakaoApiKey && typeof window !== 'undefined' && !window.__KAKAO_KEY_WARNED__) {
+        window.__KAKAO_KEY_WARNED__ = true;
+        console.error('[C-Safe] VITE_KAKAO_API_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.');
+    }
     const loaderConfig = useMemo(() => ({
-        appkey: import.meta.env.VITE_KAKAO_API_KEY || '40e6d1b5e849c283027335cbba22bf32',
+        appkey: kakaoApiKey,
         libraries: ['services', 'clusterer', 'drawing'],
-    }), []);
+    }), [kakaoApiKey]);
 
     const [loading, error] = useKakaoLoader(loaderConfig);
 
 
-    const { location: userLocation, error: geoError, isTracking, startTracking } = useGeolocation();
+    const { location: userLocation, error: geoError, isTracking, startTracking, stopTracking } = useGeolocation();
 
     useEffect(() => {
         startTracking();
-    }, []);
+        return () => stopTracking();
+    }, [startTracking, stopTracking]);
 
     // Phase 26: Kakao Maps BICYCLE Layer Overlay 활성화
     useEffect(() => {

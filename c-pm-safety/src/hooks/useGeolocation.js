@@ -1,58 +1,73 @@
-import { useState, useEffect } from 'react';
+import { create } from 'zustand';
 
-export const useGeolocation = (options = {}) => {
-    const [location, setLocation] = useState(null); // { lat, lng }
-    const [error, setError] = useState(null);
-    const [isTracking, setIsTracking] = useState(false);
+// 전역 단일 인스턴스 GPS 트래커.
+// 여러 컴포넌트에서 호출해도 watchPosition은 1번만 등록되며,
+// startTracking/stopTracking은 ref-count 기반으로 안전하게 공유된다.
+export const useGeolocation = create((set, get) => ({
+    location: null,
+    error: null,
+    isTracking: false,
+    _watchId: null,
+    _refCount: 0,
 
-    useEffect(() => {
-        let watchId;
-
-        if (isTracking) {
-            if (!navigator.geolocation) {
-                setTimeout(() => setError('Geolocation is not supported by your browser'), 0);
-                return;
-            }
-
-            watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    setLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        speed: position.coords.speed !== null ? (position.coords.speed * 3.6).toFixed(1) : 0, // m/s to km/h
-                    });
-                    setError(null);
-                },
-                (err) => {
-                    setError(err.message);
-                    
-                    // 권한 거부(Code 1)인 경우에만 트래킹 중단
-                    if (err.code === 1) {
-                        setIsTracking(false);
-                    }
-                    
-                    console.warn(`[C-Safe] Geolocation Error (Code ${err.code}):`, err.message);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000, // 15초로 연장
-                    maximumAge: 5000, // 5초 이내의 캐시 데이터는 허용 (빠른 초기 응답)
-                    ...options
-                }
-
-            );
+    startTracking: () => {
+        const state = get();
+        // 이미 트래킹 중이면 ref-count만 증가
+        if (state.isTracking && state._watchId !== null) {
+            set({ _refCount: state._refCount + 1 });
+            return;
         }
 
-        return () => {
-            if (watchId !== undefined) {
-                navigator.geolocation.clearWatch(watchId);
+        if (!navigator.geolocation) {
+            set({ error: 'Geolocation is not supported by your browser' });
+            return;
+        }
+
+        const watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                set({
+                    location: {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        // m/s → km/h, 숫자형 유지 (이후 비교/연산 안전성)
+                        speed: position.coords.speed !== null
+                            ? +(position.coords.speed * 3.6).toFixed(1)
+                            : 0,
+                    },
+                    error: null,
+                });
+            },
+            (err) => {
+                set({ error: err.message });
+                // 권한 거부(Code 1)인 경우에만 트래킹 중단
+                if (err.code === 1) {
+                    const s = get();
+                    if (s._watchId !== null) {
+                        navigator.geolocation.clearWatch(s._watchId);
+                    }
+                    set({ isTracking: false, _watchId: null, _refCount: 0 });
+                }
+                console.warn(`[C-Safe] Geolocation Error (Code ${err.code}):`, err.message);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 5000,
             }
-        };
-    }, [isTracking]); // options를 의존성에서 제거하여 무한 루프 방지
+        );
 
+        set({ _watchId: watchId, isTracking: true, _refCount: 1 });
+    },
 
-    const startTracking = () => setIsTracking(true);
-    const stopTracking = () => setIsTracking(false);
+    stopTracking: () => {
+        const state = get();
+        const nextCount = Math.max(0, state._refCount - 1);
 
-    return { location, error, isTracking, startTracking, stopTracking };
-};
+        if (nextCount === 0 && state._watchId !== null) {
+            navigator.geolocation.clearWatch(state._watchId);
+            set({ isTracking: false, _watchId: null, _refCount: 0 });
+        } else {
+            set({ _refCount: nextCount });
+        }
+    },
+}));
