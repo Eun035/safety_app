@@ -63,14 +63,17 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                             비전 스캔 시작
                         </button>
                         <button
-                            onClick={onClose}
+                            onClick={() => {
+                                speak("주행 데이터 전송을 위해 주차 인증을 생략하고 주행을 종료합니다.");
+                                onComplete(null);
+                            }}
                             className="mt-4 text-cyber-cyan/60 hover:text-cyber-cyan font-bold text-sm tracking-widest uppercase"
                         >
                             SKIP
                         </button>
                     </div>
                 )}
-
+ 
                 {step === 'LOADING' && (
                     <div className="p-8 text-center relative flex flex-col items-center justify-center min-h-[300px]">
                         <div className="w-16 h-16 border-4 border-cyber-cyan/30 border-t-cyber-cyan border-b-cyber-cyan rounded-full animate-spin mb-6"></div>
@@ -78,7 +81,7 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                         <p className="text-gray-400 text-sm font-bold tracking-tight">C-Safe 서버로 이미지를 전송 중입니다...<br />구역 이탈 여부를 분석하고 있습니다.</p>
                     </div>
                 )}
-
+ 
                 {step === 'FAIL' && (
                     <div className="p-8 text-center animate-in shake duration-500 relative">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -z-10"></div>
@@ -90,13 +93,22 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                         <p className="text-gray-400 text-sm mb-8 leading-relaxed font-medium">
                             이미지가 번들거리거나 주차 구역(P)<br />테두리를 완전히 벗어났습니다.
                         </p>
-
+ 
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             className="w-full py-5 bg-red-500 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg"
                         >
                             <Camera size={24} />
                             다시 촬영하기
+                        </button>
+                        <button
+                            onClick={() => {
+                                speak("주차 인증을 생략하고 주행을 안전하게 종료합니다.");
+                                onComplete(null);
+                            }}
+                            className="mt-4 text-red-400/60 hover:text-red-400 font-bold text-xs tracking-wider uppercase block mx-auto transition-colors"
+                        >
+                            인증 없이 운행 종료하기 (SKIP)
                         </button>
                     </div>
                 )}
