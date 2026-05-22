@@ -3,7 +3,7 @@ import { X, Info, ShieldCheck, MapPin, Star, Navigation } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { toast } from '../../hooks/useToast';
 
-const InfoCard = ({ location, onClose, onSetOrigin }) => {
+const InfoCard = ({ location, onClose, onSetOrigin, onSetDestination }) => {
     // Phase 26: 즐겨찾기 기능 (Bookmark)
     const [favorites, setFavorites] = useLocalStorage('csafe_favorite_stations', []);
 
@@ -74,15 +74,26 @@ const InfoCard = ({ location, onClose, onSetOrigin }) => {
                         </div>
                     </div>
 
-                    {onSetOrigin && (
-                        <button
-                            onClick={onSetOrigin}
-                            className="mt-4 w-full py-3 bg-cyber-cyan text-black font-black rounded-xl hover:bg-[#40e0d0] transition-all shadow-[0_0_15px_rgba(64,255,220,0.4)] flex items-center justify-center gap-2"
-                        >
-                            <Navigation size={18} className="fill-black" />
-                            이곳을 출발지로 지정
-                        </button>
-                    )}
+                    <div className="flex flex-col gap-2 mt-4">
+                        {onSetOrigin && (
+                            <button
+                                onClick={onSetOrigin}
+                                className="w-full py-3 bg-cyber-cyan text-black font-black rounded-xl hover:bg-[#40e0d0] transition-all shadow-[0_0_15px_rgba(64,255,220,0.4)] flex items-center justify-center gap-2"
+                            >
+                                <Navigation size={18} className="fill-black" />
+                                이곳을 출발지로 지정
+                            </button>
+                        )}
+                        {onSetDestination && (
+                            <button
+                                onClick={onSetDestination}
+                                className="w-full py-3 bg-orange-500 text-black font-black rounded-xl hover:bg-orange-400 transition-all shadow-[0_0_15px_rgba(245,158,11,0.4)] flex items-center justify-center gap-2"
+                            >
+                                <Navigation size={18} className="fill-black" />
+                                이곳을 목적지로 지정
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

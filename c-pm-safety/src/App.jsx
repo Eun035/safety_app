@@ -818,23 +818,28 @@ function App() {
         <main className="flex-1 w-full relative">
 
           {/* 🔍 Floating Map Search Bar */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-sm z-[100] pointer-events-auto">
-            <MapSearchBar
-              speak={speak}
-              onSelectLocation={(loc) => {
-                setPanToLocation({ lat: loc.lat, lng: loc.lng, timestamp: Date.now() });
-                setSelectedLocation({
-                  id: loc.id,
-                  title: loc.title,
-                  desc: loc.desc,
-                  lat: loc.lat,
-                  lng: loc.lng,
-                  type: loc.type,
-                  safetyTip: loc.safetyTip
-                });
-              }}
-            />
-          </div>
+          {navStep !== 'route_ready' && (
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-sm z-[100] pointer-events-auto transition-all duration-300"
+              style={{ top: navStep === 'idle' ? '16px' : '190px' }}
+            >
+              <MapSearchBar
+                speak={speak}
+                onSelectLocation={(loc) => {
+                  setPanToLocation({ lat: loc.lat, lng: loc.lng, timestamp: Date.now() });
+                  setSelectedLocation({
+                    id: loc.id,
+                    title: loc.title,
+                    desc: loc.desc,
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    type: loc.type,
+                    safetyTip: loc.safetyTip
+                  });
+                }}
+              />
+            </div>
+          )}
 
           {/* Main Map Background */}
           <div className="absolute inset-0 z-10">

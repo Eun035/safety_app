@@ -753,6 +753,13 @@ const MapContainer = ({
                                 setSelectedLocation(null);
                                 toast('🏁 출발지가 설정되었습니다. 목적지를 선택하세요.', 'success');
                             }}
+                            onSetDestination={() => {
+                                setRouteDestination(selectedLocation);
+                                setNavStep('route_ready');
+                                setSelectedLocation(null);
+                                speak(`${selectedLocation.title}이 목적지로 설정되었습니다.`);
+                                toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                            }}
                         />
                     </div>
                 </div>
