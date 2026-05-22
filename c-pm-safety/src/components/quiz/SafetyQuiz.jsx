@@ -8,16 +8,16 @@ const SafetyQuiz = ({ onComplete }) => {
     const { speak, voicesLoaded } = useVoiceGuidance();
 
     /** * [2026 최신 법규 반영 데이터]
-     * 1. 면허 필수 (X)  2. 인도 주행 금지 (O)  3. 음주 운전 금지 (X) 
-     * 4. 1인 탑승 (X)   5. 자전거도로 허용 (O)  6. 횡단보도 하차 (O)
-     * 7. 야간 등화 (O)  8. 시속 25km 제한 (O)  9. 스쿨존 가중처벌 (O)
+     * 1. 2인 탑승 허용 (X)   2. 인도 주행 원칙 (X)      3. 안전모 착용 의무 (O)
+     * 4. 시속 25km 초과 (X)  5. 음주 후 운행 가능 (X)    6. 기본 점검 필수 (O)
+     * 7. 무면허 벌금 (O)      8. 야간 전조등 필수 (O)    9. 13세 미만 금지 (O)
      */
     const quizDataArray = [
         { question: t("quiz_q1"), answer: false, desc: t("quiz_desc1") },
-        { question: t("quiz_q2"), answer: true, desc: t("quiz_desc2") },
-        { question: t("quiz_q3"), answer: false, desc: t("quiz_desc3") },
+        { question: t("quiz_q2"), answer: false, desc: t("quiz_desc2") }, // 인도 주행 원칙 아님 (X)
+        { question: t("quiz_q3"), answer: true, desc: t("quiz_desc3") },  // 안전모 착용 의무 (O)
         { question: t("quiz_q4"), answer: false, desc: t("quiz_desc4") },
-        { question: t("quiz_q5"), answer: true, desc: t("quiz_desc5") },
+        { question: t("quiz_q5"), answer: false, desc: t("quiz_desc5") }, // 음주 운행 불가능 (X)
         { question: t("quiz_q6"), answer: true, desc: t("quiz_desc6") },
         { question: t("quiz_q7"), answer: true, desc: t("quiz_desc7") },
         { question: t("quiz_q8"), answer: true, desc: t("quiz_desc8") },

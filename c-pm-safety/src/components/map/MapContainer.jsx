@@ -36,7 +36,8 @@ const MapContainer = ({
     gpsFollowMode, // 🛰️ 프롭으로 수신
     setGpsFollowMode, // 🛰️ 프롭으로 수신
     showPMs, // 🛰️ 프롭으로 수신
-    setShowPMs // 🛰️ 프롭으로 수신
+    setShowPMs, // 🛰️ 프롭으로 수신
+    panToLocation // 🔍 검색 이동용 프롭 수신
 }) => {
     const mapRef = useRef(null);
     const hasNotifiedReady = useRef(false);
@@ -108,6 +109,13 @@ const MapContainer = ({
             setMapCenter(userLocation);
         }
     }, [userLocation, gpsFollowMode]);
+
+    useEffect(() => {
+        if (panToLocation) {
+            setMapCenter({ lat: panToLocation.lat, lng: panToLocation.lng });
+            setGpsFollowMode(false); // 수동 검색 시 GPS 자동 추적 해제
+        }
+    }, [panToLocation, setGpsFollowMode]);
 
     const locateMe = () => {
         setGpsFollowMode(true);
