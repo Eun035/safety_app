@@ -15,6 +15,100 @@ import { toast } from '../../hooks/useToast';
 import { SafeRouteService } from '../../services/SafeRouteService';
 import { useSafeNavigation } from '../../hooks/useSafeNavigation';
 
+// 🏢 천안 랜드마크 데이터베이스 (가이드 패널 및 지도 연동용)
+const LANDMARKS = [
+    {
+        id: 'landmark-cityhall',
+        title: '천안시청',
+        desc: '충청남도 천안시 서북구 번영로 156 (공공기관)',
+        lat: 36.815129,
+        lng: 127.113893,
+        type: 'city_hall',
+        badge: '🏢 시청 우선',
+        safetyTip: '시청 주변은 자전거 도로 정비가 잘 되어 있으나 보행자가 많으니 안전 속도(시속 20km)를 유지하세요.'
+    },
+    {
+        id: 'landmark-seobuk-fire',
+        title: '천안서북소방서',
+        desc: '충청남도 천안시 서북구 백석동 8 (재난안전)',
+        lat: 36.832791,
+        lng: 127.113289,
+        type: 'fire_station',
+        badge: '🚒 소방서 우선',
+        safetyTip: '긴급 출동 차량이 수시로 출입하는 구역입니다. 소방서 차고지 앞 주차 및 서성임은 금지됩니다.'
+    },
+    {
+        id: 'landmark-dongnam-fire',
+        title: '천안동남소방서',
+        desc: '충청남도 천안시 동남구 구성동 282-1 (재난안전)',
+        lat: 36.802521,
+        lng: 127.161877,
+        type: 'fire_station',
+        badge: '🚒 소방서 우선',
+        safetyTip: '소방차량 긴급 출동 동선 확보를 위해 주변 5m 이내에 절대 주차(PM 거치)하지 마세요.'
+    },
+    {
+        id: 'landmark-dankook',
+        title: '단국대학교 천안캠퍼스',
+        desc: '충청남도 천안시 동남구 단대로 119 (대학)',
+        lat: 36.832655,
+        lng: 127.167888,
+        type: 'university',
+        badge: '🏫 대학교',
+        safetyTip: '단대 호수(안서호) 주변 산책로는 PM 진입이 금지되거나 제한되므로 주의하여 우회하세요.'
+    },
+    {
+        id: 'landmark-sangmyung',
+        title: '상명대학교 천안캠퍼스',
+        desc: '충청남도 천안시 동남구 상명대길 31 (대학)',
+        lat: 36.833543,
+        lng: 127.179331,
+        type: 'university',
+        badge: '🏫 대학교',
+        safetyTip: '캠퍼스 내 경사 구간이 매우 가파릅니다. 급경사 다운힐 시 반드시 풋브레이크와 전면 감속을 실행하세요.'
+    },
+    {
+        id: 'landmark-baekseok',
+        title: '백석대학교',
+        desc: '충청남도 천안시 동남구 문암로 76 (대학)',
+        lat: 36.839843,
+        lng: 127.186542,
+        type: 'university',
+        badge: '🏫 대학교',
+        safetyTip: '등하교 시간 대학가 주변 보행자 밀집도가 매우 높습니다. 보행자 보호구역 진입 시 반드시 서행하세요.'
+    },
+    {
+        id: 'landmark-cheonan-station',
+        title: '천안역 (동부광장)',
+        desc: '충청남도 천안시 동남구 대흥로 239 (철도역)',
+        lat: 36.811451,
+        lng: 127.146522,
+        type: 'station',
+        badge: '🚉 교통거점',
+        safetyTip: '천안역 광장 앞은 유동인구가 매우 조밀한 구역입니다. 하차 후 보행 시 끌고 가시는 것이 안전합니다.'
+    },
+    {
+        id: 'landmark-dujeong-station',
+        title: '두정역',
+        desc: '충청남도 천안시 서북구 두정역길 43 (지하철역)',
+        lat: 36.831521,
+        lng: 127.148811,
+        type: 'station',
+        badge: '🚉 교통거점',
+        safetyTip: '퇴근 시간 두정역 출구 인근은 PM 반납 혼잡구역입니다. 반드시 지정된 노란색 합법 주차선 안에 주차하세요.'
+    },
+    {
+        id: 'landmark-terminal',
+        title: '천안종합버스터미널',
+        desc: '충청남도 천안시 동남구 만남로 43 (버스터미널)',
+        lat: 36.819662,
+        lng: 127.155822,
+        type: 'terminal',
+        badge: '🚉 교통거점',
+        safetyTip: '신부동 터미널 앞 도로는 대표적인 사고 다발 지점입니다. 인도 주행은 불가하며, 자전거도로로 서행하세요.'
+    }
+];
+
 const MapContainer = ({
     data,
     tagoPms = [],
@@ -53,6 +147,97 @@ const MapContainer = ({
 
     const [safeRouteInfo, setSafeRouteInfo] = useState(null);
     useSafeNavigation(safeRouteInfo?.warningPoints);
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+    // 실시간 검색 기능 (가이드 패널 입력창용)
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            return;
+        }
+
+        const trimmed = searchQuery.trim().toLowerCase();
+
+        // 1. 사전 지정 랜드마크 필터링
+        const matchedLandmarks = LANDMARKS.filter(landmark => 
+            landmark.title.toLowerCase().includes(trimmed) || 
+            landmark.desc.toLowerCase().includes(trimmed)
+        );
+
+        // 2. 카카오 로컬 키워드 검색 폴백
+        if (window.kakao?.maps?.services) {
+            const places = new window.kakao.maps.services.Places();
+            places.keywordSearch(trimmed, (kakaoResults, status) => {
+                if (status === window.kakao.maps.services.Status.OK) {
+                    const formattedKakao = kakaoResults
+                        .filter(item => !LANDMARKS.some(l => 
+                            l.title.includes(item.place_name) || item.place_name.includes(l.title)
+                        ))
+                        .map(item => ({
+                            id: `kakao-${item.id}`,
+                            title: item.place_name,
+                            desc: item.road_address_name || item.address_name,
+                            lat: Number(item.y),
+                            lng: Number(item.x),
+                            type: 'kakao_place',
+                            badge: '📍 일반 장소',
+                            safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                        }));
+                    setSearchResults([...matchedLandmarks, ...formattedKakao]);
+                } else {
+                    setSearchResults(matchedLandmarks);
+                }
+            }, {
+                location: new window.kakao.maps.LatLng(36.833, 127.179),
+                radius: 10000
+            });
+        } else {
+            setSearchResults(matchedLandmarks);
+        }
+    }, [searchQuery]);
+
+    const handleSelectOrigin = (item) => {
+        setRouteOrigin({
+            id: item.id || `landmark-${Date.now()}`,
+            title: item.title,
+            lat: item.lat,
+            lng: item.lng,
+            desc: item.desc,
+            type: item.type || 'parking',
+            safetyTip: item.safetyTip
+        });
+        setNavStep('select_destination');
+        setSearchQuery('');
+        setSearchResults([]);
+        setIsSearchFocused(false);
+        speak(`출발지가 ${item.title}로 설정되었습니다. 이제 목적지를 선택하세요.`);
+        toast('🏁 출발지가 설정되었습니다. 목적지를 선택하세요.', 'success');
+        setMapCenter({ lat: item.lat, lng: item.lng });
+        setGpsFollowMode(false);
+    };
+
+    const handleSelectDestination = (item) => {
+        setRouteDestination({
+            id: item.id || `landmark-${Date.now()}`,
+            title: item.title,
+            lat: item.lat,
+            lng: item.lng,
+            desc: item.desc,
+            type: item.type || 'parking',
+            safetyTip: item.safetyTip
+        });
+        setNavStep('route_ready');
+        setSearchQuery('');
+        setSearchResults([]);
+        setIsSearchFocused(false);
+        speak(`${item.title}이 목적지로 설정되었습니다.`);
+        toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+        setMapCenter({ lat: item.lat, lng: item.lng });
+        setGpsFollowMode(false);
+    };
 
     useEffect(() => {
         if (navStep === 'route_ready' && routeOrigin && routeDestination) {
@@ -691,15 +876,86 @@ const MapContainer = ({
                                 </button>
                             </div>
                             <div className="flex flex-col gap-2 mt-3">
+                                {/* 출발지 카드 */}
                                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/20' : 'border-white/10 bg-white/10'}`}>
                                     <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-gray-600 animate-pulse'}`} />
-                                    <span className={`text-sm font-bold ${routeOrigin ? 'text-white' : 'text-gray-300'}`}>{routeOrigin ? routeOrigin.title : '출발지 선택 중...'}</span>
+                                    {navStep === 'select_origin' ? (
+                                        <input
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setIsSearchFocused(true);
+                                            }}
+                                            onFocus={() => setIsSearchFocused(true)}
+                                            placeholder="출발지 직접 입력 (시청, 소방서, 대학교 등)..."
+                                            className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
+                                        />
+                                    ) : (
+                                        <span className={`text-xs font-black ${routeOrigin ? 'text-white' : 'text-gray-400'}`}>
+                                            {routeOrigin ? routeOrigin.title : '출발지 선택 중...'}
+                                        </span>
+                                    )}
                                 </div>
+
+                                {/* 목적지 카드 */}
                                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_destination' ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/10'}`}>
-                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600'}`} />
-                                    <span className={`text-sm font-bold ${routeDestination ? 'text-white' : 'text-gray-300'}`}>{routeDestination ? routeDestination.title : '목적지 선택 중...'}</span>
+                                    <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600 animate-pulse'}`} />
+                                    {navStep === 'select_destination' ? (
+                                        <input
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setIsSearchFocused(true);
+                                            }}
+                                            onFocus={() => setIsSearchFocused(true)}
+                                            placeholder="목적지 직접 입력 (시청, 소방서, 대학교 등)..."
+                                            className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
+                                        />
+                                    ) : (
+                                        <span className={`text-xs font-black ${routeDestination ? 'text-white' : 'text-gray-400'}`}>
+                                            {routeDestination ? routeDestination.title : '목적지 선택 중...'}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
+
+                            {/* 가이드 패널 내 실시간 검색 결과 드롭다운 */}
+                            {isSearchFocused && searchQuery.trim() && (
+                                <div className="mt-2 max-h-[160px] overflow-y-auto bg-black/95 rounded-xl border border-white/10 divide-y divide-white/5 scrollbar-thin">
+                                    {searchResults.length > 0 ? (
+                                        searchResults.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                onClick={() => {
+                                                    if (navStep === 'select_origin') {
+                                                        handleSelectOrigin(item);
+                                                    } else if (navStep === 'select_destination') {
+                                                        handleSelectDestination(item);
+                                                    }
+                                                }}
+                                                className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+                                            >
+                                                <div className="flex-1 min-w-0 pr-2">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-xs font-bold text-white truncate">{item.title}</span>
+                                                        <span className="text-[8px] px-1 bg-white/10 text-gray-400 rounded border border-white/5 shrink-0">
+                                                            {item.badge || '📍 장소'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[9px] text-gray-400 truncate block mt-0.5">{item.desc}</span>
+                                                </div>
+                                                <Navigation size={12} className="text-cyber-cyan shrink-0" />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-4 text-center text-xs text-gray-500 font-bold">
+                                            검색 결과가 없습니다.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {navStep === 'route_ready' && (
                                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <div className="grid grid-cols-2 gap-2">
