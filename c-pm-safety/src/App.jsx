@@ -838,10 +838,6 @@ function App() {
           )}
 
           {/* Main Map Background */}
-          {/* 💚 Vercel 연결 확인용 임시 배지 */}
-          <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[5000] bg-green-500 text-black px-4 py-1.5 rounded-full font-black text-xs shadow-[0_0_15px_rgba(34,197,94,0.5)] border-2 border-white animate-pulse pointer-events-none">
-            💚 Vercel 연결 & 코드 푸시 성공 (v1.1)
-          </div>
           <div className="absolute inset-0 z-10">
             <MapContainer
               data={locations}
