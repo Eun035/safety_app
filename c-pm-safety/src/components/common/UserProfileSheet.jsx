@@ -137,25 +137,22 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
     return (
         <AnimatePresence>
             {isOpen && (
+                <motion.div key="modal-root" className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
                     <motion.div key="backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"
                     />
-                )}
-
-                {isOpen && (
-
-                    <motion.div key="sheet-wrapper" className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
-                        <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                            className="pointer-events-auto w-full max-w-md bg-[#0a0c0f] rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] border-t border-cyber-cyan/30 overflow-hidden flex flex-col max-h-[92vh]"
-                        >
+                    <motion.div
+                        key="sheet"
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                        className="pointer-events-auto relative w-full max-w-md bg-[#0a0c0f] rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] border-t border-cyber-cyan/30 overflow-hidden flex flex-col max-h-[92vh]"
+                    >
                             {/* Drag Handle (Click to close) */}
                             <div
                                 onClick={onClose}

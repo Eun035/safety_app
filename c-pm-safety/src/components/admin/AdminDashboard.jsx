@@ -436,7 +436,7 @@ const AdminDashboard = ({ onClose }) => {
       {/* Integrity Receipt Modal */}
       <AnimatePresence>
         {receiptData && (
-          <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+          <motion.div key="receipt-modal" className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" exit={{ opacity: 0 }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -479,7 +479,7 @@ const AdminDashboard = ({ onClose }) => {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
