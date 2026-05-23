@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Share2, Map as MapIcon, Zap, Shield, Cloud, TrendingUp, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,18 +9,18 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
+                    <motion.div key="backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
                     />
+                )}
 
-                    {/* Bottom Sheet Wrapper for Mobile Constraint */}
-                    <div className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
+                {isOpen && (
+
+                    <motion.div key="sheet-wrapper" className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
                         <motion.div
                             initial={{ y: "100%" }}
                             animate={{ y: 0 }}
@@ -164,9 +164,8 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = "J" }) => {
                             </section>
                         </div>
                         </motion.div>
-                    </div>
-                </>
-            )}
+                    </motion.div>
+                )}
         </AnimatePresence>
     );
 };

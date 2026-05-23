@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Wallet, Ticket, CheckCircle, Gift, ArrowRightLeft, Sparkles } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
@@ -19,18 +19,17 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
+                    <motion.div key="backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
                     />
+                )}
+                {isOpen && (
 
-                    {/* Bottom Sheet Wrapper */}
-                    <div className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
+                    <motion.div key="sheet-wrapper" className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
                         <motion.div
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
@@ -159,9 +158,8 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
 
                             </div>
                         </motion.div>
-                    </div>
-                </>
-            )}
+                    </motion.div>
+                )}
         </AnimatePresence>
     );
 };

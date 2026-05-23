@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2 } from 'lucide-react';
 
@@ -137,18 +137,18 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
-                    {/* Backdrop */}
-                    <motion.div
+                    <motion.div key="backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
                     />
+                )}
 
-                    {/* Bottom Sheet Wrapper */}
-                    <div className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
+                {isOpen && (
+
+                    <motion.div key="sheet-wrapper" className="fixed inset-0 z-[2500] pointer-events-none flex flex-col justify-end items-center px-0 sm:px-4">
                         <motion.div
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
@@ -292,9 +292,8 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
 
                             </div>
                         </motion.div>
-                    </div>
-                </>
-            )}
+                    </motion.div>
+                )}
         </AnimatePresence>
     );
 };
