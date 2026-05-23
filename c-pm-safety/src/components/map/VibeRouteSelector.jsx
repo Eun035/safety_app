@@ -162,7 +162,9 @@ const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute, routeOrigin, routeD
 
                 </div>
 
-                <RoutePreferenceSelector selectedMode={selectedPreference} onModeChange={setSelectedPreference} />
+                <div className={`transition-all duration-500 ${selectedPreference === 'eco' ? 'drop-shadow-[0_0_15px_rgba(0,229,160,0.3)]' : ''}`}>
+                    <RoutePreferenceSelector selectedMode={selectedPreference} onModeChange={setSelectedPreference} />
+                </div>
 
                 <div className="flex flex-col gap-4 mb-4 max-h-[55vh] overflow-y-auto hide-scrollbar px-2 pb-8">
                     {VIBE_OPTIONS.map((vibe) => {
@@ -177,15 +179,26 @@ const VibeRouteSelector = ({ isOpen, onClose, onSelectRoute, routeOrigin, routeD
                         
                         let distanceMultiplier = 1.0;
                         let speedKmH = 15;
+                        
+                        // 기본 파라미터 (RoutePreference 기반)
+                        switch(selectedPreference) {
+                            case 'eco': distanceMultiplier = 1.2; speedKmH = 10; break; // 유유자적 에코모드
+                            case 'safe': distanceMultiplier = 1.1; speedKmH = 12; break; // 안전 최우선
+                            case 'bike_lane': distanceMultiplier = 1.1; speedKmH = 15; break; // 자전거 도로
+                            case 'fastest': distanceMultiplier = 0.95; speedKmH = 18; break; // 최단 거리
+                            default: distanceMultiplier = 1.0; speedKmH = 15;
+                        }
+
+                        // VIBE 테마별 미세 조정 (추가 곱연산)
                         if (vibe.id === 'sunset') {
-                            distanceMultiplier = 1.2;
-                            speedKmH = 12;
+                            distanceMultiplier *= 1.1;
+                            speedKmH *= 0.9;
                         } else if (vibe.id === 'quiet') {
-                            distanceMultiplier = 1.1;
-                            speedKmH = 10;
+                            distanceMultiplier *= 1.0;
+                            speedKmH *= 0.8;
                         } else if (vibe.id === 'urban') {
-                            distanceMultiplier = 0.95;
-                            speedKmH = 18;
+                            distanceMultiplier *= 0.9;
+                            speedKmH *= 1.2;
                         }
                         
                         const finalDistKm = baseDistKm * distanceMultiplier;
