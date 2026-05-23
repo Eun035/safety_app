@@ -929,44 +929,42 @@ function App() {
         </main>
 
         <footer className="bg-cyber-panel border-t border-white/5 pb-[env(safe-area-inset-bottom)] z-[40]">
-          <div className="max-w-xl mx-auto flex justify-between items-center px-10">
+          <div className="max-w-xl mx-auto grid grid-cols-5 items-center">
+            {/* VIBE */}
             <button
               onClick={() => setIsVibeRouteOpen(true)}
-              className="flex flex-col items-center gap-1 text-[#FF8C94] outline-none border-none group active:scale-95 transition-all"
+              className="flex flex-col items-center justify-center gap-1 py-3 text-[#FF8C94] outline-none border-none group active:scale-95 transition-all"
             >
-              <Moon size={24} className="fill-[#FF8C94]/20 animate-pulse drop-shadow-[0_0_8px_rgba(255,140,148,0.5)]" />
+              <Moon size={24} className="fill-[#FF8C94]/20 animate-pulse drop-shadow-[0_0_8px_rgba(255,140,148,0.5)] shrink-0" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-[#FF8C94]/90">VIBE</span>
             </button>
 
-
-
-
-
+            {/* Activity */}
             <button
               onClick={() => setIsShadowSheetOpen(true)}
-              className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
+              className="flex flex-col items-center justify-center gap-1 py-3 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0"
             >
-              <TrendingUp size={24} className="bg-transparent" />
-              <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Activity")}</span>
+              <TrendingUp size={24} className="shrink-0" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">{t("Activity")}</span>
             </button>
             <button
               onClick={() => setIsWalletSheetOpen(true)}
-              className="flex flex-col items-center gap-1 text-amber-400 hover:text-amber-300 transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
+              className="flex flex-col items-center justify-center text-amber-400 hover:text-amber-300 transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0"
             >
-              <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center -mt-6 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.3)] backdrop-blur-xl outline-none ring-0">
-                <Wallet size={24} className="bg-transparent text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+              <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center -mt-5 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.3)] backdrop-blur-xl shrink-0">
+                <Wallet size={24} className="text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
               </div>
             </button>
             <button
               onClick={() => setIsFavoritesOpen(true)}
-              className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent"
+              className="flex flex-col items-center justify-center gap-1 py-3 text-gray-500 hover:text-white transition-colors outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0"
             >
-              <Star size={24} className="bg-transparent" />
-              <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent">{t("Saved")}</span>
+              <Star size={24} className="shrink-0" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">{t("Saved")}</span>
             </button>
             <button
               onClick={() => setIsProfileSheetOpen(true)}
-              className="flex flex-col items-center gap-1 text-cyber-cyan outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0 -webkit-tap-highlight-color-transparent bg-transparent"
+              className="flex flex-col items-center justify-center gap-1 py-3 text-cyber-cyan outline-none border-none ring-0 focus:outline-none focus:ring-0 active:ring-0"
             >
               <div className="w-6 h-6 rounded-full bg-cyber-cyan/20 mb-0.5 overflow-hidden border border-cyber-cyan/50 outline-none ring-0 bg-transparent flex items-center justify-center shadow-[0_0_8px_rgba(64,255,220,0.4)]">
                 {profile?.profile_image ? (
@@ -981,7 +979,9 @@ function App() {
                   </span>
                 )}
               </div>
-              <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent text-cyber-cyan">{profile?.nickname || t("Profile")}</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-cyber-cyan w-full text-center truncate px-0.5">
+                {profile?.nickname ? profile.nickname.slice(0, 5) : 'ME'}
+              </span>
             </button>
           </div>
         </footer>
