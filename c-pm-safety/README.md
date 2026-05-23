@@ -37,6 +37,47 @@ C-Safe 플랫폼은 네트워크 및 디바이스 환경의 일시적 장애가 
 
 ## 📜 개발 일지 및 업데이트 내역 (Changelog)
 
+### [2026-05-23] Epic 7: Edge AI 주행 시퀀스 완전 통합 & UX 안정화
+
+#### 1. Edge AI 헬멧 인식 강제 시퀀스 통합 (`App.jsx`, `HelmetDetectionCamera.jsx`)
+- 기존 "Start Safe Ride" 버튼 클릭 시 바로 주행이 시작되던 구조를 **목적지 설정 → Ride Control → 헬멧 인증 → 주행 시작**의 3단계 필수 관문으로 전환.
+- `HelmetDetectionCamera`에 Framer Motion 스케일/페이드 애니메이션 적용. 박스 테두리가 인식 완료 시 cyan → green으로 전환되는 시각 피드백 추가.
+- 카메라 권한이 거부된 경우 빨간 경고 카드와 "수동으로 주행 시작하기" 우회 버튼이 표시되어 앱 진행이 멈추지 않도록 폴백 처리.
+- 검증 완료 시 100P 자동 적립 로직 연동.
+
+#### 2. Ride Control 주행 설정 시퀀스 통합 (`RideSettings.jsx`, `App.jsx`)
+- 기존 메인 화면 좌측 FAB에 숨어있던 `RideSettings`를 **주행 필수 관문** 으로 승격. 별도 아이콘 없이 목적지 선택 완료 직후 자동 팝업.
+- 탑승 수단 선택과 속도 제한이 **양방향 자동 연동**:
+  - 자전거 모드 ON → 속도 상한 **25 km/h** 자동 선택
+  - 자전거 모드 OFF (PM 모드) → 속도 상한 **15 km/h** 자동 선택
+- 속도 버튼을 직접 눌러도 자전거 모드 토글이 동시에 전환됨 (완전 양방향 동기화).
+- 하단 버튼 문구를 `Apply Changes` → `Apply & Next`로 변경하여 다음 단계(헬멧 인증)로의 흐름을 명확하게 안내.
+
+#### 3. VIBE 유유자적 에코모드 동적 데이터 바인딩 (`VibeRouteSelector.jsx`)
+- `RoutePreferenceSelector`의 선택값이 VIBE 카드의 예상 시간·거리 계산에 **실시간 반영**됨:
+  - **에코 모드**: 거리 1.2배 우회 + 속도 10 km/h → 여유로운 소요시간 표시
+  - **안전 최우선**: 거리 1.1배 + 속도 12 km/h
+  - **자전거 도로**: 거리 1.1배 + 속도 15 km/h
+  - **최단 거리**: 거리 0.95배 + 속도 18 km/h
+- 에코모드 선택 시 `RoutePreferenceSelector` 컴포넌트에 neon-green glow 효과 추가.
+
+#### 4. 사용자 ID 영구 고정 (`useUserStore.js`)
+- **문제**: 앱 재시작 시 Supabase 익명 로그인이 매번 새 세션을 발급해 사용자 ID가 초기화되던 버그 수정.
+- **해결**: `localStorage`에 `c_safe_device_id` 키로 기기 고유 ID를 최초 1회만 생성 후 영구 보존. 이후 재시작 시 동일 ID 재사용.
+- 프로필 정보(`nickname`, `profile_image`, `points` 등)도 `c_safe_profile_{id}` 키로 `localStorage`에 캐싱되어 네트워크 오류 상황에서도 이전 설정 유지.
+- `updateProfile` 호출 시 DB 저장과 동시에 `localStorage`에도 즉시 반영 (오프라인 우선 설계).
+
+#### 5. 하단 내비게이션 레이아웃 고정 & 닉네임 처리 (`App.jsx`)
+- 기존 `flex justify-between` 방식에서 **`grid grid-cols-5`** 로 전환. 닉네임 길이에 무관하게 5개 탭 아이콘의 위치가 완전 고정됨.
+- 프로필 탭 레이블: 닉네임 **앞 5글자만 표시** (`slice(0, 5)`), 닉네임 없을 시 `ME` 표시.
+- 프로필 탭 아바타 원형: 이미지 없을 때 `Me` 고정 텍스트 → **닉네임 첫 글자 대문자**로 개선.
+- `ShadowImpactSheet`, `UserProfileSheet`의 하드코딩된 `"J"`, `"사용자 K"` 문자열을 `profile?.nickname`으로 통일.
+
+#### 6. PWA 서비스 워커 즉시 갱신 (`vite.config.js`)
+- `skipWaiting: true` + `clientsClaim: true` 추가로 새 버전 배포 시 모바일 PWA가 **즉시** 최신 코드로 교체됨. 기존에는 앱을 완전히 종료해야만 업데이트가 적용되던 문제 해결.
+
+---
+
 ### [2026-05-20] Epic 5: Vibe 동적 TTS 연동 및 Supabase RLS 보안 강화
 1. **Vibe 및 경로 선호도 기반 동적 TTS 연동 (`App.jsx`)**
    - 사용자가 **Choose Vibe** 메뉴에서 선택한 Vibe 경로(노을 맛집, 가로수길, 도심 숏컷)와 4가지 선호도(안전, 에코, 자전거, 최단거리) 및 운행 모드(CHILL, FAST)를 상태에 실시간 동기화하고, 주행 시작 시 이를 결합한 동적 한국어 TTS(음성 안내)를 제공하도록 전면 고도화했습니다.
