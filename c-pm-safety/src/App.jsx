@@ -45,7 +45,6 @@ import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
 import DrivingConsoleUI from './components/common/DrivingConsoleUI';
 import ProfileEditModal from './components/common/ProfileEditModal';
-import VehicleSelectModal from './components/common/VehicleSelectModal';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -195,7 +194,6 @@ function App() {
   };
 
   const [isRideSettingsOpen, setIsRideSettingsOpen] = useState(false);
-  const [isVehicleSelectOpen, setIsVehicleSelectOpen] = useState(false);
 
   // Phase 45: Lifted Navigation / Route States from MapContainer
   const [navStep, setNavStep] = useState('idle'); // 'idle' | 'select_origin' | 'select_destination' | 'route_ready'
@@ -592,8 +590,7 @@ function App() {
             }}
           />
         )}
-
-
+        
         {/* Phase 26: Real-time Hazard Alert Overlay */}
         <HazardAlertOverlay activeHazard={activeHazard} />
 
@@ -675,10 +672,6 @@ function App() {
           </div>
         )}
 
-        {/* Map Control Buttons (Left Side) */}
-        {/* Phase 35: Domain Debug Overlay for Kakao Map Registration */}
-
-
         {/* Phase 40: Unified Tools Menu (FAB Grouping) */}
         <div className="absolute left-4 bottom-[160px] z-[100] flex flex-col gap-2 pointer-events-auto items-center">
           {isToolsOpen && (
@@ -729,14 +722,6 @@ function App() {
                 title="맞춤형 주행 콘솔"
               >
                 <Sliders size={18} />
-              </button>
-
-              <button
-                onClick={() => setIsRideSettingsOpen(true)}
-                className="w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-center text-white"
-                title="주행 환경 설정 (Night/자전거 모드/브랜드 필터)"
-              >
-                <Settings size={18} />
               </button>
 
               <button
@@ -853,8 +838,8 @@ function App() {
                 setIsDropAndGoOpen(true);
               }}
               onRouteReady={() => {
-                // 목적지 선택 완료 후 이동 수단 선택 모달 오픈
-                setIsVehicleSelectOpen(true);
+                // 목적지 선택 완료 후 주행 환경 설정 모달 오픈 (Ride Control)
+                setIsRideSettingsOpen(true);
               }}
               onMapReady={handleMapReady}
               gpsFollowMode={gpsFollowMode}
@@ -1148,24 +1133,17 @@ function App() {
         <RideSettings
           isOpen={isRideSettingsOpen}
           onClose={() => setIsRideSettingsOpen(false)}
-          config={rideConfig}
-          setConfig={setRideConfig}
-        />
-
-        <VehicleSelectModal
-          isOpen={isVehicleSelectOpen}
-          onClose={() => setIsVehicleSelectOpen(false)}
-          isBicycleMode={rideConfig.isBicycleMode}
-          onSelect={(isBicycle) => {
-            setRideConfig(prev => ({ ...prev, isBicycleMode: isBicycle }));
-            setIsVehicleSelectOpen(false);
-            if (isBicycle) {
-              speak("자전거 주행 모드가 선택되었습니다. 초과 속도 경고가 비활성화됩니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.");
+          onNext={() => {
+            setIsRideSettingsOpen(false);
+            if (rideConfig.isBicycleMode) {
+              speak("자전거 주행 모드가 선택되었습니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.");
             } else {
-              speak("전동 킥보드 주행 모드가 선택되었습니다. 최고 속도는 20km/h로 감시됩니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.");
+              speak(`전동 킥보드 주행 모드가 선택되었습니다. 최고 속도는 ${rideConfig.speedLimit}km/h로 감시됩니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.`);
             }
             setIsHelmetAIOpen(true);
           }}
+          config={rideConfig}
+          setConfig={setRideConfig}
         />
 
         <DrivingConsoleUI

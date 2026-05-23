@@ -1,6 +1,6 @@
 import { X, Sliders, Moon, Zap, Shield, Filter, Bike } from 'lucide-react';
 
-const RideSettings = ({ isOpen, onClose, config, setConfig }) => {
+const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
     
     if (!isOpen) return null;
 
@@ -43,20 +43,20 @@ const RideSettings = ({ isOpen, onClose, config, setConfig }) => {
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
                             <button
-                                onClick={() => setConfig({ ...config, speedLimit: 15 })}
+                                onClick={() => setConfig({ ...config, speedLimit: 15, isBicycleMode: false })}
                                 className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 15 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                             >
                                 <Shield size={20} />
                                 <span className="text-xs font-black uppercase italic">15 km/h</span>
-                                <span className="text-[9px] font-bold opacity-60">Safety</span>
+                                <span className="text-[9px] font-bold opacity-60">PM Mode (Safety)</span>
                             </button>
                             <button
-                                onClick={() => setConfig({ ...config, speedLimit: 20 })}
-                                className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 20 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
+                                onClick={() => setConfig({ ...config, speedLimit: 25, isBicycleMode: true })}
+                                className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 25 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                             >
                                 <Zap size={20} />
-                                <span className="text-xs font-black uppercase italic">20 km/h</span>
-                                <span className="text-[9px] font-bold opacity-60">Normal</span>
+                                <span className="text-xs font-black uppercase italic">25 km/h</span>
+                                <span className="text-[9px] font-bold opacity-60">Bicycle (Normal)</span>
                             </button>
                         </div>
                     </section>
@@ -92,7 +92,14 @@ const RideSettings = ({ isOpen, onClose, config, setConfig }) => {
                             </div>
                         </div>
                         <button
-                            onClick={() => setConfig({ ...config, isBicycleMode: !config.isBicycleMode })}
+                            onClick={() => {
+                                const newBicycleMode = !config.isBicycleMode;
+                                setConfig({ 
+                                    ...config, 
+                                    isBicycleMode: newBicycleMode,
+                                    speedLimit: newBicycleMode ? 25 : 15 // 속도제한 자동 연동
+                                });
+                            }}
                             className={`w-14 h-8 rounded-full transition-all relative ${config.isBicycleMode ? 'bg-emerald-600 shadow-[0_4px_12px_rgba(16,185,129,0.3)]' : 'bg-gray-700'}`}
                         >
                             <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${config.isBicycleMode ? 'left-7' : 'left-1'}`}></div>
@@ -119,10 +126,10 @@ const RideSettings = ({ isOpen, onClose, config, setConfig }) => {
 
                     {/* Save/Close Button */}
                     <button
-                        onClick={onClose}
+                        onClick={onNext || onClose}
                         className="w-full h-14 bg-cyber-cyan text-black rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all shadow-neon-cyan"
                     >
-                        Apply Changes
+                        Apply & Next
                     </button>
 
                 </div>
