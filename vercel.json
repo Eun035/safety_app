@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd c-pm-safety && npm install && npm run build",
+  "outputDirectory": "c-pm-safety/dist",
+  "framework": "vite"
+}
