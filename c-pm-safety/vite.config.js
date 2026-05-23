@@ -38,6 +38,8 @@ export default defineConfig({
         ]
       },
       workbox: {
+        skipWaiting: true,      // 새 SW 즉시 활성화
+        clientsClaim: true,     // 모든 탭/창 즉시 제어
         // ONNX WASM / 모델은 precache에서 제외 → 헬멧 검증을 실제로 켤 때만 다운로드
         globIgnores: ['**/*.wasm', '**/models/**', '**/ort-*.js'],
         runtimeCaching: [
