@@ -976,7 +976,9 @@ function App() {
                     className="w-full h-full object-cover bg-transparent border-none outline-none"
                   />
                 ) : (
-                  <span className="text-cyber-cyan text-xs font-bold leading-none select-none">Me</span>
+                  <span className="text-cyber-cyan text-xs font-bold leading-none select-none">
+                    {profile?.nickname?.[0]?.toUpperCase() || 'Me'}
+                  </span>
                 )}
               </div>
               <span className="text-[9px] font-bold uppercase tracking-wider bg-transparent text-cyber-cyan">{profile?.nickname || t("Profile")}</span>
@@ -1004,12 +1006,12 @@ function App() {
         <ShadowImpactSheet
           isOpen={isShadowSheetOpen}
           onClose={() => setIsShadowSheetOpen(false)}
-          userName={profile?.nickname || "J"}
+          userName={profile?.nickname || '라이더'}
         />
         <UserProfileSheet
           isOpen={isProfileSheetOpen}
           onClose={() => setIsProfileSheetOpen(false)}
-          userName={profile?.nickname || "사용자 K"}
+          userName={profile?.nickname || '라이더'}
           userPoints={profile?.points || 0}
           userScore={profile?.safety_score || 0}
           profileImage={profile?.profile_image}
