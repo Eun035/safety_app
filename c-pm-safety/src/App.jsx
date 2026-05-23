@@ -45,6 +45,8 @@ import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
 import DrivingConsoleUI from './components/common/DrivingConsoleUI';
 import ProfileEditModal from './components/common/ProfileEditModal';
+import AISafetyCoach from './components/common/AISafetyCoach';
+import { useNearMissEngine } from './hooks/useNearMissEngine';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -97,6 +99,13 @@ function App() {
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
   const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory } = useRideSession();
+
+  // 🧠 Near-Miss Event Engine (전략적 데이터 수집)
+  const { captureNearMiss } = useNearMissEngine();
+  const [isAICoachOpen, setIsAICoachOpen] = React.useState(false);
+  const [coachingData, setCoachingData] = React.useState(null);
+  // 헬멧 착용 상태 (HelmetDetectionCamera 성공 시 true로 설정)
+  const helmetOnRef = React.useRef(false);
 
   // Static location fallback for testing / permissions denied
   const DEFAULT_LAT = 36.833;
@@ -380,8 +389,24 @@ function App() {
     } else if (result.riskLevel === 'danger') {
       speak(`위험! 제동 거리가 ${Math.round(result.totalDist)}미터입니다. 감속하세요.`);
       lastAlertTimeRef.current = now;
+
+      // 🎯 Near-Miss 이벤트 캡처 (위험 수준 달성 시)
+      captureNearMiss({
+        lat: location?.lat,
+        lng: location?.lng,
+        speed,
+        deceleration: result.riskLevel === 'danger' ? 3 : 2,
+        weatherRisk: !!weatherRisk,
+        inStressZone: STRESS_ZONES.some(z =>
+          typeof calculateDistance === 'function' &&
+          calculateDistance(location?.lat, location?.lng, z.lat, z.lng) < z.radius
+        ),
+        helmetOn: helmetOnRef.current,
+        activeHazard,
+        userId: user?.id
+      });
     }
-  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics]);
+  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id]);
 
 
   // Vibe & Preference 기반 동적 TTS 안내 함수
@@ -1069,10 +1094,34 @@ function App() {
 
         <RideSummaryModal
           isOpen={isRideSummaryOpen}
-          onClose={() => setIsRideSummaryOpen(false)}
+          onClose={() => {
+            setIsRideSummaryOpen(false);
+            // 주행 요약 닫힌 후 AI 코치 카드 표시
+            if (finalRideSummary) {
+              setCoachingData({
+                distance: finalRideSummary.distance,
+                time: finalRideSummary.time,
+                topSpeed: finalRideSummary.topSpeed,
+                suddenBrakeCount: finalRideSummary.suddenBrakeCount || suddenBrakeCount,
+                co2Saved: finalRideSummary.co2Saved,
+                history: rideHistory,
+                helmetOn: helmetOnRef.current
+              });
+              setIsAICoachOpen(true);
+            }
+            // 다음 주행을 위해 헬멧 상태 초기화
+            helmetOnRef.current = false;
+          }}
           metrics={finalRideSummary}
           vibeName={currentVibeRoute ? `${currentVibeRoute.title} (${currentVibeRoute.subTitle.split(' ')[0]})` : "Safety Route"}
-          suddenBrakeCount={0}
+          suddenBrakeCount={finalRideSummary?.suddenBrakeCount || suddenBrakeCount}
+        />
+
+        {/* 🧠 AI Safety Coach — 주행 후 개인화 피드백 */}
+        <AISafetyCoach
+          isOpen={isAICoachOpen}
+          onClose={() => setIsAICoachOpen(false)}
+          data={coachingData}
         />
 
 
@@ -1103,6 +1152,9 @@ function App() {
               status: 'active'
             };
             setCoupons(prev => [newPoint, ...prev]);
+
+            // 🛡️ 헬멧 착용 상태 기록 (Near-Miss 맥락 데이터)
+            helmetOnRef.current = true;
 
             setIsHelmetAIOpen(false); // 모달 닫기
             setNavStep('idle'); // 주행 시작 시 목적지 설정 팝업(navStep) 닫기
