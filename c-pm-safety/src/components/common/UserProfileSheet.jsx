@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2 } from 'lucide-react';
+import BeginnerMissionCard from './BeginnerMissionCard';
 
 // Radar Chart (Spider Web) component using SVG
 const RadarChart = ({ data }) => {
@@ -131,8 +132,9 @@ const badges = [
     { icon: '⚡', name: '스피드킹', color: 'from-purple-500/10 to-purple-900/10', border: 'border-purple-500/40', text: 'text-purple-400' },
 ];
 
-const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, profileImage, onAdminOpen, onEditProfile }) => {
+const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, profileImage, onAdminOpen, onEditProfile, onMissionReward }) => {
     const { t } = useTranslation();
+    const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'missions'
 
     return (
         <AnimatePresence>
@@ -172,7 +174,33 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                             </div>
 
                             {/* Scrollable content */}
-                            <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-2.5 scrollbar-hide">
+                            <div className="flex-1 overflow-y-auto pb-6 space-y-0 scrollbar-hide">
+
+                                {/* ── 탭 네비게이션 ── */}
+                                <div className="sticky top-0 z-10 bg-[#0a0c0f]/95 backdrop-blur-xl px-4 pb-2 pt-0">
+                                    <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+                                        {[
+                                            { id: 'profile', label: '프로필', icon: '👤' },
+                                            { id: 'missions', label: '미션', icon: '🏆' },
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                                                    activeTab === tab.id
+                                                        ? 'bg-cyber-cyan text-black shadow-neon-cyan'
+                                                        : 'text-gray-400 hover:text-white'
+                                                }`}
+                                            >
+                                                {tab.icon} {tab.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* ── 프로필 탭 ── */}
+                                {activeTab === 'profile' && (
+                                <div className="px-4 space-y-2.5">
 
                                 {/* === Section 1: Safety Identity === */}
                                 <div className="bg-gradient-to-br from-[#12161b] to-black p-3 rounded-[1.5rem] border border-white/5 shadow-xl">
@@ -286,6 +314,16 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                         <Settings size={12} /> B2G ADMIN CONSOLE
                                     </button>
                                 </div>
+
+                            </div>
+                                )}
+
+                                {/* ── 미션 탭 ── */}
+                                {activeTab === 'missions' && (
+                                    <div className="px-4 pb-2">
+                                        <BeginnerMissionCard onReward={onMissionReward} />
+                                    </div>
+                                )}
 
                             </div>
                         </motion.div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Shield, Cloud, AlertTriangle, Moon, Activity,
@@ -31,7 +31,8 @@ import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import UserProfileSheet from './components/common/UserProfileSheet';
 import RewardWalletSheet from './components/common/RewardWalletSheet';
-import AdminDashboard from './components/admin/AdminDashboard';
+// 5순위: AdminDashboard 레이지 로딩 — 초기 번들 ~39KB 절감
+const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -91,17 +92,17 @@ function App() {
   const [showPMs, setShowPMs] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
-  // Phase 15 & 19: Mandatory Onboarding & Disclaimer (Forced to run every session for presentation)
+  // Phase 15 & 19: Onboarding — localStorage 영속화 (2순위 버그 수정)
   const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
-  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useState(false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useLocalStorage('csafe_agreed_disclaimer', false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useLocalStorage('csafe_completed_onboarding', false);
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
   const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory } = useRideSession();
 
   // 🧠 Near-Miss Event Engine (전략적 데이터 수집)
-  const { captureNearMiss } = useNearMissEngine();
+  const { captureNearMiss, getLocalNearMisses } = useNearMissEngine();
   const [isAICoachOpen, setIsAICoachOpen] = React.useState(false);
   const [coachingData, setCoachingData] = React.useState(null);
   // 헬멧 착용 상태 (HelmetDetectionCamera 성공 시 true로 설정)
@@ -1032,6 +1033,8 @@ function App() {
           isOpen={isShadowSheetOpen}
           onClose={() => setIsShadowSheetOpen(false)}
           userName={profile?.nickname || '라이더'}
+          rideHistory={rideHistory}
+          getLocalNearMisses={getLocalNearMisses}
         />
         <UserProfileSheet
           isOpen={isProfileSheetOpen}
@@ -1045,6 +1048,9 @@ function App() {
             setIsAdminDashboardOpen(true);
           }}
           onEditProfile={() => setIsProfileEditOpen(true)}
+          onMissionReward={(missionId, points) => {
+            toast(`🏆 미션 완료! +${points.toLocaleString()}P 적립`, 'success');
+          }}
         />
         <ProfileEditModal
           isOpen={isProfileEditOpen}
@@ -1278,8 +1284,18 @@ function App() {
           </div>
         )}
 
+        {/* 5순위: Suspense로 감싸 레이지 로딩 처리 */}
         {isAdminDashboardOpen && (
-          <AdminDashboard onClose={() => setIsAdminDashboardOpen(false)} />
+          <Suspense fallback={
+            <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/80 backdrop-blur-md">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-cyber-cyan border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-bold text-cyber-cyan tracking-widest uppercase">Admin Loading...</span>
+              </div>
+            </div>
+          }>
+            <AdminDashboard onClose={() => setIsAdminDashboardOpen(false)} />
+          </Suspense>
         )}
 
 
