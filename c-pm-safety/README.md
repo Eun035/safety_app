@@ -51,40 +51,41 @@ C-Safe는 전동 킥보드(PM) 초보 사용자를 위한 **AI 기반 도시 모
 
 ```
 src/
-├── App.jsx                      ← 전역 상태 코디네이터 (~1,250 lines)
+├── App.jsx                      ← 전역 상태 코디네이터 (~1,310 lines)
 ├── components/
 │   ├── admin/
-│   │   └── AdminDashboard.jsx   ← B2G 정책 대시보드 (39KB)
-│   ├── common/                  ← 34개 UI 컴포넌트
-│   │   ├── AISafetyCoach.jsx    ← ✨ NEW: 주행 후 AI 코칭 카드
-│   │   ├── HelmetDetectionCamera.jsx
-│   │   ├── RideSummaryModal.jsx
-│   │   ├── UserProfileSheet.jsx
+│   │   └── AdminDashboard.jsx   ← B2G 정책 대시보드 (✨ React.lazy 레이지 로딩)
+│   ├── common/                  ← 36개 UI 컴포넌트
+│   │   ├── AISafetyCoach.jsx    ← 주행 후 AI 코칭 카드
+│   │   ├── BeginnerMissionCard.jsx ← ✨ NEW: 초보자 미션 UI
+│   │   ├── NavigationLaunchSheet.jsx ← ✨ NEW: 외부 앱 연동 (동의→앱선택→안전안내)
+│   │   ├── SafeCorridorSheet.jsx ← ✨ NEW: 경로 안전 분석 시트
+│   │   ├── ShadowImpactSheet.jsx ← ✨ UPGRADED: 실데이터 연동
+│   │   ├── UserProfileSheet.jsx  ← ✨ UPGRADED: 프로필/미션 탭
 │   │   └── ...
 │   └── map/                     ← MapContainer (52KB), VibeRouteSelector 등
 ├── hooks/
-│   ├── useNearMissEngine.js     ← ✨ NEW: 아차사고 이벤트 캡처 엔진
-│   ├── useHazardWarning.js      ← 🔧 FIXED: GPS 중복 워처 제거
-│   ├── useRideSession.js        ← 주행 세션 상태 머신
-│   ├── useUserStore.js          ← 인증 + 프로필 영속화
-│   ├── useGeolocation.js        ← 단일 GPS 라이프사이클 (Zustand)
+│   ├── useBeginnerMissions.js   ← ✨ NEW: 미션 상태 + localStorage 영속화
+│   ├── useNearMissEngine.js     ← 아차사고 이벤트 캡처 엔진
+│   ├── useLocalStorage.js       ← 범용 localStorage 훅
+│   ├── useRideSession.js        ← 주행 세션 상태 머신 (보호됨)
+│   ├── useUserStore.js          ← 인증 + 프로필 영속화 (보호됨)
+│   ├── useGeolocation.js        ← 단일 GPS 라이프사이클 (보호됨)
 │   ├── useSafeData.js           ← Supabase 실시간 + 날씨 + TAGO PM
 │   ├── useEdgeAI.js             ← ONNX/WASM 헬멧 감지 (10FPS)
-│   ├── useVoiceGuidance.js      ← TTS 래퍼 (다국어 지원)
-│   ├── useHazardWarning.js      ← PostGIS RPC + 로컬 폴백 근접 경보
-│   └── ...
+│   └── useVoiceGuidance.js      ← TTS 래퍼 (다국어 지원)
 ├── services/
-│   ├── B2GExportService.js      ← 지자체 CSV 데이터 내보내기
-│   ├── SafeRouteService.js      ← 안전 경로 계산
+│   ├── B2GExportService.js
+│   ├── SafeRouteService.js
 │   └── ProfileControlService.js
 ├── utils/
 │   ├── distance.js              ← Haversine 거리 계산
 │   ├── physics.js               ← 제동 거리 물리 엔진
-│   └── safetyScoring.js         ← 격자 기반 안전 점수 집계
+│   └── safetyScoring.js
 └── data/
     ├── pm_parking_data.json     ← 천안시 PM 주차 구역 410개소
-    ├── accidentHeatmap.json     ← 사고 발생 히트맵 데이터
-    └── safetyGrid.json          ← 안전 구역 격자 정의
+    ├── accidentHeatmap.json
+    └── safetyGrid.json
 ```
 
 ---
@@ -118,8 +119,10 @@ src/
 주행 시작 플로우:
   START RIDE 버튼
     → setNavStep('select_destination')
-    → 카카오맵에서 목적지 선택
-    → RideSettings (차량 종류 + 속도 제한)
+    → 목적지 검색 (풀오버레이 결과 패널 / 지도 마커 탭)
+    → route_ready → ✨ SafeCorridorSheet 자동 팝업 (경로 안전 분석)
+    →   [닫기] → RideSettings (차량 종류 + 속도 제한)
+    →   [외부 앱으로 길 안내] → NavigationLaunchSheet (카카오/네이버)
     → HelmetDetectionCamera (Edge AI ONNX 2초 인증)
     → startRide() + startTracking() + TTS 안내
 
@@ -233,28 +236,83 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 
 ## 📜 개발 이력 (Changelog)
 
+### [2026-05-25] 내비게이션 UX 완성
+
+#### ✅ route_ready → SafeCorridorSheet 자동 오픈 플로우 완성
+- `App.jsx`: `onRouteReady`에서 `RideSettings` 즉시 오픈 제거
+- `useEffect([navStep])`: `route_ready` 감지 시 `SafeCorridorSheet` 자동 팝업
+- `SafeCorridorSheet.onClose` → `RideSettings` 자동 전환 (닫기 후 주행 설정)
+- `SafeCorridorSheet.onNavigate` → `NavigationLaunchSheet` 전환 (외부 앱 연동)
+- 완성된 주행 시작 UX 플로우: 목적지선택 → 안전분석 → 주행설정 → 헬멧인증 → 주행
+
+#### ✅ 검색 결과 UI 풀오버레이 개선
+- 기존: 가이드 패널 내부 `max-h-[160px]` 인라인 드롭다운 → 하단 UI와 겹침
+- 개선: 화면 전체 `z-[200]` 고정 오버레이로 분리
+- 반투명 배경 블러 (탭하면 닫힘) + X 버튼 + 건수 표시
+- 아이템에 타입별 이모지 아이콘 + cyan 배지 + 선택 버튼 추가
+- `max-h-[70vh]` 스크롤 영역으로 다수 결과도 여유롭게 표시
+
+---
+
+### [2026-05-24] Epic 9: 게임화 · 실데이터 · 내비게이션 경험 완성
+
+#### 🔴 Supabase near_miss_events 마이그레이션 실행 완료
+- `near_miss_events` 테이블 DB 적용 → 실제 아차사고 데이터 수집 시작
+- RLS 정책 (본인 읽기/쓰기), `get_near_miss_clusters()` RPC 활성화
+
+#### 🟠 온보딩 localStorage 영속화 (C3 버그 수정)
+- `hasAgreedDisclaimer` → `useLocalStorage('csafe_agreed_disclaimer')`
+- `hasCompletedOnboarding` → `useLocalStorage('csafe_completed_onboarding')`
+- 새로고침 시 언어선택→약관→퀴즈 반복 문제 완전 해소
+
+#### 🟡 초보자 미션 시스템 (신규)
+- `useBeginnerMissions.js`: 5개 미션 정의, 진행도·완료 상태 localStorage 영속화
+- 미션 목록: 첫 안전 주행(+200P) / 헬멧 3연속(+300P★) / 급제동 없이 5km(+500P) / 7일 연속(+1000P★) / 위험 신고(+150P)
+- `BeginnerMissionCard.jsx`: 진행도 바 애니메이션, 스트릭 배지, 완료 날짜 표시
+- `UserProfileSheet` 탭 분리: 프로필 탭 / 미션 탭
+- 미션 완료 시 토스트 알림으로 포인트 지급 안내
+
+#### 🟢 ShadowImpactSheet 실데이터 연동
+- `rideHistory` 주행 통계 카드: 횟수·거리·CO₂·속도·아차사고 6개 지표
+- 실제 GPS `ride_paths` 경로 → SVG 경로 렌더링 (12샘플 정규화)
+- 아차사고 이벤트 위치를 경로 위에 빨간 점으로 오버레이
+- 아차사고 이력 리스트 + 최근 주행 기록 섹션 추가
+- 데이터 없을 시 기존 목업 애니메이션으로 폴백
+
+#### 🔵 AdminDashboard 레이지 로딩
+- `React.lazy()` 적용으로 초기 번들 ~39KB 절감
+- `<Suspense>` fallback: 사이버펑크 스타일 스피너
+- 관리자 패널 열 때만 코드 청크 로드
+
+#### 🗺️ Safe Corridor 경로 안전 분석 (신규)
+- `SafeCorridorSheet.jsx`: 목적지 설정 완료(`route_ready`) 시 자동 팝업
+- 직선 경로를 12등분 샘플링 → 600m 이내 위험 구역·보행자 스트레스 존 탐지
+- 안전 등급 A~F 자동 산정 (위험 구역 수 기반)
+- 위험 구역 목록: 출발점 기준 거리 + 경로 수직 거리 표시
+
+#### 📱 외부 내비게이션 앱 연동 (신규)
+- `NavigationLaunchSheet.jsx`: 3단계 동의 플로우
+  1. **동의 확인**: 위치 정보 제공 동의 + 목적지 미리보기
+  2. **앱 선택**: 카카오맵 / 네이버지도 (선택 localStorage 기억)
+  3. **안전 안내**: 화면 주시 금지(법적 의무) · 음성 안내 우선 · 정차 후 확인
+- 앱 딥링크(`kakaomap://`, `nmap://`) 시도 → 1.5초 후 웹 폴백 자동 전환
+- 출발 시 TTS: `"주행 중 화면 주시를 삼가고 음성 안내에 집중해 주세요. 안전 운행하세요!"`
+
+---
+
 ### [2026-05-23] Epic 8: AI Safety Coach + Near-Miss Engine + GPS 최적화
 
 #### 🔧 GPS 중복 워처 제거 (배터리 절약)
 - `useHazardWarning`의 자체 `watchPosition` 제거
 - `useGeolocation` Zustand 스토어 구독으로 전환
-- 모든 위험 감지 로직(PostGIS RPC, 로컬 폴백, TTS) 100% 보존
 
 #### ✨ useNearMissEngine (전략적 데이터 자산)
 - 위험 수준 달성 시 아차사고 이벤트 자동 캡처
-- GPS·속도·날씨·스트레스존·헬멧·위험구역 맥락 수집
-- Supabase `near_miss_events` 테이블 저장 + localStorage 폴백
-- 3초 쿨타임으로 중복 이벤트 방지
+- Supabase `near_miss_events` 저장 + localStorage 폴백 + 3초 쿨타임
 
 #### ✨ AISafetyCoach (주행 후 AI 코칭)
-- `RideSummaryModal` 닫힌 후 자동 표시
 - 결정론적 룰 기반 코칭 (급제동/속도/헬멧/성장 추세)
-- 원형 안전 점수 게이지 (0~100점)
-- 최대 3개 인사이트 카드 (인지 부하 최소화)
-
-#### 🗃️ Supabase 마이그레이션
-- `near_miss_events` 테이블 + RLS 정책
-- `get_near_miss_clusters()` RPC (관리자 위험 클러스터 분석)
+- 원형 안전 점수 게이지, 최대 3개 인사이트 카드
 
 ---
 
@@ -344,4 +402,4 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ---
 
 *C-Safe Security Protocol V3.0 — AI-Powered Urban Mobility Safety Platform*  
-*Protected by Advanced Agentic Coding | Last updated: 2026-05-23*
+*Protected by Advanced Agentic Coding | Last updated: 2026-05-25*
