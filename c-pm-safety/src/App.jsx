@@ -880,8 +880,8 @@ function App() {
                 setIsDropAndGoOpen(true);
               }}
               onRouteReady={() => {
-                // 목적지 선택 완료 후 주행 환경 설정 모달 오픈 (Ride Control)
-                setIsRideSettingsOpen(true);
+                // navStep이 route_ready로 전환되면 useEffect에서 SafeCorridorSheet 자동 오픈
+                // (RideSettings는 SafeCorridorSheet 닫힌 후에 열림)
               }}
               onMapReady={handleMapReady}
               gpsFollowMode={gpsFollowMode}
@@ -1146,15 +1146,20 @@ function App() {
           data={coachingData}
         />
 
-        {/* 🗺️ Safe Corridor — 경로 안전 분석 시트 */}
+        {/* 🗺️ Safe Corridor — 경로 안전 분석 시트 (route_ready 시 자동 오픈) */}
         <SafeCorridorSheet
           isOpen={isSafeCorridorOpen}
-          onClose={() => setIsSafeCorridorOpen(false)}
+          onClose={() => {
+            setIsSafeCorridorOpen(false);
+            // 안전 분석 확인 후 주행 환경 설정 모달로 이동
+            setIsRideSettingsOpen(true);
+          }}
           routeOrigin={routeOrigin}
           routeDestination={routeDestination}
           locations={locations}
           stressZones={STRESS_ZONES}
           onNavigate={() => {
+            // 외부 앱 연동 선택 시에도 주행 설정은 건너뜀
             setIsSafeCorridorOpen(false);
             setIsNavLaunchOpen(true);
           }}
