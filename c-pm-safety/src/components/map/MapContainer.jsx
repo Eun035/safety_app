@@ -812,6 +812,100 @@ const MapContainer = ({
 
             {/* UI Layer (Above Map, No Filter) */}
             <div className="absolute inset-0 z-10 pointer-events-none">
+
+                {/* ══════════════════════════════════════════════════════════
+                    검색 결과 풀오버레이 (가이드 패널과 분리 / 항상 최상단)
+                    입력 중에만 노출되며 다른 UI와 절대 겹치지 않음
+                ══════════════════════════════════════════════════════════ */}
+                {isSearchFocused && searchQuery.trim() && navStep !== 'route_ready' && (
+                    <div
+                        className="absolute inset-0 z-[200] pointer-events-auto flex flex-col"
+                        onClick={() => { setIsSearchFocused(false); setSearchQuery(''); }}
+                    >
+                        {/* 반투명 배경 (탭하면 닫힘) */}
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+                        {/* 검색결과 패널 — 화면 상단 50px 여백 두고 시작 */}
+                        <div
+                            className="relative z-10 mx-auto w-[calc(100%-32px)] max-w-md mt-[50px] flex flex-col max-h-[70vh] animate-in slide-in-from-top-2 duration-200"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* 헤더 */}
+                            <div className="flex items-center justify-between bg-[#0d1117] border border-white/15 rounded-t-2xl px-4 py-3 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <Navigation size={14} className="text-cyber-cyan" />
+                                    <span className="text-[11px] font-black text-cyber-cyan uppercase tracking-widest">
+                                        {navStep === 'select_origin' ? '출발지 검색' : '목적지 검색'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] text-gray-500 font-bold">
+                                        {searchResults.length}건
+                                    </span>
+                                    <button
+                                        onClick={() => { setIsSearchFocused(false); setSearchQuery(''); }}
+                                        className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 결과 목록 */}
+                            <div className="flex-1 overflow-y-auto bg-[#0d1117]/98 border-x border-b border-white/15 rounded-b-2xl divide-y divide-white/5 shadow-2xl">
+                                {searchResults.length > 0 ? (
+                                    searchResults.map((item, idx) => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => {
+                                                if (navStep === 'select_origin') {
+                                                    handleSelectOrigin(item);
+                                                } else if (navStep === 'select_destination') {
+                                                    handleSelectDestination(item);
+                                                }
+                                            }}
+                                            className="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-white/8 active:bg-white/12 transition-colors"
+                                            style={{ animationDelay: `${idx * 30}ms` }}
+                                        >
+                                            {/* 아이콘 */}
+                                            <div className="w-9 h-9 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center shrink-0 text-base">
+                                                {item.type === 'city_hall' ? '🏢'
+                                                    : item.type === 'fire_station' ? '🚒'
+                                                    : item.type === 'university' ? '🏫'
+                                                    : item.type === 'station' ? '🚉'
+                                                    : item.type === 'terminal' ? '🚌'
+                                                    : '📍'}
+                                            </div>
+
+                                            {/* 텍스트 */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[13px] font-black text-white truncate">{item.title}</p>
+                                                <p className="text-[10px] text-gray-400 truncate mt-0.5">{item.desc}</p>
+                                                {item.badge && (
+                                                    <span className="inline-block mt-1 text-[8px] px-1.5 py-0.5 bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 rounded-full font-bold">
+                                                        {item.badge}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* 선택 아이콘 */}
+                                            <div className="w-7 h-7 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-lg flex items-center justify-center shrink-0">
+                                                <Navigation size={13} className="text-cyber-cyan" />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : searchQuery.trim().length >= 1 ? (
+                                    <div className="flex flex-col items-center justify-center py-12 gap-2">
+                                        <span className="text-2xl">🔍</span>
+                                        <p className="text-xs font-black text-gray-500">검색 결과가 없습니다</p>
+                                        <p className="text-[9px] text-gray-600">다른 키워드로 검색해보세요</p>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* --- 상단 네비게이션 가이드 패널 --- */}
                 {navStep !== 'idle' && (
                     <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[calc(100%-40px)] max-w-md z-50 animate-in slide-in-from-top-4 pointer-events-auto">
@@ -873,41 +967,6 @@ const MapContainer = ({
                                 </div>
                             </div>
 
-                            {/* 가이드 패널 내 실시간 검색 결과 드롭다운 */}
-                            {isSearchFocused && searchQuery.trim() && navStep !== 'route_ready' && (
-                                <div className="mt-2 max-h-[160px] overflow-y-auto bg-black/95 rounded-xl border border-white/10 divide-y divide-white/5 scrollbar-thin">
-                                    {searchResults.length > 0 ? (
-                                        searchResults.map((item) => (
-                                            <div
-                                                key={item.id}
-                                                onClick={() => {
-                                                    if (navStep === 'select_origin') {
-                                                        handleSelectOrigin(item);
-                                                    } else if (navStep === 'select_destination') {
-                                                        handleSelectDestination(item);
-                                                    }
-                                                }}
-                                                className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
-                                            >
-                                                <div className="flex-1 min-w-0 pr-2">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-xs font-bold text-white truncate">{item.title}</span>
-                                                        <span className="text-[8px] px-1 bg-white/10 text-gray-400 rounded border border-white/5 shrink-0">
-                                                            {item.badge || '📍 장소'}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-[9px] text-gray-400 truncate block mt-0.5">{item.desc}</span>
-                                                </div>
-                                                <Navigation size={12} className="text-cyber-cyan shrink-0" />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="p-4 text-center text-xs text-gray-500 font-bold">
-                                            검색 결과가 없습니다.
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                             {navStep === 'route_ready' && (
                                 <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <div className="grid grid-cols-2 gap-2">
