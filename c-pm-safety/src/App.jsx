@@ -48,6 +48,8 @@ import DrivingConsoleUI from './components/common/DrivingConsoleUI';
 import ProfileEditModal from './components/common/ProfileEditModal';
 import AISafetyCoach from './components/common/AISafetyCoach';
 import { useNearMissEngine } from './hooks/useNearMissEngine';
+import SafeCorridorSheet from './components/common/SafeCorridorSheet';
+import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -210,6 +212,10 @@ function App() {
   const [routeOrigin, setRouteOrigin] = useState(null);
   const [routeDestination, setRouteDestination] = useState(null);
 
+  // Safe Corridor & Navigation Launch Sheets
+  const [isSafeCorridorOpen, setIsSafeCorridorOpen] = useState(false);
+  const [isNavLaunchOpen, setIsNavLaunchOpen] = useState(false);
+
   // Phase 26: PWA Manual Install Prompt
   // Phase 26: PWA Manual Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -234,6 +240,16 @@ function App() {
   useEffect(() => {
     console.log("[C-Safe] App Initialized. State persistence active.");
   }, []);
+
+  // 🗺️ route_ready 시 Safe Corridor 자동 표시
+  useEffect(() => {
+    if (navStep === 'route_ready' && routeDestination) {
+      setIsSafeCorridorOpen(true);
+    } else if (navStep === 'idle') {
+      setIsSafeCorridorOpen(false);
+      setIsNavLaunchOpen(false);
+    }
+  }, [navStep, routeDestination]);
 
   // Phase 20: Emergency Splash Timeout (Fail-Safe)
   useEffect(() => {
@@ -1128,6 +1144,31 @@ function App() {
           isOpen={isAICoachOpen}
           onClose={() => setIsAICoachOpen(false)}
           data={coachingData}
+        />
+
+        {/* 🗺️ Safe Corridor — 경로 안전 분석 시트 */}
+        <SafeCorridorSheet
+          isOpen={isSafeCorridorOpen}
+          onClose={() => setIsSafeCorridorOpen(false)}
+          routeOrigin={routeOrigin}
+          routeDestination={routeDestination}
+          locations={locations}
+          stressZones={STRESS_ZONES}
+          onNavigate={() => {
+            setIsSafeCorridorOpen(false);
+            setIsNavLaunchOpen(true);
+          }}
+        />
+
+        {/* 📱 Navigation Launch — 외부 앱 연동 (동의 → 앱선택 → 안전안내) */}
+        <NavigationLaunchSheet
+          isOpen={isNavLaunchOpen}
+          onClose={() => setIsNavLaunchOpen(false)}
+          routeOrigin={routeOrigin}
+          routeDestination={routeDestination}
+          onLaunch={() => {
+            speak('주행 중 화면 주시를 삼가고 음성 안내에 집중해 주세요. 안전 운행하세요!');
+          }}
         />
 
 
