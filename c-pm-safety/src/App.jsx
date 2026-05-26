@@ -50,6 +50,7 @@ import AISafetyCoach from './components/common/AISafetyCoach';
 import { useNearMissEngine } from './hooks/useNearMissEngine';
 import SafeCorridorSheet from './components/common/SafeCorridorSheet';
 import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
+import VehicleSelectModal from './components/common/VehicleSelectModal';
 
 
 import pmParkingData from './data/pm_parking_data.json';
