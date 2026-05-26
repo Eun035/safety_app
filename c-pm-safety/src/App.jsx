@@ -142,7 +142,7 @@ function App() {
       const isInside = dist < zone.radius;
 
       if (isInside && !wasInside) {
-        speak(`${zone.name}에 진입했습니다. 보행자 보호를 위해 감속해 주세요.`);
+        speak(t('tts_stress_zone_enter', { zoneName: t(zone.name) }));
       }
       stressZoneInsideRef.current[zone.id] = isInside;
     });
@@ -401,10 +401,10 @@ function App() {
     if (now - lastAlertTimeRef.current < 5000) return; // 5초 쿨타임
 
     if (!rideConfig.isBicycleMode && speed > rideConfig.speedLimit) {
-      speak(`과속입니다! 현재 ${Math.round(speed)}km입니다. 속도를 줄이세요.`);
+      speak(t('tts_speeding_alert', { speed: Math.round(speed) }));
       lastAlertTimeRef.current = now;
     } else if (result.riskLevel === 'danger') {
-      speak(`위험! 제동 거리가 ${Math.round(result.totalDist)}미터입니다. 감속하세요.`);
+      speak(t('tts_braking_risk_alert', { distance: Math.round(result.totalDist) }));
       lastAlertTimeRef.current = now;
 
       // 🎯 Near-Miss 이벤트 캡처 (위험 수준 달성 시)
@@ -423,29 +423,16 @@ function App() {
         userId: user?.id
       });
     }
-  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id]);
+  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id, t]);
 
 
   // Vibe & Preference 기반 동적 TTS 안내 함수
   const announceVibeStart = (vibe) => {
-    const prefNames = {
-      safe: "안전 최우선 모드",
-      eco: "유유자적 에코 모드",
-      bike_lane: "자전거 도로 우선 모드",
-      fastest: "최단 거리 모드"
-    };
+    const prefName = t(vibe?.preference || 'eco');
+    const vibeName = t(vibe?.id || 'sunset');
+    const modeName = t(vibe?.drivingMode || 'CHILL');
 
-    const vibeNames = {
-      sunset: "리버사이드 칠 노을 맛집 경로",
-      quiet: "콰이어트 스트리트 가로수길 경로",
-      urban: "스트리트 러너 도심 숏컷 경로"
-    };
-
-    const prefName = prefNames[vibe?.preference] || "유유자적 에코 모드";
-    const vibeName = vibeNames[vibe?.id] || "안전 경로";
-    const modeName = vibe?.drivingMode === 'FAST' ? "빠른 주행" : "여유로운 주행";
-
-    speak(`${vibeName}, ${prefName}로 ${modeName}을 시작합니다. 안전 운행하세요!`);
+    speak(t('tts_vibe_start', { vibeName, prefName, modeName }));
   };
 
   const handleQRScanSuccess = (decodedText) => {
@@ -541,10 +528,10 @@ function App() {
       const isLegalPark = minDistance <= 10;
 
       if (isLegalPark) {
-        speak("주차 확인 성공. 리워드 100포인트가 적립되었습니다. 주차를 종료합니다.");
+        speak(t('tts_parking_legal'));
       } else {
         // 비합법 주차: 페널티 모달 표시 + 보상 차단
-        speak("주차 구역 이탈! 반경 10미터 이내 지정 주차장이 없습니다. 견인 및 페널티 위험이 있습니다.");
+        speak(t('tts_parking_illegal'));
         setParkingGeofenceModal({ isOpen: true, success: false });
         await endRideSession(user?.id, { isLegalPark: false }); // 주행 기록은 저장하되 +100P 보상 제외
         return; // 결제 모달 진입 차단
@@ -1239,12 +1226,21 @@ function App() {
         <RideSettings
           isOpen={isRideSettingsOpen}
           onClose={() => setIsRideSettingsOpen(false)}
-          onNext={() => {
-            setIsRideSettingsOpen(false);
-            if (rideConfig.isBicycleMode) {
-              speak("자전거 주행 모드가 선택되었습니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.");
+          config={rideConfig}
+          setConfig={setRideConfig}
+        />
+
+        <VehicleSelectModal
+          isOpen={isVehicleSelectOpen}
+          onClose={() => setIsVehicleSelectOpen(false)}
+          isBicycleMode={rideConfig.isBicycleMode}
+          onSelect={(isBicycle) => {
+            setRideConfig(prev => ({ ...prev, isBicycleMode: isBicycle }));
+            setIsVehicleSelectOpen(false);
+            if (isBicycle) {
+              speak(t('tts_vehicle_bicycle'));
             } else {
-              speak(`전동 킥보드 주행 모드가 선택되었습니다. 최고 속도는 ${rideConfig.speedLimit}km/h로 감시됩니다. 안전 주행을 위해 Edge AI 헬멧 검증을 시작합니다.`);
+              speak(t('tts_vehicle_kickboard'));
             }
             setIsHelmetAIOpen(true);
           }}

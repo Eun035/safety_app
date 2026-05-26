@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, X, MapPin, Building, ShieldAlert, Sparkles, Navigation } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
 
@@ -104,6 +105,7 @@ const LANDMARKS = [
 ];
 
 const MapSearchBar = ({ onSelectLocation, speak }) => {
+    const { t } = useTranslation();
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -177,7 +179,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
         
         // TTS 안내 송출
         if (speak) {
-            speak(`목적지 ${item.title}을 검색했습니다. 지도를 해당 위치로 이동합니다.`);
+            speak(t('tts_destination_search', { title: t(item.title) }));
         }
         toast(`🔍 ${item.title} 매칭 완료!`, 'success');
     };
@@ -202,7 +204,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                         setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
-                    placeholder="랜드마크 검색 (시청, 소방서, 대학교 등)..."
+                    placeholder={t('search_placeholder')}
                     className="w-full pl-11 pr-10 py-3.5 bg-gray-950/80 backdrop-blur-xl border border-white/10 focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 rounded-2xl text-white text-xs font-bold tracking-tight shadow-2xl transition-all outline-none"
                 />
                 {query && (
@@ -220,15 +222,24 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
 
             {/* 프리셋 빠른 필터 태그 */}
             <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none scroll-smooth">
-                {PRESETS.map((preset, idx) => (
-                    <button
-                        key={idx}
-                        onClick={() => handlePresetClick(preset.query)}
-                        className="shrink-0 px-3 py-1.5 bg-[#0e1724]/90 backdrop-blur-md border border-white/5 hover:border-cyber-cyan/30 rounded-xl text-[10px] font-black text-gray-300 hover:text-cyber-cyan transition-all duration-300 shadow-md"
-                    >
-                        {preset.label}
-                    </button>
-                ))}
+                {PRESETS.map((preset, idx) => {
+                    const presetLabels = {
+                        '시청': t('🏢 천안시청', { defaultValue: '🏢 천안시청' }),
+                        '소방서': t('🚒 소방서', { defaultValue: '🚒 소방서' }),
+                        '대학교': t('🏫 대학교', { defaultValue: '🏫 대학교' }),
+                        '역': t('🚉 역/터미널', { defaultValue: '🚉 역/터미널' })
+                    };
+                    const label = presetLabels[preset.query] || preset.label;
+                    return (
+                        <button
+                            key={idx}
+                            onClick={() => handlePresetClick(preset.query)}
+                            className="shrink-0 px-3 py-1.5 bg-[#0e1724]/90 backdrop-blur-md border border-white/5 hover:border-cyber-cyan/30 rounded-xl text-[10px] font-black text-gray-300 hover:text-cyber-cyan transition-all duration-300 shadow-md"
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* 실시간 하이브리드 검색 결과 리스트 */}
@@ -260,16 +271,16 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5">
-                                            <h4 className="text-xs font-black text-white truncate">{item.title}</h4>
+                                            <h4 className="text-xs font-black text-white truncate">{t(item.title, { defaultValue: item.title })}</h4>
                                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 border uppercase tracking-wider ${
                                                 isLandmark 
                                                     ? 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/30 shadow-sm' 
                                                     : 'bg-white/5 text-gray-400 border-white/5'
                                             }`}>
-                                                {item.badge}
+                                                {t(item.badge, { defaultValue: item.badge })}
                                             </span>
                                         </div>
-                                        <p className="text-[10px] text-gray-400 font-bold truncate mt-0.5">{item.desc}</p>
+                                        <p className="text-[10px] text-gray-400 font-bold truncate mt-0.5">{t(item.desc, { defaultValue: item.desc })}</p>
                                     </div>
                                 </div>
                             );
@@ -277,8 +288,8 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     ) : (
                         <div className="p-8 text-center text-gray-500 font-bold flex flex-col items-center gap-2">
                             <Sparkles size={24} className="text-gray-600 animate-pulse" />
-                            <p className="text-xs">검색 결과가 없습니다.</p>
-                            <p className="text-[10px] text-gray-600 font-medium">천안시청, 소방서, 터미널 등을 입력해 보세요!</p>
+                            <p className="text-xs">{t('search_no_results')}</p>
+                            <p className="text-[10px] text-gray-600 font-medium">{t('search_no_results_desc')}</p>
                         </div>
                     )}
                 </div>

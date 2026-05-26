@@ -82,7 +82,38 @@ const resources = {
             "vibe_replay_title": "Vibe.Route 리플레이",
             "helmet_verified": "헬멧 인증 완료!",
             "esg_secured": "ESG 0.5kg 확보!",
-            "share_ride": "공유하기"
+            "share_ride": "공유하기",
+            
+            // TTS 안내 멘트
+            "tts_stress_zone_enter": "{{zoneName}}에 진입했습니다. 보행자 보호를 위해 감속해 주세요.",
+            "tts_speeding_alert": "과속입니다! 현재 시속 {{speed}}km입니다. 속도를 줄이세요.",
+            "tts_braking_risk_alert": "위험! 제동 거리가 {{distance}}미터입니다. 감속하세요.",
+            "tts_vibe_start": "{{vibeName}}, {{prefName}}로 {{modeName}}을 시작합니다. 안전 운행하세요!",
+            "tts_vehicle_bicycle": "자전거 주행 모드가 선택되었습니다. 초과 속도 경고가 비활성화됩니다. 안전 주행을 위해 에지 AI 헬멧 검증을 시작합니다.",
+            "tts_vehicle_kickboard": "전동 킥보드 주행 모드가 선택되었습니다. 최고 속도는 시속 20km로 감시됩니다. 안전 주행을 위해 에지 AI 헬멧 검증을 시작합니다.",
+            "tts_parking_legal": "주차 확인 성공. 리워드 100포인트가 적립되었습니다. 주차를 종료합니다.",
+            "tts_parking_illegal": "주차 구역 이탈! 반경 10미터 이내 지정 주차장이 없습니다. 견인 및 페널티 위험이 있습니다.",
+
+            // 보행자 보호구역 메타데이터
+            "단국대 정문 보행자 보호구역": "단국대 정문 보행자 보호구역",
+            "종합터미널 보행자 밀집구역": "종합터미널 보행자 밀집구역",
+
+            // Vibe & 선호도 속성들
+            "safe": "안전 최우선 모드",
+            "eco": "유유자적 에코 모드",
+            "bike_lane": "자전거 도로 우선 모드",
+            "fastest": "최단 거리 모드",
+            "sunset": "리버사이드 칠 노을 맛집 경로",
+            "quiet": "콰이어트 스트리트 가로수길 경로",
+            "urban": "스트리트 러너 도심 숏컷 경로",
+            "FAST": "빠른 주행",
+            "CHILL": "여유로운 주행",
+            
+            // 검색바 관련 다국어
+            "tts_destination_search": "목적지 {{title}}을 검색했습니다. 지도를 해당 위치로 이동합니다.",
+            "search_placeholder": "랜드마크 검색 (시청, 소방서, 대학교 등)...",
+            "search_no_results": "검색 결과가 없습니다.",
+            "search_no_results_desc": "천안시청, 소방서, 터미널 등을 입력해 보세요!"
         }
     },
     ja: {
@@ -157,7 +188,38 @@ const resources = {
             "qr_scanner_title_helmet": "安全ヘルメット/ステーションQRスキャン",
             "qr_scanner_desc_helmet": "安全ヘルメットのQRコードまたはステーションのバーコードをスキャンしてください。",
             "qr_scanner_title_station": "ヘルメットステーションスキャン",
-            "qr_scanner_desc_station": "ステーションに貼られているQRコードをスキャンしてください。"
+            "qr_scanner_desc_station": "ステーションに貼られているQRコードをスキャンしてください。",
+            
+            // TTS 안내 멘트
+            "tts_stress_zone_enter": "{{zoneName}}に進入しました。歩行者保護のため減速してください。",
+            "tts_speeding_alert": "速度過多です！現在時速{{speed}}kmです。減速してください。",
+            "tts_braking_risk_alert": "危険！制動距離が{{distance}}メートルです。減速してください。",
+            "tts_vibe_start": "{{vibeName}}、{{prefName}}で{{modeName}}を開始します。安全運転を！",
+            "tts_vehicle_bicycle": "自転車の走行モードが選択されました。制限速度警告は無効化されます。安全運転のためにEdge AIヘルメット検証を開始します。",
+            "tts_vehicle_kickboard": "電動キックボードの走行モードが選択されました。最高速度は20km/hで監視されます。安全運転のためにEdge AIヘルメット検証を開始します。",
+            "tts_parking_legal": "駐車が確認されました。報酬100ポイントが積立されました。駐車を終了します。",
+            "tts_parking_illegal": "駐車エリアを逸脱しています！半径10メートル以内に指定駐車場がありません。牽引やペナルティの危険があります。",
+
+            // 보행자 보호구역 메타데이터
+            "단국대 정문 보행자 보호구역": "檀国大学校正門歩行者保護区域",
+            "종합터미널 보행자 밀집구역": "総合ターミナル歩行者密集区域",
+
+            // Vibe & 선호도 속성들
+            "safe": "安全最優先モード",
+            "eco": "ゆったりエコモード",
+            "bike_lane": "自転車道優先モード",
+            "fastest": "最短距離モード",
+            "sunset": "リバーサイド・チル夕日スポットルート",
+            "quiet": "クワイエット・ストリート並木道ルート",
+            "urban": "ストリート・ランナー都心ショートカットルート",
+            "FAST": "快速走行",
+            "CHILL": "ゆったり走行",
+
+            // 검색바 관련 다국어
+            "tts_destination_search": "目的地{{title}}を検索しました。地図を該当位置へ移動します。",
+            "search_placeholder": "ランドマーク検索（市役所、消防署、大学など）...",
+            "search_no_results": "検索結果がありません。",
+            "search_no_results_desc": "天安市役所、消防署、ターミナルなどを入力してください！"
         }
     },
     "zh-CN": {
@@ -232,7 +294,38 @@ const resources = {
             "qr_scanner_title_helmet": "安全头盔/服务站QR扫描",
             "qr_scanner_desc_helmet": "请扫描安全头盔的二维码或服务站条形码。",
             "qr_scanner_title_station": "头盔服务站扫描",
-            "qr_scanner_desc_station": "请扫描贴在服务站上的二维码。"
+            "qr_scanner_desc_station": "请扫描贴在服务站上的二维码。",
+
+            // TTS 안내 멘트
+            "tts_stress_zone_enter": "已进入{{zoneName}}。请减速以保护行人。",
+            "tts_speeding_alert": "超速！当前时速为{{speed}}公里。请减速。",
+            "tts_braking_risk_alert": "危险！估算制动距离为{{distance}}米。请减速。",
+            "tts_vibe_start": "以{{prefName}}在{{vibeName}}上开始{{modeName}}。骑行安全！",
+            "tts_vehicle_bicycle": "自行车行驶模式已选择。超速警告已停用。为了安全骑行，开始进行Edge AI头盔验证。",
+            "tts_vehicle_kickboard": "电动滑板车行驶模式已选择。最高速度限制为20km/h。为了安全骑行，开始进行Edge AI头盔验证。",
+            "tts_parking_legal": "停车确认成功。奖励100积分已到账。结束停车。",
+            "tts_parking_illegal": "离开停车区域！半径10米内无指定停车场。可能面临被拖走和罚款的风险。",
+
+            // 보행자 보호구역 메타데이터
+            "단국대 정문 보행자 보호구역": "檀国大学正门步行者保护区",
+            "종합터미널 보행자 밀집구역": "综合客运站步行者密集区",
+
+            // Vibe & 선호도 속성들
+            "safe": "安全最优先模式",
+            "eco": "休闲环保模式",
+            "bike_lane": "自行车道优先模式",
+            "fastest": "最短距离模式",
+            "sunset": "江畔惬意落日美景路线",
+            "quiet": "宁静街道林荫道路线",
+            "urban": "都市奔跑者市中心捷径路线",
+            "FAST": "快速行驶",
+            "CHILL": "闲适悠游",
+
+            // 검색바 관련 다국어
+            "tts_destination_search": "已搜索目的地{{title}}。正在将地图移动到该位置。",
+            "search_placeholder": "搜索地标（市政厅、消防局、大学等）...",
+            "search_no_results": "无搜索结果。",
+            "search_no_results_desc": "请输入天安市政厅、消防局、客运站等！"
         }
     },
     en: {
@@ -307,7 +400,38 @@ const resources = {
             "qr_scanner_title_helmet": "Safety Helmet/Station QR Scan",
             "qr_scanner_desc_helmet": "Please scan the QR code on the safety helmet or station barcode.",
             "qr_scanner_title_station": "Helmet Station Scan",
-            "qr_scanner_desc_station": "Please scan the QR code attached to the station."
+            "qr_scanner_desc_station": "Please scan the QR code attached to the station.",
+
+            // TTS 안내 멘트
+            "tts_stress_zone_enter": "Entered {{zoneName}}. Please slow down for pedestrian safety.",
+            "tts_speeding_alert": "Speeding! Your current speed is {{speed}} km per hour. Please slow down.",
+            "tts_braking_risk_alert": "Danger! Estimated stopping distance is {{distance}} meters. Slow down.",
+            "tts_vibe_start": "Starting {{modeName}} on {{vibeName}} with {{prefName}}. Ride safe!",
+            "tts_vehicle_bicycle": "Bicycle riding mode selected. Speed warning is disabled. Starting Edge AI helmet verification for safe riding.",
+            "tts_vehicle_kickboard": "E-scooter mode selected. Maximum speed is monitored at 20 km per hour. Starting Edge AI helmet verification for safe riding.",
+            "tts_parking_legal": "Parking verified. 100 reward points have been accumulated. Ending the ride.",
+            "tts_parking_illegal": "Parking zone deviated! There is no designated parking within a 10-meter radius. There is a risk of towing and penalties.",
+
+            // Pedestrian Zone Metadata
+            "단국대 정문 보행자 보호구역": "Dankook Univ Main Gate Pedestrian Zone",
+            "종합터미널 보행자 밀집구역": "Terminal Pedestrian Crowded Zone",
+
+            // Vibe & Preference properties
+            "safe": "Safety-First Mode",
+            "eco": "Zen & Chill Eco Mode",
+            "bike_lane": "Bicycle Lane First Mode",
+            "fastest": "Shortest Route Mode",
+            "sunset": "Riverside Chill Sunset View Route",
+            "quiet": "Quiet Street Boulevard Route",
+            "urban": "Street Runner Downtown Shortcut Route",
+            "FAST": "Fast Riding",
+            "CHILL": "Chill Riding",
+
+            // 검색바 관련 다국어
+            "tts_destination_search": "Searched for destination {{title}}. Moving the map to this location.",
+            "search_placeholder": "Search landmarks (City Hall, Fire Station, College)...",
+            "search_no_results": "No results found.",
+            "search_no_results_desc": "Try searching for Cheonan City Hall, Fire Station, or Terminal!"
         }
     }
 };
