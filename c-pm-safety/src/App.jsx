@@ -173,6 +173,7 @@ function App() {
   const [isDropAndGoOpen, setIsDropAndGoOpen] = useState(false);
   const [selectedDropStation, setSelectedDropStation] = useState(null);
   const [isStationUnlockOpen, setIsStationUnlockOpen] = useState(false);
+  const [isVehicleSelectOpen, setIsVehicleSelectOpen] = useState(false);
 
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
