@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Shield, Cloud, AlertTriangle, Moon, Activity,
@@ -48,6 +48,7 @@ import DrivingConsoleUI from './components/common/DrivingConsoleUI';
 import ProfileEditModal from './components/common/ProfileEditModal';
 import AISafetyCoach from './components/common/AISafetyCoach';
 import { useNearMissEngine } from './hooks/useNearMissEngine';
+import { useBeginnerMissions } from './hooks/useBeginnerMissions';
 import SafeCorridorSheet from './components/common/SafeCorridorSheet';
 import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
 import VehicleSelectModal from './components/common/VehicleSelectModal';
@@ -145,6 +146,21 @@ function App() {
 
   // 🧠 Near-Miss Event Engine (전략적 데이터 수집)
   const { captureNearMiss, getLocalNearMisses } = useNearMissEngine();
+
+  // 🏆 초보자 미션 시스템 (게임화 → 재방문 유도). 완료 시 포인트 자동 지급.
+  const { progressMission } = useBeginnerMissions({
+    onReward: (missionId, points) => {
+      toast(`🏆 미션 완료! +${points.toLocaleString()}P 적립`, 'success');
+      if (user?.id) {
+        supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
+          .then(({ data }) => {
+            const currentPoints = data?.points || 0;
+            supabase.from('profiles').upsert({ id: user.id, points: currentPoints + points })
+              .then(() => loadUser());
+          });
+      }
+    }
+  });
   const [isAICoachOpen, setIsAICoachOpen] = React.useState(false);
   const [coachingData, setCoachingData] = React.useState(null);
   // 헬멧 착용 상태 (HelmetDetectionCamera 성공 시 true로 설정)
@@ -592,7 +608,27 @@ function App() {
       }
 
       const summary = await endRideSession(user?.id, { isLegalPark: true });
-      if (summary) setFinalRideSummary(summary);
+      if (summary) {
+        setFinalRideSummary(summary);
+
+        // 🏆 초보자 미션 진행 (합법 주차 완료 시에만)
+        progressMission('first_ride', 1);
+
+        const finalDistKm = parseFloat(summary.distance || 0);
+        if (finalDistKm > 0 && Number(summary.suddenBrakeCount ?? 0) === 0) {
+          progressMission('smooth_5km', finalDistKm);
+        }
+
+        // 일별 스트릭: 오늘 첫 주행일 때만 +1 (같은 날 중복 카운트 방지)
+        const today = new Date().toISOString().slice(0, 10);
+        const lastRideDate = (() => {
+          try { return localStorage.getItem('csafe_last_ride_date'); } catch { return null; }
+        })();
+        if (lastRideDate !== today) {
+          progressMission('weekly_streak_7', 1);
+          try { localStorage.setItem('csafe_last_ride_date', today); } catch { /* no-op */ }
+        }
+      }
     } else {
       // Mock data if not actively riding, allowing UI testing
       setFinalRideSummary({
@@ -1255,6 +1291,9 @@ function App() {
 
             // 🛡️ 헬멧 착용 상태 기록 (Near-Miss 맥락 데이터)
             helmetOnRef.current = true;
+
+            // 🏆 초보자 미션: 헬멧 인증 진행 (단순 누적, 정교한 연속성은 추후 보강)
+            progressMission('helmet_streak_3', 1);
 
             setIsHelmetAIOpen(false); // 모달 닫기
             setNavStep('idle'); // 주행 시작 시 목적지 설정 팝업(navStep) 닫기
