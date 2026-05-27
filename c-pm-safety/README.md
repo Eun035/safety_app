@@ -96,13 +96,18 @@ src/
 |-------------|------|
 | `profiles` | 사용자 프로필: 포인트, 안전점수, 누적거리, 닉네임 |
 | `hazards` | 커뮤니티 신고 위험 구역 (실시간 Realtime 구독) |
-| `rides` | 주행 세션 기록 (시작/종료 시각, 거리, 안전 여부) |
+| `rides` | 주행 세션 기록. ✨ 2026-05-27 컬럼 확장: `top_speed`, `sudden_brake_count`, `duration_minutes`, `ride_rsr`, `helmet_on_pct`, `co2_saved_kg`, `is_legal_park` + 이상치 CHECK 제약 5종 + 인덱스 2종 |
 | `ride_paths` | 세션별 GPS 경로 좌표 배열 |
-| `near_miss_events` | ✨ NEW: 아차사고 이벤트 (GPS + 맥락 데이터) |
+| `near_miss_events` | 아차사고 이벤트 (GPS + 맥락 데이터) |
+| `zone_events` | ✨ NEW (2026-05-27): 위험구역 진출입 이벤트 + 사전계산 `rsr_value`. RSR(Risk Suppression Rate)의 서버 SoT |
+| MATERIALIZED VIEW `rides_daily` | ✨ NEW (2026-05-27): 일별 사전 집계 (ride_count/distance/avg_top_speed/avg_rsr/avg_helmet_pct 등). AdminDashboard 30일 KPI 쿼리 가속 |
 | RPC `get_nearby_hazards` | PostGIS 공간 쿼리 (반경 위험 구역 탐색) |
 | RPC `update_safety_scores` | 격자 단위 안전 점수 집계 |
 | RPC `increment_user_stats` | 원자적 포인트 + 거리 누적 |
-| RPC `get_near_miss_clusters` | ✨ NEW: 위험 클러스터 분석 (Admin용) |
+| RPC `get_near_miss_clusters` | 위험 클러스터 분석 (Admin 지도 히트맵용) |
+| RPC `get_rsr_by_zone` | ✨ NEW (2026-05-27): zone_id별 평균 RSR 집계 (도시 단위 정책 효과) |
+| RPC `get_hazard_policy_effect` | ✨ NEW (2026-05-27): hazard 지정 ±30일 near_miss 카운트 + 감소율(%) — B2G 정책 입증 |
+| RPC `refresh_rides_daily` | ✨ NEW (2026-05-27): rides_daily 머티뷰 갱신 (pg_cron 03:00 UTC 자동 + AdminDashboard 로드 시 수동) |
 
 ---
 
@@ -235,6 +240,75 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 ---
 
 ## 📜 개발 이력 (Changelog)
+
+### [2026-05-27] Epic 10: 데이터 파이프라인 강화 (P0~P2-A)
+
+운영 데이터의 single source of truth를 서버로 이전하고, 분석 가속·라이더 인사이트 위젯·B2G 정책 시각화까지 한 사이클 완성.
+
+#### 🟥 P0-1 · `rides` 핵심 메트릭 컬럼 영속화
+주행 종료 시점 메트릭(top_speed, sudden_brake_count, ride_rsr 등)이 localStorage `csafe_ride_history`에만 저장돼 다른 디바이스에서 같은 계정 로그인 시 통계 회귀가 발생하던 문제 해결.
+- 마이그레이션: [`supabase_p0_1_rides_extension.sql`](supabase/migrations/supabase_p0_1_rides_extension.sql)
+  - 7개 컬럼 추가 + 이상치 CHECK 제약 5종 + 인덱스 2종
+- `useRideSession.endRideSession`: insert payload에 신규 컬럼 전체 포함, `helmetOn` 인자 추가
+
+#### 🟥 P0-2 · `zone_events` 테이블 신설 (RSR 서버 SoT)
+RSR(B2G 핵심 KPI)이 클라이언트 localStorage에만 살아 ① 사용자가 캐시 비우면 KPI 0 ② AdminDashboard의 RSR이 관리자 본인 브라우저만 보는 문제 해결.
+- 마이그레이션: [`supabase_p0_2_zone_events.sql`](supabase/migrations/supabase_p0_2_zone_events.sql)
+  - `zone_events` 테이블 + 사전계산 `rsr_value` + RLS 2개 + RPC `get_rsr_by_zone`
+- `endRideSession`에 zone_events batch insert 통합 (rsr_value 계산 후 저장)
+- AdminDashboard RSR 산출: Supabase `zone_events` 우선 + localStorage 폴백
+
+#### 🟥 P0-3 · 오프라인 sync 큐 (`csafe_pending_sync`)
+일시적 네트워크/권한 오류로 Supabase insert가 실패하면 row가 영구 손실되던 문제 해결.
+- 신규 유틸: [`src/lib/pendingSyncQueue.js`](src/lib/pendingSyncQueue.js)
+  - 테이블별 큐(최대 200건 FIFO) + `enqueue()` / `flush(userId)` / `peek()` / `clear()`
+- `endRideSession`: ride_id를 `crypto.randomUUID()`로 사전 생성하여 rides 실패 시에도 ride_paths/zone_events가 같은 id로 큐 적재
+- `useNearMissEngine.captureNearMiss`: insert 실패 시 큐 + localStorage 이중 폴백
+- `App.jsx`: 정상 사용자 마운트/로그인 변경/`online` 이벤트 시 자동 `flush()` 호출
+
+#### 🟧 P1-1 · `rides_daily` 머티리얼라이즈드 뷰 (쿼리 100배+ 가속)
+AdminDashboard의 AGE/NMRE 산출이 rides 전체를 매 호출마다 풀스캔하던 문제 해결.
+- 마이그레이션: [`supabase_p1_1_rides_daily.sql`](supabase/migrations/supabase_p1_1_rides_daily.sql)
+  - 일별 사전 집계 뷰 + UNIQUE INDEX(CONCURRENTLY refresh용) + RPC `refresh_rides_daily`
+  - pg_cron 자동 갱신(매일 03:00 UTC) — 확장 미설치 시 조용히 스킵
+- AdminDashboard: 진입 시 RPC 백그라운드 호출 + 60일 윈도우 단일 fetch, AGE/NMRE의 exposure/ride_count 산출을 dailyAggregates 기반으로 전환 (raw rides 풀스캔 폴백 유지)
+
+#### 🟧 P1-2 · ShadowImpactSheet 라이더 인사이트 위젯 신설
+기존 5건 합산 통계 카드 위주로 "자기 변화 인지(재방문 동력)"가 약하던 점을 보완.
+- **RSR 14일 추이 라인차트**: 일별 평균 RSR + 전일 대비 델타(▲/▼) + 50% 기준선
+- **시간대 위험 패턴 히트맵**: 요일 × 시간 7×24 SVG, 강도는 max 대비 비율(rgba 0.2~0.9)
+- `nearMisses` 변수를 `allNearMisses`(히트맵용, 전체) + `nearMisses`(리스트용, 10건)로 분리
+
+#### 🟧 P1-3 · Mock 잔재 제거
+- `PersonalInsights`의 피크시간 하드코딩("08:00 - 09:00 AM") → `rides.start_time` GROUP BY 최빈 시간대
+- `useRideSession`의 `csafe_hazard_reports`(기본값 mock '3') → 본인 `near_miss_events` 카운트 (Supabase + localStorage 폴백)
+- ESGDashboard의 "당신의 주행 데이터가 N개의 위험 포트홀을 발견했습니다" 메시지가 실제 데이터와 정합
+
+#### 🟦 P2-A · B2G 정책 시각화 (지자체 설득력)
+- 마이그레이션: [`supabase_p2_a_hazard_policy_effect.sql`](supabase/migrations/supabase_p2_a_hazard_policy_effect.sql)
+  - RPC `get_hazard_policy_effect(radius_meters, window_days, max_hazards)` — lat/lng 박싱(PostGIS 무의존)으로 hazard별 ±N일 near_miss 카운트 + 감소율(%) 산출
+- AdminDashboard Policy Controls 아래 2단 그리드 신규 위젯:
+  - **Near-Miss Cluster Map · 30일**: `react-kakao-maps-sdk`의 Map + Circle. event_count 비례 반경(50 + 15×count m) / 투명도(0.2 + 0.5×intensity)
+  - **Hazard 정책 효과 · ±30일**: 최근 hazard 5개의 지정 전/후 30일 카운트를 카드 리스트로 비교 (감소 ▼ emerald / 증가 ▲ red)
+
+#### 🛠 같은 날 부속 작업 (UX/안정성)
+- 진입 흐름 재구성: **Splash → Language → Disclaimer → Quiz → Map** (이전엔 Language 풀스크린 → Splash+Disclaimer/Quiz 오버레이 혼재)
+- 안전 퀴즈 게이트 정책 영속화 (`csafe_quiz_meta`):
+  1. 직전 시도 정답 < 3개 → 재노출
+  2. 마지막 완료 후 15일 경과 → 재노출
+  3. 누적 시도 < 10회 + 안전점수↓ 또는 운전이력↓ → 확률 노출
+- 초보자 미션 진행 트리거 통합 (`first_ride` / `helmet_streak_3` / `smooth_5km` / `weekly_streak_7`) — 훅/UI/탭 통합은 이미 있었으나 `progressMission` 호출이 누락된 상태였음
+- PWA SW 강제 갱신 + `controllerchange` 자동 reload (`main.jsx`)
+- terser `keep_classnames`/`keep_fnames` 활성화로 `html5-qrcode` 내부 클래스 TDZ 충돌 해소
+
+#### 🔴 운영 체크리스트 — Supabase Dashboard SQL Editor에서 4개 마이그레이션 실행 필요
+다음 4개 SQL 파일을 순서대로 실행해야 신규 컬럼·테이블·RPC가 적용됩니다(모두 idempotent).
+1. `supabase/migrations/supabase_p0_1_rides_extension.sql`
+2. `supabase/migrations/supabase_p0_2_zone_events.sql`
+3. `supabase/migrations/supabase_p1_1_rides_daily.sql`
+4. `supabase/migrations/supabase_p2_a_hazard_policy_effect.sql`
+
+---
 
 ### [2026-05-25] 내비게이션 UX 완성
 
