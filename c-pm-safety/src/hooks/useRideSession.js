@@ -248,79 +248,92 @@ export const useRideSession = create((set, get) => ({
         if (userId && !isGuest) {
             try {
                 const isSafe = state.suddenBrakeCount === 0;
-
-                // 헬멧 착용 비율: 현재는 인증 모달 통과 시 단일 신호만 → 0 또는 100
-                // (추후 주행 중 주기 샘플링으로 보강 가능)
                 const helmetOnPct = helmetOn ? 100 : 0;
 
-                // P0-1: rides 테이블 핵심 메트릭 전체 영속화
-                // (top_speed/sudden_brake_count/duration_minutes/ride_rsr/helmet_on_pct/
-                //  co2_saved_kg/is_legal_park 컬럼은 supabase_p0_1_rides_extension.sql 로 추가됨)
-                const { data: rideData, error: rideError } = await supabase
-                    .from('rides')
-                    .insert([{
-                        user_id: userId,
-                        start_time: new Date(state.startTime).toISOString(),
-                        end_time: new Date().toISOString(),
-                        distance: finalDistance,
-                        is_safe_ride: isSafe,
-                        top_speed: Number(state.topSpeed.toFixed(1)),
-                        sudden_brake_count: state.suddenBrakeCount,
-                        duration_minutes: durationMinutes,
-                        ride_rsr: rideRsr !== null ? Math.round(rideRsr * 100) / 100 : null,
-                        helmet_on_pct: helmetOnPct,
-                        co2_saved_kg: Number((state.totalDistance * 0.2).toFixed(2)),
-                        is_legal_park: isLegalPark
-                    }])
-                    .select()
-                    .single();
-                
-                if (rideError) {
-                    console.error('[C-Safe] Ride Log 저장 실패:', rideError);
-                } else if (rideData) {
-                    // 1-1. 상세 경로 저장 (ride_paths) - path가 있을 때만
-                    if (state.currentPath.length > 0) {
-                        await supabase.from('ride_paths').insert([{
-                            ride_id: rideData.id,
-                            path_data: state.currentPath
-                        }]);
+                // P0-3: ride_id를 클라이언트에서 미리 생성하여 rides insert가 실패해도
+                // ride_paths/zone_events가 같은 id 참조로 큐에 적재될 수 있게 함.
+                const rideId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                    ? crypto.randomUUID()
+                    : `ride-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-                        // 1-2. 안전 그리드 스코어 업데이트 (RPC 호출)
+                const ridePayload = {
+                    id: rideId,
+                    user_id: userId,
+                    start_time: new Date(state.startTime).toISOString(),
+                    end_time: new Date().toISOString(),
+                    distance: finalDistance,
+                    is_safe_ride: isSafe,
+                    top_speed: Number(state.topSpeed.toFixed(1)),
+                    sudden_brake_count: state.suddenBrakeCount,
+                    duration_minutes: durationMinutes,
+                    ride_rsr: rideRsr !== null ? Math.round(rideRsr * 100) / 100 : null,
+                    helmet_on_pct: helmetOnPct,
+                    co2_saved_kg: Number((state.totalDistance * 0.2).toFixed(2)),
+                    is_legal_park: isLegalPark
+                };
+
+                // P0-3: 모든 insert는 try-catch + enqueue 패턴
+                const { enqueue } = await import('../lib/pendingSyncQueue');
+
+                // 1. rides
+                try {
+                    const { error } = await supabase.from('rides').insert([ridePayload]);
+                    if (error) throw error;
+                } catch (err) {
+                    console.warn('[C-Safe] rides insert 실패, sync 큐에 적재:', err?.message || err);
+                    enqueue('rides', ridePayload);
+                }
+
+                // 2. ride_paths (path가 있을 때만)
+                if (state.currentPath.length > 0) {
+                    const pathPayload = { ride_id: rideId, path_data: state.currentPath };
+                    try {
+                        const { error } = await supabase.from('ride_paths').insert([pathPayload]);
+                        if (error) throw error;
+                    } catch (err) {
+                        console.warn('[C-Safe] ride_paths insert 실패, sync 큐에 적재:', err?.message || err);
+                        enqueue('ride_paths', pathPayload);
+                    }
+
+                    // 안전 그리드 스코어 업데이트 (RPC) - 실패해도 큐 대상 아님 (별도 분석 파이프)
+                    try {
                         const { aggregatePathToGrids } = await import('../utils/safetyScoring');
                         const gridUpdates = aggregatePathToGrids(state.currentPath, isSafe);
-
                         if (gridUpdates.length > 0) {
                             await supabase.rpc('update_safety_scores', { grids: gridUpdates });
                         }
+                    } catch (err) {
+                        console.warn('[C-Safe] update_safety_scores RPC 실패:', err?.message || err);
                     }
+                }
 
-                    // 1-3. P0-2: zone_events Supabase 영속화 (RSR 정책 KPI의 SoT)
-                    if (finalZoneEvents.length > 0) {
-                        const zonePayload = finalZoneEvents.map((ev) => {
-                            const denom = ev.vEntry - ev.vTarget;
-                            const rsr = denom <= 0
-                                ? 100
-                                : Math.max(0, Math.min(100, (1 - (ev.vActualAvg - ev.vTarget) / denom) * 100));
-                            return {
-                                ride_id: rideData.id,
-                                user_id: userId,
-                                zone_id: ev.zoneId,
-                                v_entry: ev.vEntry,
-                                v_target: ev.vTarget,
-                                v_actual_avg: ev.vActualAvg,
-                                v_sum: ev.vSum,
-                                v_count: ev.vCount,
-                                started_at: new Date(ev.startedAt).toISOString(),
-                                ended_at: ev.endedAt ? new Date(ev.endedAt).toISOString() : null,
-                                rsr_value: Math.round(rsr * 100) / 100
-                            };
-                        });
-                        const { error: zoneError } = await supabase
-                            .from('zone_events')
-                            .insert(zonePayload);
-                        if (zoneError) {
-                            console.warn('[C-Safe] zone_events Supabase 저장 실패 (localStorage는 유지):', zoneError);
-                        }
+                // 3. zone_events (RSR SoT)
+                if (finalZoneEvents.length > 0) {
+                    const zonePayload = finalZoneEvents.map((ev) => {
+                        const denom = ev.vEntry - ev.vTarget;
+                        const rsr = denom <= 0
+                            ? 100
+                            : Math.max(0, Math.min(100, (1 - (ev.vActualAvg - ev.vTarget) / denom) * 100));
+                        return {
+                            ride_id: rideId,
+                            user_id: userId,
+                            zone_id: ev.zoneId,
+                            v_entry: ev.vEntry,
+                            v_target: ev.vTarget,
+                            v_actual_avg: ev.vActualAvg,
+                            v_sum: ev.vSum,
+                            v_count: ev.vCount,
+                            started_at: new Date(ev.startedAt).toISOString(),
+                            ended_at: ev.endedAt ? new Date(ev.endedAt).toISOString() : null,
+                            rsr_value: Math.round(rsr * 100) / 100
+                        };
+                    });
+                    try {
+                        const { error } = await supabase.from('zone_events').insert(zonePayload);
+                        if (error) throw error;
+                    } catch (err) {
+                        console.warn('[C-Safe] zone_events insert 실패, sync 큐에 적재:', err?.message || err);
+                        enqueue('zone_events', zonePayload);
                     }
                 }
 

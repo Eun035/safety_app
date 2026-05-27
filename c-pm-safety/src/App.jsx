@@ -334,6 +334,32 @@ function App() {
     return () => clearTimeout(timer);
   }, [showSplash]);
 
+  // P0-3: 오프라인 sync 큐 flush
+  // 정상 사용자가 온라인 상태일 때 미전송 row(rides/ride_paths/zone_events/
+  // near_miss_events)를 일괄 전송. user.id 변경 시 + 마운트 시 + online 이벤트 시.
+  useEffect(() => {
+    if (!user?.id || user?.is_guest || String(user.id).startsWith('guest_')) return;
+    let cancelled = false;
+    const doFlush = async () => {
+      try {
+        const { flush } = await import('./lib/pendingSyncQueue');
+        const result = await flush(user.id);
+        if (!cancelled && result.flushed > 0) {
+          console.log(`[C-Safe][sync] flushed ${result.flushed} rows, remaining ${result.remaining}`);
+        }
+      } catch (err) {
+        console.warn('[C-Safe][sync] flush 실패:', err);
+      }
+    };
+    doFlush();
+    const onOnline = () => doFlush();
+    window.addEventListener('online', onOnline);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('online', onOnline);
+    };
+  }, [user?.id, user?.is_guest]);
+
   // Supabase Auth Init (익명 로그인 처리, 온보딩과 무관하게 최초 1회)
   useEffect(() => {
     const initAuth = async () => {

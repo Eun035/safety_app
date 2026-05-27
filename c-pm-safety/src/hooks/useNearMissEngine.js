@@ -1,5 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { enqueue as enqueuePendingSync } from '../lib/pendingSyncQueue';
 
 /**
  * useNearMissEngine
@@ -83,17 +84,20 @@ export const useNearMissEngine = () => {
                     .insert([eventPayload]);
 
                 if (error) {
-                    console.warn('[NearMiss] Supabase 저장 실패 → 로컬 폴백:', error.message);
+                    console.warn('[NearMiss] Supabase 저장 실패 → sync 큐 + 로컬 폴백:', error.message);
+                    // P0-3: 정상 사용자 insert 실패는 sync 큐에 적재해 다음 온라인 시 flush
+                    enqueuePendingSync('near_miss_events', eventPayload);
                     _saveToLocalStorage(eventPayload);
                 } else {
                     console.log('[NearMiss] Supabase 저장 성공');
                 }
             } catch (err) {
                 console.error('[NearMiss] 저장 중 예외 발생:', err);
+                enqueuePendingSync('near_miss_events', eventPayload);
                 _saveToLocalStorage(eventPayload);
             }
         } else {
-            // 게스트 모드: 로컬 저장만
+            // 게스트 모드: 로컬 저장만 (큐는 user_id가 게스트면 어차피 flush 스킵)
             _saveToLocalStorage(eventPayload);
         }
     }, []);
