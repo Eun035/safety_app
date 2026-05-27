@@ -102,6 +102,22 @@ const AdminDashboard = ({ onClose }) => {
     const fetchAdminData = async () => {
       setIsLoading(true);
       try {
+        // P1-1: rides_daily 머티리얼라이즈드 뷰 갱신 + 60일 윈도우 일별 집계 단일 fetch
+        // (AGE/NMRE 산출에서 rides 풀스캔을 대체하여 성능 100배+ 가속)
+        // RPC 실패해도 무시 (pg_cron 또는 별도 운영 갱신 보장)
+        supabase.rpc('refresh_rides_daily').catch(() => null);
+        let dailyAggregates = [];
+        try {
+          const sixtyDaysAgo = new Date(Date.now() - 60 * 86400000).toISOString().slice(0, 10);
+          const { data: daily, error: dailyErr } = await supabase
+            .from('rides_daily')
+            .select('day, ride_count, total_distance_km')
+            .gte('day', sixtyDaysAgo);
+          if (!dailyErr) dailyAggregates = daily || [];
+        } catch (err) {
+          console.warn('[C-Safe] rides_daily fetch 실패, raw rides 풀스캔 폴백:', err?.message || err);
+        }
+
         const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
         const { count: rideCount } = await supabase.from('rides').select('*', { count: 'exact', head: true });
         const { data: hazardsData } = await supabase.from('hazards').select('*');
@@ -203,24 +219,31 @@ const AdminDashboard = ({ onClose }) => {
             return t >= from && t < to;
           };
 
-          // exposure = 주행 거리 합 (rides 우선, 부족 시 localStorage)
-          const { data: ridesForAge } = await supabase
-            .from('rides')
-            .select('start_time, distance');
-
-          let allRides = ridesForAge || [];
-          if (allRides.length === 0) {
-            const localRidesAge = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')
-              .map(r => ({ start_time: r.date ? new Date(r.date).toISOString() : new Date().toISOString(), distance: r.distance || 0 }));
-            allRides = localRidesAge;
+          // exposure = 주행 거리 합 (rides_daily 우선, 부족 시 raw rides + localStorage 폴백)
+          let expCurrent = 0, expBaseline = 0;
+          if (dailyAggregates.length > 0) {
+            dailyAggregates.forEach(d => {
+              const t = new Date(d.day).getTime();
+              if (t >= t30 && t < now) expCurrent += Number(d.total_distance_km || 0);
+              else if (t >= t60 && t < t30) expBaseline += Number(d.total_distance_km || 0);
+            });
+          } else {
+            const { data: ridesForAge } = await supabase
+              .from('rides')
+              .select('start_time, distance');
+            let allRides = ridesForAge || [];
+            if (allRides.length === 0) {
+              const localRidesAge = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')
+                .map(r => ({ start_time: r.date ? new Date(r.date).toISOString() : new Date().toISOString(), distance: r.distance || 0 }));
+              allRides = localRidesAge;
+            }
+            expCurrent = allRides
+              .filter(r => inWindow(r.start_time, t30, now))
+              .reduce((acc, r) => acc + (r.distance || 0), 0);
+            expBaseline = allRides
+              .filter(r => inWindow(r.start_time, t60, t30))
+              .reduce((acc, r) => acc + (r.distance || 0), 0);
           }
-
-          const expCurrent = allRides
-            .filter(r => inWindow(r.start_time, t30, now))
-            .reduce((acc, r) => acc + (r.distance || 0), 0);
-          const expBaseline = allRides
-            .filter(r => inWindow(r.start_time, t60, t30))
-            .reduce((acc, r) => acc + (r.distance || 0), 0);
 
           // accidents = near_miss_events + hazards (occurred_at / created_at)
           const { data: nmForAge } = await supabase
@@ -264,15 +287,6 @@ const AdminDashboard = ({ onClose }) => {
             ...localNm.map(e => e.occurred_at)
           ].filter(Boolean);
 
-          const { data: ridesForNmre } = await supabase
-            .from('rides')
-            .select('start_time');
-          let allRideTs = (ridesForNmre || []).map(r => r.start_time);
-          if (allRideTs.length === 0) {
-            allRideTs = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')
-              .map(r => r.date ? new Date(r.date).toISOString() : new Date().toISOString());
-          }
-
           const inWin = (iso, from, to) => {
             const t = new Date(iso).getTime();
             return t >= from && t < to;
@@ -280,8 +294,30 @@ const AdminDashboard = ({ onClose }) => {
 
           const nmCurrent = allNm.filter(ts => inWin(ts, t30, now)).length;
           const nmBaseline = allNm.filter(ts => inWin(ts, t60, t30)).length;
-          const rideCurrent = Math.max(1, allRideTs.filter(ts => inWin(ts, t30, now)).length);
-          const rideBaseline = Math.max(1, allRideTs.filter(ts => inWin(ts, t60, t30)).length);
+
+          // ride 카운트: rides_daily 우선, 부족 시 raw rides + localStorage 폴백
+          let rideCurrent = 1, rideBaseline = 1;
+          if (dailyAggregates.length > 0) {
+            let curr = 0, base = 0;
+            dailyAggregates.forEach(d => {
+              const t = new Date(d.day).getTime();
+              if (t >= t30 && t < now) curr += Number(d.ride_count || 0);
+              else if (t >= t60 && t < t30) base += Number(d.ride_count || 0);
+            });
+            rideCurrent = Math.max(1, curr);
+            rideBaseline = Math.max(1, base);
+          } else {
+            const { data: ridesForNmre } = await supabase
+              .from('rides')
+              .select('start_time');
+            let allRideTs = (ridesForNmre || []).map(r => r.start_time);
+            if (allRideTs.length === 0) {
+              allRideTs = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')
+                .map(r => r.date ? new Date(r.date).toISOString() : new Date().toISOString());
+            }
+            rideCurrent = Math.max(1, allRideTs.filter(ts => inWin(ts, t30, now)).length);
+            rideBaseline = Math.max(1, allRideTs.filter(ts => inWin(ts, t60, t30)).length);
+          }
 
           const rateCurrent = nmCurrent / rideCurrent;
           const rateBaseline = nmBaseline / rideBaseline;
