@@ -277,19 +277,50 @@ export const useRideSession = create((set, get) => ({
                 
                 if (rideError) {
                     console.error('[C-Safe] Ride Log 저장 실패:', rideError);
-                } else if (rideData && state.currentPath.length > 0) {
-                    // 1-1. 상세 경로 저장 (ride_paths)
-                    await supabase.from('ride_paths').insert([{
-                        ride_id: rideData.id,
-                        path_data: state.currentPath
-                    }]);
+                } else if (rideData) {
+                    // 1-1. 상세 경로 저장 (ride_paths) - path가 있을 때만
+                    if (state.currentPath.length > 0) {
+                        await supabase.from('ride_paths').insert([{
+                            ride_id: rideData.id,
+                            path_data: state.currentPath
+                        }]);
 
-                    // 1-2. 안전 그리드 스코어 업데이트 (RPC 호출)
-                    const { aggregatePathToGrids } = await import('../utils/safetyScoring');
-                    const gridUpdates = aggregatePathToGrids(state.currentPath, isSafe);
-                    
-                    if (gridUpdates.length > 0) {
-                        await supabase.rpc('update_safety_scores', { grids: gridUpdates });
+                        // 1-2. 안전 그리드 스코어 업데이트 (RPC 호출)
+                        const { aggregatePathToGrids } = await import('../utils/safetyScoring');
+                        const gridUpdates = aggregatePathToGrids(state.currentPath, isSafe);
+
+                        if (gridUpdates.length > 0) {
+                            await supabase.rpc('update_safety_scores', { grids: gridUpdates });
+                        }
+                    }
+
+                    // 1-3. P0-2: zone_events Supabase 영속화 (RSR 정책 KPI의 SoT)
+                    if (finalZoneEvents.length > 0) {
+                        const zonePayload = finalZoneEvents.map((ev) => {
+                            const denom = ev.vEntry - ev.vTarget;
+                            const rsr = denom <= 0
+                                ? 100
+                                : Math.max(0, Math.min(100, (1 - (ev.vActualAvg - ev.vTarget) / denom) * 100));
+                            return {
+                                ride_id: rideData.id,
+                                user_id: userId,
+                                zone_id: ev.zoneId,
+                                v_entry: ev.vEntry,
+                                v_target: ev.vTarget,
+                                v_actual_avg: ev.vActualAvg,
+                                v_sum: ev.vSum,
+                                v_count: ev.vCount,
+                                started_at: new Date(ev.startedAt).toISOString(),
+                                ended_at: ev.endedAt ? new Date(ev.endedAt).toISOString() : null,
+                                rsr_value: Math.round(rsr * 100) / 100
+                            };
+                        });
+                        const { error: zoneError } = await supabase
+                            .from('zone_events')
+                            .insert(zonePayload);
+                        if (zoneError) {
+                            console.warn('[C-Safe] zone_events Supabase 저장 실패 (localStorage는 유지):', zoneError);
+                        }
                     }
                 }
 

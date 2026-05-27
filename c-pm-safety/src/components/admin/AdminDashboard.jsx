@@ -149,16 +149,39 @@ const AdminDashboard = ({ onClose }) => {
 
         // [RSR] 위험 구역 진입 시 V_entry 대비 V_target 수렴도
         //   RSR = (1 − (V_actual − V_target) / (V_entry − V_target)) × 100
+        // P0-2: Supabase zone_events(서버 사전 계산 rsr_value) 우선 사용,
+        //       권한/네트워크 오류 시 localStorage('csafe_zone_events') 폴백.
         let riskSuppressionRate = 0;
         try {
-          const zoneEvents = JSON.parse(localStorage.getItem('csafe_zone_events') || '[]');
-          const rsrSamples = zoneEvents
-            .map(ev => {
+          let rsrSamples = [];
+
+          // 1차: Supabase zone_events (최근 30일, 사전 계산된 rsr_value)
+          const since = new Date(Date.now() - 30 * 86400000).toISOString();
+          const { data: serverZoneEvents, error: zoneErr } = await supabase
+            .from('zone_events')
+            .select('rsr_value, v_entry, v_target, v_actual_avg')
+            .gte('started_at', since);
+
+          if (!zoneErr && Array.isArray(serverZoneEvents) && serverZoneEvents.length > 0) {
+            rsrSamples = serverZoneEvents.map(ev => {
+              if (ev.rsr_value != null) return Number(ev.rsr_value);
+              // rsr_value 누락 row 방어: 즉시 산출
+              const denom = (ev.v_entry || 0) - (ev.v_target || 10);
+              if (denom <= 0) return 100;
+              const numer = ((ev.v_actual_avg ?? ev.v_entry) - (ev.v_target || 10));
+              return Math.max(0, Math.min(100, (1 - numer / denom) * 100));
+            });
+          } else {
+            // 2차: localStorage 폴백 (구버전 데이터 / 게스트 / 오프라인 케이스)
+            const localZoneEvents = JSON.parse(localStorage.getItem('csafe_zone_events') || '[]');
+            rsrSamples = localZoneEvents.map(ev => {
               const denom = (ev.vEntry || 0) - (ev.vTarget || 10);
-              if (denom <= 0) return 100; // 이미 target 이하 진입 → 완벽 통제
+              if (denom <= 0) return 100;
               const numer = (ev.vActualAvg ?? ev.vEntry) - (ev.vTarget || 10);
               return Math.max(0, Math.min(100, (1 - numer / denom) * 100));
             });
+          }
+
           if (rsrSamples.length > 0) {
             riskSuppressionRate = Math.round(rsrSamples.reduce((a, b) => a + b, 0) / rsrSamples.length);
           }
