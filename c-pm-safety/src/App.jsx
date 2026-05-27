@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Shield, Cloud, AlertTriangle, Moon, Activity,
@@ -95,14 +95,53 @@ function App() {
   const [showPMs, setShowPMs] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
-  // Phase 15 & 19: Onboarding — localStorage 영속화 (앱 재방문 시 게이트 건너뜀)
+  // Phase 15 & 19: Onboarding — Disclaimer는 매 세션 노출, Quiz는 정책 기반 영속화
   const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
-  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useLocalStorage('csafe_agreed_disclaimer', false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useLocalStorage('csafe_completed_onboarding', false);
+  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useState(false);
+
+  // 퀴즈 메타데이터: 누적 시도 횟수 / 마지막 정답 개수 / 마지막 완료 시각
+  const [quizMeta, setQuizMeta] = useLocalStorage('csafe_quiz_meta', {
+    totalAttempts: 0,
+    lastCorrectCount: 0,
+    lastCompletedAt: null
+  });
+  const [quizCompletedThisSession, setQuizCompletedThisSession] = useState(false);
+  // 퀴즈 게이트 노출 결정: null=미평가, true=노출, false=건너뜀 (Disclaimer 동의 후 1회 평가)
+  const [quizGateDecision, setQuizGateDecision] = useState(null);
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
   const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, enterZone, exitZone, sampleZoneSpeed } = useRideSession();
+
+  // Phase 19: 안전 퀴즈 게이트 노출 정책 평가 (Disclaimer 동의 후 1회만)
+  // 조건 1: 직전 시도에서 3개 다 맞히지 못함  → 재노출
+  // 조건 2: 마지막 완료로부터 15일 이상 경과  → 재노출
+  // 조건 3: 누적 시도 10회 미만이면, 안전점수 낮음 / 운전이력 부족할수록 확률↑
+  useEffect(() => {
+    if (!hasAgreedDisclaimer) return;
+    if (quizGateDecision !== null) return;
+
+    const decide = () => {
+      if (!quizMeta.lastCompletedAt) return true;
+      if ((quizMeta.lastCorrectCount ?? 0) < 3) return true;
+      const daysSince = (Date.now() - new Date(quizMeta.lastCompletedAt).getTime()) / 86400000;
+      if (daysSince >= 15) return true;
+      if ((quizMeta.totalAttempts ?? 0) < 10) {
+        const safetyScore = profile?.safety_score ?? 100;
+        const rideCount = rideHistory?.length ?? 0;
+        // safety_score 100 → 0, 40 이하 → 1.0
+        const safetyFactor = Math.max(0, Math.min(1, (100 - safetyScore) / 60));
+        // 주행 0회 → 1.0, 10회+ → 0
+        const rideFactor = Math.max(0, Math.min(1, (10 - rideCount) / 10));
+        const probability = Math.max(safetyFactor, rideFactor);
+        if (Math.random() < probability) return true;
+      }
+      return false;
+    };
+
+    setQuizGateDecision(decide());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasAgreedDisclaimer, profile, rideHistory]);
 
   // 🧠 Near-Miss Event Engine (전략적 데이터 수집)
   const { captureNearMiss, getLocalNearMisses } = useNearMissEngine();
@@ -605,10 +644,15 @@ function App() {
         }} />
       )}
 
-      {/* 4️⃣ Safety Quiz (면책 동의 후) */}
-      {!showSplash && hasSelectedLanguage && hasAgreedDisclaimer && !hasCompletedOnboarding && (
-        <SafetyQuiz onComplete={() => {
-          setHasCompletedOnboarding(true);
+      {/* 4️⃣ Safety Quiz (면책 동의 후, 정책상 노출 결정 시) */}
+      {!showSplash && hasSelectedLanguage && hasAgreedDisclaimer && quizGateDecision === true && !quizCompletedThisSession && (
+        <SafetyQuiz onComplete={(correctCount) => {
+          setQuizMeta({
+            totalAttempts: (quizMeta.totalAttempts ?? 0) + 1,
+            lastCorrectCount: correctCount ?? 0,
+            lastCompletedAt: new Date().toISOString()
+          });
+          setQuizCompletedThisSession(true);
           if (user?.id) {
             supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
               .then(({ data }) => {
@@ -620,9 +664,9 @@ function App() {
         }} />
       )}
 
-      {/* 5️⃣ Global Cyberpunk Chill Background (퀴즈 통과 후 노출, 그 전엔 백그라운드 마운트) */}
+      {/* 5️⃣ Global Cyberpunk Chill Background (퀴즈 게이트 통과 후 노출, 그 전엔 백그라운드 마운트) */}
       <div
-        className={`h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-all duration-1000 ${(!showSplash && hasSelectedLanguage && hasAgreedDisclaimer && hasCompletedOnboarding) ? 'opacity-100' : 'opacity-0'}`}
+        className={`h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-all duration-1000 ${(!showSplash && hasSelectedLanguage && hasAgreedDisclaimer && (quizGateDecision === false || quizCompletedThisSession)) ? 'opacity-100' : 'opacity-0'}`}
         style={{ boxShadow: `inset 0 0 40px ${gridBorderColor}40`, border: `2px solid ${gridBorderColor}80` }}
       >
 

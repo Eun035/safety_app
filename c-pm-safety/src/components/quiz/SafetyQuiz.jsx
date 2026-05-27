@@ -33,6 +33,7 @@ const SafetyQuiz = ({ onComplete }) => {
     const [isDone, setIsDone] = useState(false);
     const [hasSpokenInit, setHasSpokenInit] = useState(false);
     const [isQuizStarted, setIsQuizStarted] = useState(false);
+    const [correctCount, setCorrectCount] = useState(0);
 
     useEffect(() => {
         if (isQuizStarted && shuffledQuiz.length > 0 && voicesLoaded && !hasSpokenInit) {
@@ -58,6 +59,7 @@ const SafetyQuiz = ({ onComplete }) => {
 
         const isCorrect = choice === shuffledQuiz[currentIdx].answer;
         if (isCorrect) {
+            setCorrectCount(prev => prev + 1);
             speak(`${t("CORRECT")}!`);
         } else {
             speak(`${t("INCORRECT")}.`);
@@ -81,7 +83,7 @@ const SafetyQuiz = ({ onComplete }) => {
                         {t("onboarding_desc")}
                     </p>
                     <button
-                        onClick={onComplete}
+                        onClick={() => onComplete(correctCount)}
                         className="w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95"
                     >
                         {t("Access Map")}
