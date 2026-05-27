@@ -29,9 +29,19 @@ const PersonalInsights = ({ isOpen, onClose, history = [] }) => {
             .slice(0, 3)
             .map(([name, count]) => ({ name, count }));
 
-        // 3. Peak Time (Assuming history has timestamp or just mock based on total rides)
-        // For demo, we'll return a common slot
-        const peakTime = "08:00 - 09:00 AM";
+        // 3. Peak Time — start_time(또는 date)의 시간을 GROUP BY해 최빈 시간대 산출 (P1-3)
+        const hourCounts = Array(24).fill(0);
+        history.forEach(r => {
+            const ts = new Date(r.start_time || r.date || 0).getTime();
+            if (!ts || Number.isNaN(ts)) return;
+            hourCounts[new Date(ts).getHours()] += 1;
+        });
+        let peakHour = -1, peakCount = 0;
+        hourCounts.forEach((c, h) => { if (c > peakCount) { peakCount = c; peakHour = h; } });
+        const fmt = (h) => `${String(h).padStart(2, '0')}:00`;
+        const peakTime = peakHour >= 0
+            ? `${fmt(peakHour)} - ${fmt((peakHour + 1) % 24)}`
+            : 'N/A';
 
         return {
             weeklyDist: weeklyDist.toFixed(1),

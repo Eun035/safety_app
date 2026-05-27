@@ -81,7 +81,24 @@ export const useRideSession = create((set, get) => ({
             }
         }
 
-        const totalHazardReports = parseInt(localStorage.getItem('csafe_hazard_reports') || '3');
+        // P1-3: mock(localStorage csafe_hazard_reports 기본값 '3') 제거.
+        // 사용자가 captureNearMiss로 발견한 위험점 = near_miss_events 개수로 실데이터화.
+        let totalHazardReports = 0;
+        if (userId && !String(userId).startsWith('guest_')) {
+            try {
+                const { count } = await supabase
+                    .from('near_miss_events')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('user_id', userId);
+                if (typeof count === 'number') totalHazardReports = count;
+            } catch { /* fall through to localStorage */ }
+        }
+        if (totalHazardReports === 0) {
+            try {
+                const localNm = JSON.parse(localStorage.getItem('csafe_near_miss_events') || '[]');
+                totalHazardReports = Array.isArray(localNm) ? localNm.length : 0;
+            } catch { /* no-op */ }
+        }
 
         // 임의의 계산 로직: 급정거 횟수가 적을수록 반응 속도가 좋다고 가정 (데모용)
         const totalSuddenBrakes = pastRides.reduce((acc, ride) => acc + (ride.suddenBrakeCount || 0), 0);
