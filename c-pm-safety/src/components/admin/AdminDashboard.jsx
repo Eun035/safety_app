@@ -143,6 +143,132 @@ const AdminDashboard = ({ onClose }) => {
         const avoidanceActions = Math.round(guideTriggers * 0.84); // 84% 이행률 가정
         const intersectionAvoidance = Math.round((avoidanceActions / guideTriggers) * 100);
 
+        // ─────────────────────────────────────────────────────────────────
+        // 🛡️ B2G 신규 3대 지표: RSR / AGE / NMRE
+        // ─────────────────────────────────────────────────────────────────
+
+        // [RSR] 위험 구역 진입 시 V_entry 대비 V_target 수렴도
+        //   RSR = (1 − (V_actual − V_target) / (V_entry − V_target)) × 100
+        let riskSuppressionRate = 0;
+        try {
+          const zoneEvents = JSON.parse(localStorage.getItem('csafe_zone_events') || '[]');
+          const rsrSamples = zoneEvents
+            .map(ev => {
+              const denom = (ev.vEntry || 0) - (ev.vTarget || 10);
+              if (denom <= 0) return 100; // 이미 target 이하 진입 → 완벽 통제
+              const numer = (ev.vActualAvg ?? ev.vEntry) - (ev.vTarget || 10);
+              return Math.max(0, Math.min(100, (1 - numer / denom) * 100));
+            });
+          if (rsrSamples.length > 0) {
+            riskSuppressionRate = Math.round(rsrSamples.reduce((a, b) => a + b, 0) / rsrSamples.length);
+          }
+        } catch (err) {
+          console.warn('[C-Safe] RSR 산출 실패:', err);
+        }
+
+        // [AGE] 사고 증가 탄력성 = %Δ Accidents / %Δ Exposure
+        //   윈도우: 최근 30일(current) vs 직전 30일(baseline)
+        let accidentGrowthElasticity = 0;
+        try {
+          const now = Date.now();
+          const DAY = 86400000;
+          const t30 = now - 30 * DAY;
+          const t60 = now - 60 * DAY;
+
+          const inWindow = (iso, from, to) => {
+            const t = new Date(iso).getTime();
+            return t >= from && t < to;
+          };
+
+          // exposure = 주행 거리 합 (rides 우선, 부족 시 localStorage)
+          const { data: ridesForAge } = await supabase
+            .from('rides')
+            .select('start_time, distance');
+
+          let allRides = ridesForAge || [];
+          if (allRides.length === 0) {
+            const localRidesAge = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')
+              .map(r => ({ start_time: r.date ? new Date(r.date).toISOString() : new Date().toISOString(), distance: r.distance || 0 }));
+            allRides = localRidesAge;
+          }
+
+          const expCurrent = allRides
+            .filter(r => inWindow(r.start_time, t30, now))
+            .reduce((acc, r) => acc + (r.distance || 0), 0);
+          const expBaseline = allRides
+            .filter(r => inWindow(r.start_time, t60, t30))
+            .reduce((acc, r) => acc + (r.distance || 0), 0);
+
+          // accidents = near_miss_events + hazards (occurred_at / created_at)
+          const { data: nmForAge } = await supabase
+            .from('near_miss_events')
+            .select('occurred_at');
+          const localNm = JSON.parse(localStorage.getItem('csafe_near_miss_events') || '[]');
+          const allAccidents = [
+            ...(nmForAge || []).map(e => e.occurred_at),
+            ...localNm.map(e => e.occurred_at)
+          ].filter(Boolean);
+
+          const accCurrent = allAccidents.filter(ts => inWindow(ts, t30, now)).length;
+          const accBaseline = allAccidents.filter(ts => inWindow(ts, t60, t30)).length;
+
+          if (expBaseline > 0 && accBaseline > 0) {
+            const expDelta = (expCurrent - expBaseline) / expBaseline;
+            const accDelta = (accCurrent - accBaseline) / accBaseline;
+            if (expDelta !== 0) {
+              accidentGrowthElasticity = Math.round((accDelta / expDelta) * 100) / 100;
+            }
+          }
+        } catch (err) {
+          console.warn('[C-Safe] AGE 산출 실패:', err);
+        }
+
+        // [NMRE] Near-Miss 감소 효율
+        //   NMRE = (1 − (NM_csafe/Ride_csafe) / (NM_baseline/Ride_baseline)) × 100
+        let nearMissReductionEfficiency = 0;
+        try {
+          const now = Date.now();
+          const DAY = 86400000;
+          const t30 = now - 30 * DAY;
+          const t60 = now - 60 * DAY;
+
+          const { data: nmForNmre } = await supabase
+            .from('near_miss_events')
+            .select('occurred_at');
+          const localNm = JSON.parse(localStorage.getItem('csafe_near_miss_events') || '[]');
+          const allNm = [
+            ...(nmForNmre || []).map(e => e.occurred_at),
+            ...localNm.map(e => e.occurred_at)
+          ].filter(Boolean);
+
+          const { data: ridesForNmre } = await supabase
+            .from('rides')
+            .select('start_time');
+          let allRideTs = (ridesForNmre || []).map(r => r.start_time);
+          if (allRideTs.length === 0) {
+            allRideTs = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]')
+              .map(r => r.date ? new Date(r.date).toISOString() : new Date().toISOString());
+          }
+
+          const inWin = (iso, from, to) => {
+            const t = new Date(iso).getTime();
+            return t >= from && t < to;
+          };
+
+          const nmCurrent = allNm.filter(ts => inWin(ts, t30, now)).length;
+          const nmBaseline = allNm.filter(ts => inWin(ts, t60, t30)).length;
+          const rideCurrent = Math.max(1, allRideTs.filter(ts => inWin(ts, t30, now)).length);
+          const rideBaseline = Math.max(1, allRideTs.filter(ts => inWin(ts, t60, t30)).length);
+
+          const rateCurrent = nmCurrent / rideCurrent;
+          const rateBaseline = nmBaseline / rideBaseline;
+          if (rateBaseline > 0) {
+            nearMissReductionEfficiency = Math.max(0, Math.round((1 - rateCurrent / rateBaseline) * 100));
+          }
+        } catch (err) {
+          console.warn('[C-Safe] NMRE 산출 실패:', err);
+        }
+
         // 6. 안전 점수 모델 (Rider Safety Index - RSI): V = w_1*H + w_2*S + w_3*B + w_4*R
         const w1 = 0.4, w2 = 0.2, w3 = 0.2, w4 = 0.2;
         const H = 95; // 헬멧 착용율 (%) -> is_helmet_verified, auth_confidence_score 반영 시뮬레이션
@@ -170,7 +296,10 @@ const AdminDashboard = ({ onClose }) => {
             insuranceRiskReduction,
             complaintReduction,
             intersectionAvoidance,
-            vibeSafetyScore
+            vibeSafetyScore,
+            riskSuppressionRate,
+            accidentGrowthElasticity,
+            nearMissReductionEfficiency
           }
         });
 
@@ -360,6 +489,61 @@ const AdminDashboard = ({ onClose }) => {
                 </div>
                 <div className="text-[8px] text-gray-600 border-t border-white/5 pt-1">
                   Schema: <span className="text-emerald-500">is_helmet_verified</span>, <span className="text-blue-500">zone_compliance_rate</span>, <span className="text-rose-500">sudden_brake_count</span>, <span className="text-amber-500">hazard_avoidance_rate</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 7. RSR — Risk Suppression Rate */}
+            <div className="bg-gray-900/40 border border-cyber-cyan/20 p-6 rounded-3xl relative overflow-hidden group hover:border-cyber-cyan/40 transition-all duration-300">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-2xl"><Zap size={20} /></div>
+                <span className="text-[10px] font-black text-cyan-400 bg-cyan-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">Risk Suppression Rate</span>
+              </div>
+              <h3 className="text-3xl font-black text-white italic mb-2">{stats.kpis?.riskSuppressionRate ?? 0}%</h3>
+              <p className="text-xs font-bold text-gray-400 mb-4">위험존 진입 후 AI 넛지 안내 대비 V_target(10km/h)로의 속도 수렴 효율</p>
+              <div className="pt-3 border-t border-white/5 font-mono text-[9px] text-gray-500 bg-black/20 p-2.5 rounded-xl space-y-1">
+                <div><span className="text-cyber-cyan font-bold">Formula:</span> (1 − (V_actual − V_target) / (V_entry − V_target)) × 100</div>
+                <div className="text-[8px] text-gray-600 border-t border-white/5 pt-1">
+                  Source: <span className="text-emerald-500">csafe_zone_events</span> (zone enter/exit 계측)
+                </div>
+              </div>
+            </div>
+
+            {/* 8. AGE — Accident Growth Elasticity */}
+            <div className="bg-gray-900/40 border border-amber-500/20 p-6 rounded-3xl relative overflow-hidden group hover:border-amber-500/40 transition-all duration-300">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-amber-500/10 text-amber-400 rounded-2xl"><TrendingUp size={20} /></div>
+                <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">Accident Growth Elasticity</span>
+              </div>
+              <h3 className="text-3xl font-black text-white italic mb-2">
+                {stats.kpis?.accidentGrowthElasticity ?? 0}
+                <span className="text-sm text-gray-400 ml-2 font-medium not-italic">
+                  {stats.kpis?.accidentGrowthElasticity < 0
+                    ? '(음의 탄력성)'
+                    : stats.kpis?.accidentGrowthElasticity < 1 ? '(비탄력적)' : '(탄력적)'}
+                </span>
+              </h3>
+              <p className="text-xs font-bold text-gray-400 mb-4">노출량(주행거리) 증감 대비 사고 증감의 민감도. &lt;1 또는 &lt;0 일수록 안전망이 작동</p>
+              <div className="pt-3 border-t border-white/5 font-mono text-[9px] text-gray-500 bg-black/20 p-2.5 rounded-xl space-y-1">
+                <div><span className="text-cyber-cyan font-bold">Formula:</span> %Δ Accidents / %Δ Exposure</div>
+                <div className="text-[8px] text-gray-600 border-t border-white/5 pt-1">
+                  Window: <span className="text-blue-500">최근 30일</span> vs <span className="text-rose-500">직전 30일</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 9. NMRE — Near-Miss Reduction Efficiency */}
+            <div className="bg-gray-900/40 border border-emerald-500/20 p-6 rounded-3xl relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-2xl"><ShieldCheck size={20} /></div>
+                <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">Near-Miss Reduction Efficiency</span>
+              </div>
+              <h3 className="text-3xl font-black text-white italic mb-2">{stats.kpis?.nearMissReductionEfficiency ?? 0}%</h3>
+              <p className="text-xs font-bold text-gray-400 mb-4">주행 1건당 아차사고 발생률의 baseline 대비 감소율. 예방형 정책 효과 측정</p>
+              <div className="pt-3 border-t border-white/5 font-mono text-[9px] text-gray-500 bg-black/20 p-2.5 rounded-xl space-y-1">
+                <div><span className="text-cyber-cyan font-bold">Formula:</span> (1 − (NM/Ride)_csafe / (NM/Ride)_baseline) × 100</div>
+                <div className="text-[8px] text-gray-600 border-t border-white/5 pt-1">
+                  Source: <span className="text-emerald-500">near_miss_events</span> + <span className="text-amber-500">rides</span>
                 </div>
               </div>
             </div>

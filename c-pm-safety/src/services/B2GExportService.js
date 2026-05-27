@@ -5,21 +5,24 @@ export const B2GExportService = {
     const BOM = '\uFEFF';
     
     const headers = [
-      'Report_Date', 
-      'Total_Rides', 
-      'Avg_Safety_Score', 
-      'Pedestrian_Stress_Count', 
+      'Report_Date',
+      'Total_Rides',
+      'Avg_Safety_Score',
+      'Pedestrian_Stress_Count',
       'Accident_Count',
       'Accident_Reduction_Rate(%)',
       'Station_Return_Rate(%)',
       'Insurance_Risk_Reduction(%)',
       'Complaint_Reduction_Rate(%)',
       'High_Risk_Intersection_Avoidance_Rate(%)',
-      'Vibe_Safety_Score_Model(%)'
+      'Vibe_Safety_Score_Model(%)',
+      'Risk_Suppression_Rate(%)',
+      'Accident_Growth_Elasticity',
+      'Near-Miss_Reduction_Efficiency(%)'
     ];
-    
+
     const today = new Date().toISOString().split('T')[0];
-    
+
     const row = [
       today,
       stats.totalRides || 0,
@@ -31,7 +34,10 @@ export const B2GExportService = {
       stats.kpis?.insuranceRiskReduction || 0,
       stats.kpis?.complaintReduction || 0,
       stats.kpis?.intersectionAvoidance || 0,
-      stats.kpis?.vibeSafetyScore || 0
+      stats.kpis?.vibeSafetyScore || 0,
+      stats.kpis?.riskSuppressionRate ?? 0,
+      stats.kpis?.accidentGrowthElasticity ?? 0,
+      stats.kpis?.nearMissReductionEfficiency ?? 0
     ].join(',');
     
     return BOM + headers.join(',') + '\n' + row;

@@ -102,7 +102,7 @@ function App() {
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
-  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory } = useRideSession();
+  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, enterZone, exitZone, sampleZoneSpeed } = useRideSession();
 
   // 🧠 Near-Miss Event Engine (전략적 데이터 수집)
   const { captureNearMiss, getLocalNearMisses } = useNearMissEngine();
@@ -137,6 +137,9 @@ function App() {
       return;
     }
 
+    const STRESS_ZONE_TARGET_SPEED = 10; // km/h — 보행자 보호구역 권장 제한속도
+    const currentSpeed = location.speed || 0;
+
     STRESS_ZONES.forEach(zone => {
       const dist = calculateDistance(location.lat, location.lng, zone.lat, zone.lng);
       const wasInside = stressZoneInsideRef.current[zone.id] || false;
@@ -144,10 +147,20 @@ function App() {
 
       if (isInside && !wasInside) {
         speak(t('tts_stress_zone_enter', { zoneName: t(zone.name) }));
+        // 🛡️ RSR 계측: V_entry 스냅샷
+        enterZone(zone.id, currentSpeed, STRESS_ZONE_TARGET_SPEED);
+      } else if (!isInside && wasInside) {
+        // 🛡️ RSR 계측: 이탈 시 누적치 commit
+        exitZone();
       }
       stressZoneInsideRef.current[zone.id] = isInside;
     });
-  }, [location, isRiding, speak]);
+
+    // 존 내부면 현재 속도 샘플 누적
+    if (Object.values(stressZoneInsideRef.current).some(Boolean)) {
+      sampleZoneSpeed(currentSpeed);
+    }
+  }, [location, isRiding, speak, enterZone, exitZone, sampleZoneSpeed, t]);
 
   const [showEcoBadge, setShowEcoBadge] = useState(false);
   const [isVibeRouteOpen, setIsVibeRouteOpen] = useState(false);

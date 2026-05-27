@@ -17,6 +17,11 @@ export const useRideSession = create((set, get) => ({
     rideHistory: [],
     currentPath: [], // 실시간 주행 경로 [{lat, lng, ts}]
 
+    // 🛡️ RSR(Risk Suppression Rate) 계측용 — 위험존 방문 이벤트
+    // 각 항목: { zoneId, vEntry, vTarget, vSum, vCount, startedAt, endedAt? }
+    zoneEvents: [],
+    currentZoneEvent: null,
+
     fetchRideHistory: async (userId) => {
         if (!userId) return [];
         try {
@@ -114,9 +119,53 @@ export const useRideSession = create((set, get) => ({
             totalDistance: 0,
             topSpeed: 0,
             suddenBrakeCount: 0,
-            currentPath: [] // 경로 초기화
+            currentPath: [], // 경로 초기화
+            zoneEvents: [],
+            currentZoneEvent: null
         });
     },
+
+    // 🛡️ 위험존 진입 — V_entry 스냅샷
+    enterZone: (zoneId, vEntry, vTarget) => set((state) => {
+        if (!state.isRiding || state.currentZoneEvent) return state;
+        return {
+            currentZoneEvent: {
+                zoneId,
+                vEntry: Number(vEntry) || 0,
+                vTarget: Number(vTarget) || 10,
+                vSum: 0,
+                vCount: 0,
+                startedAt: Date.now()
+            }
+        };
+    }),
+
+    // 위험존 내 속도 샘플 누적 (App.jsx의 위치 갱신마다 호출)
+    sampleZoneSpeed: (currentSpeed) => set((state) => {
+        if (!state.currentZoneEvent) return state;
+        return {
+            currentZoneEvent: {
+                ...state.currentZoneEvent,
+                vSum: state.currentZoneEvent.vSum + (Number(currentSpeed) || 0),
+                vCount: state.currentZoneEvent.vCount + 1
+            }
+        };
+    }),
+
+    // 위험존 이탈 — 누적치 commit
+    exitZone: () => set((state) => {
+        if (!state.currentZoneEvent) return state;
+        const ev = state.currentZoneEvent;
+        const committed = {
+            ...ev,
+            endedAt: Date.now(),
+            vActualAvg: ev.vCount > 0 ? ev.vSum / ev.vCount : ev.vEntry
+        };
+        return {
+            zoneEvents: [...state.zoneEvents, committed],
+            currentZoneEvent: null
+        };
+    }),
 
     updateMetrics: (distanceDelta, currentSpeed, isSuddenBrake, location) => set((state) => {
         if (!state.isRiding) return state;
@@ -147,6 +196,41 @@ export const useRideSession = create((set, get) => ({
         const durationMinutes = Math.floor((Date.now() - state.startTime) / 60000) || 1;
         const finalDistance = Math.floor(state.totalDistance * 100) / 100;
 
+        // 🛡️ 진행 중이던 zone이 있으면 강제 commit (이탈 신호 없이 주행 종료 케이스)
+        let finalZoneEvents = state.zoneEvents;
+        if (state.currentZoneEvent) {
+            const ev = state.currentZoneEvent;
+            finalZoneEvents = [...finalZoneEvents, {
+                ...ev,
+                endedAt: Date.now(),
+                vActualAvg: ev.vCount > 0 ? ev.vSum / ev.vCount : ev.vEntry
+            }];
+        }
+
+        // RSR(%) per-ride 계산: 진입 속도가 target 이하인 케이스는 100% 처리
+        const rideRsrValues = finalZoneEvents.map(ev => {
+            const denom = ev.vEntry - ev.vTarget;
+            if (denom <= 0) return 100;
+            return Math.max(0, Math.min(100, (1 - (ev.vActualAvg - ev.vTarget) / denom) * 100));
+        });
+        const rideRsr = rideRsrValues.length > 0
+            ? rideRsrValues.reduce((a, b) => a + b, 0) / rideRsrValues.length
+            : null;
+
+        // localStorage 영속화 (Supabase 스키마 추가 없이 즉시 가동)
+        try {
+            const key = 'csafe_zone_events';
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const tagged = finalZoneEvents.map(ev => ({
+                ...ev,
+                rideId: `ride-${state.startTime}`,
+                recordedAt: new Date().toISOString()
+            }));
+            localStorage.setItem(key, JSON.stringify([...tagged, ...existing].slice(0, 500)));
+        } catch (err) {
+            console.warn('[C-Safe] zone events 로컬 저장 실패:', err);
+        }
+
         const summary = {
             id: `ride-${Date.now()}`,
             date: new Date().toLocaleDateString(),
@@ -154,7 +238,9 @@ export const useRideSession = create((set, get) => ({
             time: durationMinutes,
             topSpeed: state.topSpeed.toFixed(1),
             suddenBrakeCount: state.suddenBrakeCount,
-            co2Saved: (state.totalDistance * 0.2).toFixed(1)
+            co2Saved: (state.totalDistance * 0.2).toFixed(1),
+            zoneEvents: finalZoneEvents,
+            rideRsr: rideRsr !== null ? Math.round(rideRsr) : null
         };
 
         // 1. Supabase 'rides' 테이블에 저장 (비동기) - 게스트 모드일 경우 스킵
@@ -230,7 +316,7 @@ export const useRideSession = create((set, get) => ({
         const pastRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
         localStorage.setItem('csafe_ride_history', JSON.stringify([summary, ...pastRides]));
 
-        set({ isRiding: false, startTime: null });
+        set({ isRiding: false, startTime: null, zoneEvents: [], currentZoneEvent: null });
         return summary;
     }
 }));
