@@ -97,6 +97,12 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
+        keep_classnames: true,
+        keep_fnames: true,
+      },
+      mangle: {
+        keep_classnames: true,
+        keep_fnames: true,
       },
     },
   }
