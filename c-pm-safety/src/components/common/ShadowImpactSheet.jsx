@@ -54,13 +54,14 @@ function nearMissToSvgPos(event, path, width = 400, height = 200, padding = 20) 
 const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], getLocalNearMisses }) => {
     const { t } = useTranslation();
 
-    // 로컬 아차사고 데이터 (최근 10건)
-    const nearMisses = useMemo(() => {
+    // 로컬 아차사고 데이터 — 전체(히트맵용) + 최근 10건(리스트용)
+    const allNearMisses = useMemo(() => {
         if (typeof getLocalNearMisses === 'function') {
-            return getLocalNearMisses().slice(0, 10);
+            return getLocalNearMisses();
         }
         return [];
     }, [getLocalNearMisses, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+    const nearMisses = useMemo(() => allNearMisses.slice(0, 10), [allNearMisses]);
 
     // 최근 주행 (최대 5건)
     const recentRides = useMemo(() =>
@@ -92,6 +93,62 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
             nearMissCount: nearMisses.length,
         };
     }, [recentRides, nearMisses]);
+
+    // P1-2: 최근 14일 RSR 추이 (일별 평균) — Supabase ride_rsr 또는 localStorage rideRsr
+    const rsrTrend = useMemo(() => {
+        const days = 14;
+        const now = Date.now();
+        const DAY = 86400000;
+        const buckets = {};
+        (Array.isArray(rideHistory) ? rideHistory : []).forEach(r => {
+            const ts = new Date(r.start_time || r.date || 0).getTime();
+            if (!ts || now - ts > days * DAY) return;
+            const dateKey = new Date(ts).toISOString().slice(0, 10);
+            const rsrRaw = r.ride_rsr ?? r.rideRsr;
+            const rsr = Number(rsrRaw);
+            if (Number.isFinite(rsr)) {
+                if (!buckets[dateKey]) buckets[dateKey] = [];
+                buckets[dateKey].push(rsr);
+            }
+        });
+        const series = [];
+        for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(now - i * DAY);
+            const key = d.toISOString().slice(0, 10);
+            const vals = buckets[key] || [];
+            series.push({
+                day: key.slice(5),
+                avg: vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null,
+                count: vals.length
+            });
+        }
+        return series;
+    }, [rideHistory]);
+
+    const rsrSummary = useMemo(() => {
+        const valid = rsrTrend.filter(p => p.avg !== null);
+        if (valid.length === 0) return { current: null, delta: null };
+        const current = valid[valid.length - 1].avg;
+        const prev = valid.length > 1 ? valid[valid.length - 2].avg : null;
+        return { current, delta: prev !== null ? current - prev : null, samples: valid.length };
+    }, [rsrTrend]);
+
+    // P1-2: 시간대 아차사고 히트맵 (요일 × 시간) — occurred_at 기반
+    const heatmap = useMemo(() => {
+        const matrix = Array.from({ length: 7 }, () => Array(24).fill(0));
+        allNearMisses.forEach(nm => {
+            const ts = nm?.occurred_at;
+            if (!ts) return;
+            const d = new Date(ts);
+            if (Number.isNaN(d.getTime())) return;
+            const dayIdx = d.getDay();      // 0=일
+            const hourIdx = d.getHours();
+            matrix[dayIdx][hourIdx] += 1;
+        });
+        let max = 0;
+        matrix.forEach(row => row.forEach(v => { if (v > max) max = v; }));
+        return { matrix, max, total: allNearMisses.length };
+    }, [allNearMisses]);
 
     // SVG 경로 (최근 주행)
     const svgPath = useMemo(() => buildSvgPath(latestRidePath), [latestRidePath]);
@@ -180,6 +237,56 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                         <p className="text-xs text-gray-600">여기에 실제 데이터가 표시됩니다</p>
                                     </div>
                                 )}
+                            </section>
+
+                            {/* ── Card NEW-A (P1-2): RSR 14일 추이 ── */}
+                            <section className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                        <Shield size={10} className="text-cyber-cyan" /> 위험구역 통제율(RSR) · 14일
+                                    </p>
+                                    {rsrSummary.current !== null && (
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-lg font-black text-cyber-cyan leading-none">{rsrSummary.current}%</span>
+                                            {rsrSummary.delta !== null && (
+                                                <span className={`text-[10px] font-bold ${rsrSummary.delta >= 0 ? 'text-cyber-green' : 'text-red-400'}`}>
+                                                    {rsrSummary.delta >= 0 ? '▲' : '▼'}{Math.abs(rsrSummary.delta)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                {rsrSummary.current === null ? (
+                                    <div className="text-center py-4">
+                                        <p className="text-[10px] text-gray-500">위험구역을 지나면 여기에 추이가 표시됩니다</p>
+                                    </div>
+                                ) : (
+                                    (() => {
+                                        const W = 320, H = 80, PAD = 10;
+                                        const n = rsrTrend.length;
+                                        const xs = rsrTrend.map((_, i) => PAD + (i / Math.max(1, n - 1)) * (W - 2 * PAD));
+                                        const ys = rsrTrend.map(p => p.avg !== null ? H - PAD - (p.avg / 100) * (H - 2 * PAD) : null);
+                                        let d = '';
+                                        for (let i = 0; i < n; i++) {
+                                            if (ys[i] === null) continue;
+                                            const cmd = (d === '' || ys[i - 1] === null) ? 'M' : 'L';
+                                            d += `${cmd} ${xs[i].toFixed(1)} ${ys[i].toFixed(1)} `;
+                                        }
+                                        return (
+                                            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-20">
+                                                <line x1={PAD} y1={H - PAD - 0.5 * (H - 2 * PAD)} x2={W - PAD} y2={H - PAD - 0.5 * (H - 2 * PAD)} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+                                                {d && <path d={d} fill="none" stroke="#40ffdc" strokeWidth="2" strokeLinecap="round" />}
+                                                {rsrTrend.map((p, i) => p.avg !== null && (
+                                                    <circle key={i} cx={xs[i]} cy={ys[i]} r="2.5" fill="#40ffdc" />
+                                                ))}
+                                            </svg>
+                                        );
+                                    })()
+                                )}
+                                <div className="flex justify-between mt-1 text-[8px] text-gray-600 px-2">
+                                    <span>{rsrTrend[0]?.day}</span>
+                                    <span>오늘</span>
+                                </div>
                             </section>
 
                             {/* ── Card 2: 경로 맵 (실 데이터 or 목업) ── */}
@@ -285,6 +392,82 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                         </div>
                                     </div>
                                 </div>
+                            </section>
+
+                            {/* ── Card NEW-B (P1-2): 시간대 아차사고 히트맵 (요일 × 시간) ── */}
+                            <section className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                        <AlertTriangle size={10} className="text-red-400" /> 시간대 위험 패턴
+                                    </p>
+                                    <span className="text-[8px] font-bold text-gray-500">총 {heatmap.total}건</span>
+                                </div>
+                                {heatmap.total === 0 ? (
+                                    <div className="text-center py-4">
+                                        <p className="text-[10px] text-gray-500">아차사고가 누적되면 요일·시간대 패턴이 표시됩니다</p>
+                                    </div>
+                                ) : (
+                                    (() => {
+                                        const CELL = 11, GAP = 1.5;
+                                        const LABEL_W = 18;
+                                        const W = LABEL_W + 24 * (CELL + GAP);
+                                        const H = 7 * (CELL + GAP) + 12;
+                                        const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+                                        return (
+                                            <>
+                                                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
+                                                    {heatmap.matrix.map((row, ri) => (
+                                                        <g key={ri}>
+                                                            <text x="0" y={ri * (CELL + GAP) + CELL - 1} fontSize="7" fill="#6b7280" fontWeight="700">
+                                                                {dayLabels[ri]}
+                                                            </text>
+                                                            {row.map((v, ci) => {
+                                                                const intensity = heatmap.max > 0 ? v / heatmap.max : 0;
+                                                                const fill = v === 0
+                                                                    ? 'rgba(255,255,255,0.04)'
+                                                                    : `rgba(239,68,68,${0.2 + intensity * 0.7})`;
+                                                                return (
+                                                                    <rect
+                                                                        key={ci}
+                                                                        x={LABEL_W + ci * (CELL + GAP)}
+                                                                        y={ri * (CELL + GAP)}
+                                                                        width={CELL}
+                                                                        height={CELL}
+                                                                        rx="1.5"
+                                                                        fill={fill}
+                                                                    >
+                                                                        <title>{`${dayLabels[ri]} ${ci}시: ${v}건`}</title>
+                                                                    </rect>
+                                                                );
+                                                            })}
+                                                        </g>
+                                                    ))}
+                                                    {/* 하단 시간 축 (0/6/12/18/23 만 표시) */}
+                                                    {[0, 6, 12, 18, 23].map(h => (
+                                                        <text
+                                                            key={h}
+                                                            x={LABEL_W + h * (CELL + GAP)}
+                                                            y={7 * (CELL + GAP) + 8}
+                                                            fontSize="6"
+                                                            fill="#6b7280"
+                                                            fontWeight="700"
+                                                        >
+                                                            {h}시
+                                                        </text>
+                                                    ))}
+                                                </svg>
+                                                {/* 범례 */}
+                                                <div className="flex items-center justify-end gap-1 mt-1">
+                                                    <span className="text-[7px] text-gray-600">적음</span>
+                                                    {[0.2, 0.4, 0.6, 0.8, 1.0].map(a => (
+                                                        <div key={a} className="w-2 h-2 rounded-sm" style={{ backgroundColor: `rgba(239,68,68,${a})` }} />
+                                                    ))}
+                                                    <span className="text-[7px] text-gray-600">많음</span>
+                                                </div>
+                                            </>
+                                        );
+                                    })()
+                                )}
                             </section>
 
                             {/* ── Card 3: 아차사고 이벤트 리스트 ── */}
