@@ -574,18 +574,11 @@ function App() {
     setIsStationRewardOpen(true);
   };
 
-  if (!hasSelectedLanguage) {
-    return <LanguageSelectorScreen onComplete={() => {
-      speak('');
-      setHasSelectedLanguage(true);
-    }} />;
-  }
-
   return (
     <ErrorBoundary>
       <ToastContainer />
 
-      {/* Phase Transition: Splash Screen Overlay */}
+      {/* 1️⃣ Splash Screen (최초 진입 시 풀스크린) */}
       {showSplash && (
         <SplashScreen
           isDataLoading={mapLoading || authLoading || !isMapReady}
@@ -596,15 +589,24 @@ function App() {
         />
       )}
 
-      {/* 🚀 Onboarding Flow (Sequential Overlays) */}
-      {!showSplash && !hasAgreedDisclaimer && (
+      {/* 2️⃣ Language Selector (Splash 완료 후) */}
+      {!showSplash && !hasSelectedLanguage && (
+        <LanguageSelectorScreen onComplete={() => {
+          speak('');
+          setHasSelectedLanguage(true);
+        }} />
+      )}
+
+      {/* 3️⃣ Disclaimer (언어 선택 후) */}
+      {!showSplash && hasSelectedLanguage && !hasAgreedDisclaimer && (
         <DisclaimerModal onAgree={() => {
           speak('');
           setHasAgreedDisclaimer(true);
         }} />
       )}
 
-      {!showSplash && hasAgreedDisclaimer && !hasCompletedOnboarding && (
+      {/* 4️⃣ Safety Quiz (면책 동의 후) */}
+      {!showSplash && hasSelectedLanguage && hasAgreedDisclaimer && !hasCompletedOnboarding && (
         <SafetyQuiz onComplete={() => {
           setHasCompletedOnboarding(true);
           if (user?.id) {
@@ -618,9 +620,9 @@ function App() {
         }} />
       )}
 
-      {/* Global Cyberpunk Chill Background */}
+      {/* 5️⃣ Global Cyberpunk Chill Background (퀴즈 통과 후 노출, 그 전엔 백그라운드 마운트) */}
       <div
-        className={`h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-all duration-1000 ${(!showSplash && hasAgreedDisclaimer && hasCompletedOnboarding) ? 'opacity-100' : 'opacity-0'}`}
+        className={`h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col mx-auto sm:max-w-md transition-all duration-1000 ${(!showSplash && hasSelectedLanguage && hasAgreedDisclaimer && hasCompletedOnboarding) ? 'opacity-100' : 'opacity-0'}`}
         style={{ boxShadow: `inset 0 0 40px ${gridBorderColor}40`, border: `2px solid ${gridBorderColor}80` }}
       >
 
