@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Map as KakaoMap, Circle, useKakaoLoader } from 'react-kakao-maps-sdk';
 import {
   Users, Activity, Award, AlertCircle,
   TrendingUp, Map as MapIcon, ChevronRight,
@@ -33,6 +34,16 @@ const AdminDashboard = ({ onClose }) => {
   const [hazards, setHazards] = useState([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  // P2-A: 위험 클러스터(get_near_miss_clusters) + hazards 정책 효과(get_hazard_policy_effect)
+  const [nearMissClusters, setNearMissClusters] = useState([]);
+  const [policyEffects, setPolicyEffects] = useState([]);
+
+  // Kakao Maps 로더 (위험 클러스터 히트맵용)
+  const kakaoApiKey = import.meta.env.VITE_KAKAO_API_KEY;
+  const [kakaoLoading] = useKakaoLoader({
+    appkey: kakaoApiKey,
+    libraries: ['services']
+  });
   const [selectedType, setSelectedType] = useState('ALL');
   const [analysisMode, setAnalysisMode] = useState('NORMAL'); // 'NORMAL' | 'SAFETY' | 'VIBE' | 'STRESS'
   const [receiptData, setReceiptData] = useState(null);
@@ -116,6 +127,24 @@ const AdminDashboard = ({ onClose }) => {
           if (!dailyErr) dailyAggregates = daily || [];
         } catch (err) {
           console.warn('[C-Safe] rides_daily fetch 실패, raw rides 풀스캔 폴백:', err?.message || err);
+        }
+
+        // P2-A: 위험 클러스터 (지도 히트맵용) — 30일 윈도우
+        try {
+          const { data: clusters, error: clusterErr } = await supabase
+            .rpc('get_near_miss_clusters', { radius_meters: 100 });
+          if (!clusterErr && Array.isArray(clusters)) setNearMissClusters(clusters);
+        } catch (err) {
+          console.warn('[C-Safe] get_near_miss_clusters RPC 실패:', err?.message || err);
+        }
+
+        // P2-A: hazards 정책 효과 (Before/After) — 최근 60일 hazard 5개, ±30일 비교
+        try {
+          const { data: effects, error: effectErr } = await supabase
+            .rpc('get_hazard_policy_effect', { radius_meters: 200, window_days: 30, max_hazards: 5 });
+          if (!effectErr && Array.isArray(effects)) setPolicyEffects(effects);
+        } catch (err) {
+          console.warn('[C-Safe] get_hazard_policy_effect RPC 실패:', err?.message || err);
         }
 
         const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
@@ -672,6 +701,128 @@ const AdminDashboard = ({ onClose }) => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ── P2-A: 위험 클러스터 지도 히트맵 + Before/After 정책 효과 ── */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* (1) Near-Miss Cluster Map */}
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <MapPin size={18} className="text-red-400" />
+                <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">
+                  Near-Miss Cluster Map · 30일
+                </h2>
+              </div>
+              <span className="text-[10px] text-gray-500 font-bold">{nearMissClusters.length} 클러스터</span>
+            </div>
+            {nearMissClusters.length === 0 ? (
+              <div className="h-72 flex flex-col items-center justify-center text-xs text-gray-500 bg-black/30 rounded-2xl border border-white/5">
+                <AlertCircle size={20} className="text-gray-600 mb-2" />
+                아직 클러스터가 없습니다. 아차사고 데이터가 누적되면 표시됩니다.
+              </div>
+            ) : (
+              <div className="h-72 rounded-2xl overflow-hidden border border-white/5">
+                {kakaoApiKey && !kakaoLoading ? (
+                  <KakaoMap
+                    center={{
+                      lat: nearMissClusters[0]?.cluster_lat ?? 36.833,
+                      lng: nearMissClusters[0]?.cluster_lng ?? 127.179
+                    }}
+                    level={5}
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    {nearMissClusters.map((c, i) => {
+                      const intensity = Math.min(1, Number(c.event_count || 0) / 10);
+                      return (
+                        <Circle
+                          key={`nm-cluster-${i}`}
+                          center={{ lat: c.cluster_lat, lng: c.cluster_lng }}
+                          radius={50 + Number(c.event_count || 0) * 15}
+                          fillColor="#ef4444"
+                          fillOpacity={0.2 + intensity * 0.5}
+                          strokeColor="#ef4444"
+                          strokeOpacity={0.6}
+                          strokeWeight={1}
+                        />
+                      );
+                    })}
+                  </KakaoMap>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-gray-500">
+                    {kakaoApiKey ? '지도 로딩 중...' : 'VITE_KAKAO_API_KEY 미설정'}
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="mt-3 text-[10px] text-gray-600">
+              버블 크기·진하기는 클러스터 내 아차사고 건수 비례. PostGIS / lat/lng 0.001° 버킷팅.
+            </p>
+          </div>
+
+          {/* (2) Hazard 지정 정책 효과 (Before/After) */}
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-emerald-400" />
+                <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">
+                  Hazard 정책 효과 · ±30일
+                </h2>
+              </div>
+              <span className="text-[10px] text-gray-500 font-bold">최근 {policyEffects.length}개</span>
+            </div>
+            {policyEffects.length === 0 ? (
+              <div className="py-12 text-center text-xs text-gray-500 bg-black/30 rounded-2xl border border-white/5">
+                <Info size={20} className="text-gray-600 mx-auto mb-2" />
+                최근 60일 내 등록된 hazard가 없거나, 인근 아차사고 표본이 부족합니다.
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-hide pr-2">
+                {policyEffects.map(eff => {
+                  const reduction = eff.reduction_pct !== null ? Number(eff.reduction_pct) : null;
+                  const isImproved = reduction !== null && reduction > 0;
+                  const isWorse = reduction !== null && reduction < 0;
+                  return (
+                    <div key={eff.hazard_id} className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{eff.hazard_title || '(제목 없음)'}</p>
+                          <p className="text-[10px] text-gray-500 mt-0.5">
+                            {eff.hazard_type} · {new Date(eff.hazard_created_at).toLocaleDateString('ko-KR')} 지정
+                          </p>
+                        </div>
+                        {reduction !== null ? (
+                          <span className={`text-sm font-black ml-3 shrink-0 ${isImproved ? 'text-emerald-400' : isWorse ? 'text-red-400' : 'text-gray-400'}`}>
+                            {isImproved ? `▼ ${reduction}%` : isWorse ? `▲ ${Math.abs(reduction)}%` : '—'}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-gray-500 ml-3 shrink-0">표본 부족</span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-black/30 rounded-xl p-3 text-center border border-white/5">
+                          <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-1">지정 전 30일</p>
+                          <p className="text-lg font-black text-white">
+                            {eff.before_count}<span className="text-xs text-gray-500 ml-1">건</span>
+                          </p>
+                        </div>
+                        <div className={`rounded-xl p-3 text-center border ${isImproved ? 'bg-emerald-500/10 border-emerald-500/30' : isWorse ? 'bg-red-500/10 border-red-500/30' : 'bg-black/30 border-white/5'}`}>
+                          <p className={`text-[9px] font-bold uppercase tracking-wider mb-1 ${isImproved ? 'text-emerald-400' : isWorse ? 'text-red-400' : 'text-gray-500'}`}>지정 후 30일</p>
+                          <p className={`text-lg font-black ${isImproved ? 'text-emerald-400' : isWorse ? 'text-red-400' : 'text-white'}`}>
+                            {eff.after_count}<span className="text-xs text-gray-500 ml-1">건</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="mt-3 text-[10px] text-gray-600">
+              hazard 좌표 반경 200m 이내 아차사고. 표본 부족 시 감소율 산출 생략.
+            </p>
           </div>
         </div>
       </div>
