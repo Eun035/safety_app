@@ -603,11 +603,11 @@ function App() {
         // 비합법 주차: 페널티 모달 표시 + 보상 차단
         speak(t('tts_parking_illegal'));
         setParkingGeofenceModal({ isOpen: true, success: false });
-        await endRideSession(user?.id, { isLegalPark: false }); // 주행 기록은 저장하되 +100P 보상 제외
+        await endRideSession(user?.id, { isLegalPark: false, helmetOn: helmetOnRef.current }); // 주행 기록은 저장하되 +100P 보상 제외
         return; // 결제 모달 진입 차단
       }
 
-      const summary = await endRideSession(user?.id, { isLegalPark: true });
+      const summary = await endRideSession(user?.id, { isLegalPark: true, helmetOn: helmetOnRef.current });
       if (summary) {
         setFinalRideSummary(summary);
 

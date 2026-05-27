@@ -187,7 +187,7 @@ export const useRideSession = create((set, get) => ({
         };
     }),
 
-    endRideSession: async (userId, { isLegalPark = true } = {}) => {
+    endRideSession: async (userId, { isLegalPark = true, helmetOn = false } = {}) => {
         const state = get();
         if (!state.isRiding) return null;
 
@@ -249,7 +249,13 @@ export const useRideSession = create((set, get) => ({
             try {
                 const isSafe = state.suddenBrakeCount === 0;
 
-                // ride_logs 또는 rides 테이블 확인 필요. phase8 스키마 기준 'rides' 사용.
+                // 헬멧 착용 비율: 현재는 인증 모달 통과 시 단일 신호만 → 0 또는 100
+                // (추후 주행 중 주기 샘플링으로 보강 가능)
+                const helmetOnPct = helmetOn ? 100 : 0;
+
+                // P0-1: rides 테이블 핵심 메트릭 전체 영속화
+                // (top_speed/sudden_brake_count/duration_minutes/ride_rsr/helmet_on_pct/
+                //  co2_saved_kg/is_legal_park 컬럼은 supabase_p0_1_rides_extension.sql 로 추가됨)
                 const { data: rideData, error: rideError } = await supabase
                     .from('rides')
                     .insert([{
@@ -257,7 +263,14 @@ export const useRideSession = create((set, get) => ({
                         start_time: new Date(state.startTime).toISOString(),
                         end_time: new Date().toISOString(),
                         distance: finalDistance,
-                        is_safe_ride: isSafe
+                        is_safe_ride: isSafe,
+                        top_speed: Number(state.topSpeed.toFixed(1)),
+                        sudden_brake_count: state.suddenBrakeCount,
+                        duration_minutes: durationMinutes,
+                        ride_rsr: rideRsr !== null ? Math.round(rideRsr * 100) / 100 : null,
+                        helmet_on_pct: helmetOnPct,
+                        co2_saved_kg: Number((state.totalDistance * 0.2).toFixed(2)),
+                        is_legal_park: isLegalPark
                     }])
                     .select()
                     .single();
