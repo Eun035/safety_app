@@ -95,10 +95,18 @@ function App() {
   const [showPMs, setShowPMs] = useState(false);
   const [coupons, setCoupons] = useLocalStorage('coupons', []);
 
-  // Phase 15 & 19: Onboarding — localStorage 영속화 (2순위 버그 수정)
+  // Phase 15 & 19: Onboarding — 매 세션 강제 노출 (면책 동의/퀴즈 영속화 해제)
   const [hasSelectedLanguage, setHasSelectedLanguage] = useState(false);
-  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useLocalStorage('csafe_agreed_disclaimer', false);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useLocalStorage('csafe_completed_onboarding', false);
+  const [hasAgreedDisclaimer, setHasAgreedDisclaimer] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+
+  // 이전 빌드에서 true로 저장된 온보딩 캐시 강제 무효화 (1회성 마이그레이션)
+  useEffect(() => {
+    try {
+      localStorage.removeItem('csafe_agreed_disclaimer');
+      localStorage.removeItem('csafe_completed_onboarding');
+    } catch { /* no-op */ }
+  }, []);
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
