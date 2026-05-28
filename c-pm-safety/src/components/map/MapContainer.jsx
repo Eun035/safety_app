@@ -3,7 +3,6 @@ import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap, Mar
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
 import InfoCard from './InfoCard';
 import { AlertTriangle, Navigation, Zap, X } from 'lucide-react';
-import accidentData from '../../data/accidentHeatmap.json';
 import { useGeolocation } from '../../hooks/useGeolocation';
 
 import usePMParkingData from '../../hooks/usePMParkingData';
@@ -111,7 +110,6 @@ const LANDMARKS = [
 const MapContainer = ({
     data,
     tagoPms = [],
-    showHeatmap,
     showStressLayer, // 🌋 추가
     selectedLocation,
     setSelectedLocation,
@@ -140,7 +138,6 @@ const MapContainer = ({
     const [pmStations, setPmStations] = useState([]);
     const [mapCenter, setMapCenter] = useState({ lat: 36.833, lng: 127.179 });
     const [highlightedStationId, setHighlightedStationId] = useState(null);
-    const [selectedDangerZone, setSelectedDangerZone] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
 
     const [safeRouteInfo, setSafeRouteInfo] = useState(null);
@@ -394,9 +391,7 @@ const MapContainer = ({
     }, []);
 
     const memoizedParkingMarkers = useMemo(() => {
-        if (showHeatmap) return null;
-        
-        // 지도가 너무 멀리 있을 때는 클러스터러가 처리하도록 마커 렌더링을 제한하거나 
+        // 지도가 너무 멀리 있을 때는 클러스터러가 처리하도록 마커 렌더링을 제한하거나
         // 화면에 보이는 마커만 필터링하여 렌더링 부하를 줄임
         let visibleParkings = pmParkings;
         
@@ -462,7 +457,7 @@ const MapContainer = ({
             </CustomOverlayMap>
         ));
 
-    }, [pmParkings, showHeatmap, navStep, setNavStep, setRouteDestination, currentLevel, mapBounds]);
+    }, [pmParkings, navStep, setNavStep, setRouteDestination, currentLevel, mapBounds]);
 
     useEffect(() => {
         if (!loading && !error && window.kakao?.maps?.services) {
@@ -520,8 +515,6 @@ const MapContainer = ({
     }, [loading, error]);
 
     const handleMarkerClick = (location) => {
-        if (showHeatmap) return;
-
         // 탐색 모드 (Navigation Mode) 중일 때의 동작
         if (navStep === 'select_origin') {
             setRouteOrigin(location);
@@ -658,30 +651,28 @@ const MapContainer = ({
                         />
                     ))}
 
-                    {!showHeatmap && (
-                        <MarkerClusterer
-                            averageCenter={true}
-                            minLevel={6}
-                            disableClickZoom={false}
-                            gridSize={100}
-                            minClusterSize={2}
-                            styles={[{
-                                width: '53px', height: '52px',
-                                background: 'rgba(64, 255, 220, 0.9)',
-                                borderRadius: '26px',
-                                color: '#000',
-                                textAlign: 'center',
-                                fontWeight: 'bold',
-                                lineHeight: '54px',
-                                border: '2px solid #fff',
-                                boxShadow: '0 0 15px rgba(64, 255, 220, 0.5)'
-                            }]}
-                        >
-                            {memoizedParkingMarkers}
-                        </MarkerClusterer>
-                    )}
+                    <MarkerClusterer
+                        averageCenter={true}
+                        minLevel={6}
+                        disableClickZoom={false}
+                        gridSize={100}
+                        minClusterSize={2}
+                        styles={[{
+                            width: '53px', height: '52px',
+                            background: 'rgba(64, 255, 220, 0.9)',
+                            borderRadius: '26px',
+                            color: '#000',
+                            textAlign: 'center',
+                            fontWeight: 'bold',
+                            lineHeight: '54px',
+                            border: '2px solid #fff',
+                            boxShadow: '0 0 15px rgba(64, 255, 220, 0.5)'
+                        }]}
+                    >
+                        {memoizedParkingMarkers}
+                    </MarkerClusterer>
 
-                    {!showHeatmap && Array.isArray(data) && data.filter(loc => loc.type !== 'available_pm').map((loc) => (
+                    {Array.isArray(data) && data.filter(loc => loc.type !== 'available_pm').map((loc) => (
                         <MapMarker
                             key={`safety-${loc.id}`}
                             position={{ lat: loc.lat, lng: loc.lng }}
@@ -760,36 +751,6 @@ const MapContainer = ({
                             </div>
                         </CustomOverlayMap>
                     ))}
-
-                    {showHeatmap && accidentData.map((acc) => {
-                        const isSelected = selectedDangerZone?.id === acc.id;
-                        const color = acc.intensity === 'HIGH' ? '#ef4444' : acc.intensity === 'MEDIUM' ? '#f87171' : '#fca5a5';
-                        return (
-                            <React.Fragment key={`danger-${acc.id}`}>
-                                <Circle
-                                    center={{ lat: acc.lat, lng: acc.lng }}
-                                    radius={acc.radius}
-                                    strokeWeight={isSelected ? 3 : 2}
-                                    strokeColor="#ef4444"
-                                    strokeOpacity={0.9}
-                                    fillColor="#ef4444"
-                                    fillOpacity={isSelected ? 0.45 : 0.3}
-                                    onClick={() => setSelectedDangerZone(isSelected ? null : acc)}
-                                />
-                                {!isSelected && (
-                                    <CustomOverlayMap position={{ lat: acc.lat, lng: acc.lng }} yAnchor={0.5} zIndex={20}>
-                                        <div
-                                            onClick={() => setSelectedDangerZone(acc)}
-                                            className="pointer-events-auto cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-white text-[10px] font-black shadow-lg border border-white/20"
-                                            style={{ background: `${color}dd` }}
-                                        >
-                                            ⚠️ {acc.intensity === 'HIGH' ? '위험' : acc.intensity === 'MEDIUM' ? '주의' : '유의'}
-                                        </div>
-                                    </CustomOverlayMap>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
 
                     {/* 🌋 보행자 스트레스 존 레이어 시각화 */}
                     {showStressLayer && [

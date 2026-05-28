@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Shield, Cloud, AlertTriangle, Moon, Activity,
+  Shield, Cloud, AlertTriangle, Moon,
   Layers, Play, Star, Zap, TrendingUp, Download,
   Sliders, Wallet, Unlock, Leaf, X, LocateFixed, Share2,
   Settings, Users
@@ -80,7 +80,6 @@ function App() {
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false); // New: FAB Menu State
   const [showStressLayer, setShowStressLayer] = useState(false);
-  const [showHeatmap, setShowHeatmap] = useState(false);
   const [isParkingOpen, setIsParkingOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
@@ -829,14 +828,6 @@ function App() {
           {isToolsOpen && (
             <div className="flex flex-col gap-2 mb-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
               <button
-                onClick={() => setShowHeatmap(prev => !prev)}
-                className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${showHeatmap ? 'text-orange-500 border-orange-500/50 shadow-neon-orange' : 'text-white border-white/10'
-                  }`}
-                title="위험 구역 히트맵"
-              >
-                <Activity size={18} />
-              </button>
-              <button
                 onClick={() => setIsDashboardOpen(true)}
                 className={`w-10 h-10 bg-gray-900/80 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${isDashboardOpen ? 'text-cyber-cyan border-cyber-cyan/50 shadow-neon-cyan' : 'text-white border-white/10'
                   }`}
@@ -973,7 +964,6 @@ function App() {
               data={locations}
               rideConfig={rideConfig}
               tagoPms={tagoPms}
-              showHeatmap={showHeatmap}
               showStressLayer={showStressLayer}
               selectedLocation={selectedLocation}
               setSelectedLocation={setSelectedLocation}
