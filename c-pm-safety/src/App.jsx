@@ -884,13 +884,6 @@ function App() {
                 <Users size={18} />
               </button>
 
-              <button
-                onClick={() => setIsHelmetAIOpen(true)}
-                className="w-10 h-10 bg-purple-600/80 backdrop-blur-md rounded-xl border border-purple-400/30 flex items-center justify-center text-white"
-                title="테스트 AI 헬멧 인식 강제 오픈"
-              >
-                <Shield size={18} />
-              </button>
             </div>
           )}
 
