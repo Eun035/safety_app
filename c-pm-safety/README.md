@@ -241,6 +241,30 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 
 ## 📜 개발 이력 (Changelog)
 
+### [2026-05-28] 주행 시작 흐름 연결 + 헬멧 인증 마일리지
+
+#### ✅ 출발지→목적지→…→헬멧 인증 흐름 단절 복구
+- `App.jsx`의 `RideSettings`에 `onNext` prop 누락으로 "Apply & Next" 클릭이 `onClose`만 호출되던 문제 해결
+- `setIsVehicleSelectOpen(true)` 호출 위치가 코드 전체에 0건이라 `VehicleSelectModal`이 영원히 안 뜨던 상태
+- 완성 흐름: **START → 목적지 → 안전경로 → 주행설정 → 차량선택 → 헬멧인증(+100P) → 주행**
+
+#### ✅ 헬멧 인증 보상 서버 영속화 (+100P)
+- 기존: 로컬 `coupons` state에만 쿠폰 추가 → 다른 디바이스에서 보이지 않음
+- 변경: `supabase profiles.points` upsert + `toast` "+100P 적립" 즉시 피드백
+- 패턴은 퀴즈 완료(+500P) / 주행 종료 합법주차(+100P)와 동일. 게스트 사용자는 스킵
+- 미션 `helmet_streak_3` progressMission 호출은 그대로 유지
+
+#### 🚧 후속 필수 작업 (실서비스 진입 전)
+헬멧 인증은 현재 **데모 수준**이며 실제 안전 검증 기능을 하지 않음.
+
+1. **모델 교체**: `dummy_helmet.onnx` → 실제 헬멧 검출 모델 + `useEdgeAI`의 confidence threshold 강화
+2. **우회 차단**: 헬멧 미인증 상태에서 앱 강제 종료·재시작으로 우회 시도 시 마일리지 차단 + 안전점수 감점
+3. 이 두 작업이 끝나기 전엔 헬멧 +100P 적립 / `helmet_streak_3` 미션 자동 완료 / RSI 산식의 헬멧 가중치(`AdminDashboard.jsx`의 H=95 시뮬레이션값) 모두 정확성 보장 불가
+
+> 코드 주석에도 명시: `App.jsx:1306-1307` "DEMO: Edge AI 헬멧 인증 — 현재 더미 모델이라 실제 헬멧 미착용도 통과 가능. 실서비스 시 confidence threshold 강화 필요."
+
+---
+
 ### [2026-05-27] Epic 10: 데이터 파이프라인 강화 (P0~P2-A)
 
 운영 데이터의 single source of truth를 서버로 이전하고, 분석 가속·라이더 인사이트 위젯·B2G 정책 시각화까지 한 사이클 완성.
