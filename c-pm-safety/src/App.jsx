@@ -310,10 +310,14 @@ function App() {
     console.log("[C-Safe] App Initialized. State persistence active.");
   }, []);
 
-  // 🗺️ route_ready 시 Safe Corridor 자동 표시
+  // 🪖 route_ready 시 헬멧 인증 모달로 직행 (목적지 설정 → 바로 헬멧 인증)
+  // 이전엔 SafeCorridor → RideSettings → VehicleSelect → HelmetAuth 5단계 시트
+  // 자동 체인이었으나, 중간 단계에서 사용자가 빠져나가 헬멧 인증에 도달 못하는
+  // 문제가 있어 단순화. SafeCorridor/RideSettings/VehicleSelect 컴포넌트는 그대로
+  // 보존되어 추후 도구 패널 등에서 별도 진입 가능.
   useEffect(() => {
     if (navStep === 'route_ready' && routeDestination) {
-      setIsSafeCorridorOpen(true);
+      setIsHelmetAIOpen(true);
     } else if (navStep === 'idle') {
       setIsSafeCorridorOpen(false);
       setIsNavLaunchOpen(false);
