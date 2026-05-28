@@ -241,27 +241,94 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 
 ## 📜 개발 이력 (Changelog)
 
-### [2026-05-28] 주행 시작 흐름 연결 + 헬멧 인증 마일리지
+### [2026-05-28] 헬멧 인증 풀 사이클 + UI 정리 + 퀴즈 개편
 
-#### ✅ 출발지→목적지→…→헬멧 인증 흐름 단절 복구
-- `App.jsx`의 `RideSettings`에 `onNext` prop 누락으로 "Apply & Next" 클릭이 `onClose`만 호출되던 문제 해결
-- `setIsVehicleSelectOpen(true)` 호출 위치가 코드 전체에 0건이라 `VehicleSelectModal`이 영원히 안 뜨던 상태
-- 완성 흐름: **START → 목적지 → 안전경로 → 주행설정 → 차량선택 → 헬멧인증(+100P) → 주행**
+오늘 11개 커밋. 주행 시작·종료 양 끝에 헬멧 거점 인증 단계를 신설하고, 흐름을 3단계로 단축. PersonalLog·도구 패널의 mock/중복 자산을 대대적으로 정리하고 안전 퀴즈를 13문항으로 확대.
 
-#### ✅ 헬멧 인증 보상 서버 영속화 (+100P)
-- 기존: 로컬 `coupons` state에만 쿠폰 추가 → 다른 디바이스에서 보이지 않음
-- 변경: `supabase profiles.points` upsert + `toast` "+100P 적립" 즉시 피드백
-- 패턴은 퀴즈 완료(+500P) / 주행 종료 합법주차(+100P)와 동일. 게스트 사용자는 스킵
-- 미션 `helmet_streak_3` progressMission 호출은 그대로 유지
+#### 🪖 헬멧 인증 풀 사이클 (시작 거점 선택 → AI 인증 → 주행 → 반납 인증)
 
-#### 🚧 후속 필수 작업 (실서비스 진입 전)
+**최종 흐름:** `START → 목적지 → 🪖 거점 선택 → 🪖 AI 인증(+100P) → 주행 → 🅿️ 합법 주차(+100P) → 🏆 반납 인증(+100P) → 결제 → 요약`
+
+| 단계 | 신규 컴포넌트 | 보상 |
+|---|---|---|
+| **시작 헬멧 거점 선택** | `components/common/HelmetStationSelector.jsx` | — |
+| **헬멧 AI 인증** | (기존 `HelmetDetectionCamera.jsx`) | +100P (Supabase profiles.points upsert) |
+| **헬멧 반납 인증** | `components/common/HelmetReturnSheet.jsx` | +100P |
+
+**신규 시드:** `data/helmet_stations.json` — 천안 단대~신부동·두정동 일대 가상 거점 10개 (STATION 5 + STORE 5). 필드: `id/name/type/lat/lng/address/hours/helmetCount/brandPartners[]`
+
+**거점 선택 시트 (시작):**
+- 목적지 반경 800m 이내 거점 우선 표시 (최대 8개, `calculateDistance` Haversine)
+- 반경 내 없으면 가장 가까운 5개 자동 표시
+- 카드: 타입 배지(STATION=cyan / STORE=amber), 거리, 운영시간, 헬멧 수량, 제휴 브랜드
+- 하단 **"선택안함 (헬멧 지참)"** 전폭 버튼. backdrop/X = 선택안함과 동일 처리
+
+**반납 인증 시트 (종료):**
+- 시작 시 선택한 거점(`selectedHelmetStation`)이 있으면 그 카드를 cyan 강조 + "내가 선택" 배지로 우선 표시
+- 없으면 주행 종료 위치 기준 가장 가까운 3개 거점 자동 추천
+- 거점 클릭 시 +100P 적립 + "🏆 OOO에 반납 인증 완료!" 토스트 + 로컬 쿠폰 push + 결제 영수증 진입
+- 하단 **"건너뛰기 (반납 인증 안 함)"** 버튼
+
+**보상 누적 (사이클 완성 시 300P):** 시작 인증 100 + 합법 주차 100 + 반납 인증 100. 퀴즈 +500P 대비 적정 균형.
+
+#### ✏️ 주행 시작 흐름 단축 (5단계 자동 체인 → 3단계)
+
+**Before:** START → 목적지 → SafeCorridor → RideSettings → VehicleSelect → HelmetAuth → 주행 (5단계 시트가 줄줄이)
+
+**After:** START → 목적지 → 🪖 거점 선택 → 🪖 AI 인증 → 주행 (3단계 + 헬멧 사이클)
+
+- SafeCorridor / RideSettings / VehicleSelect 자동 트리거 제거 (코드는 보존, 추후 도구 패널 진입 버튼 추가 시 재활용 가능)
+- 중간 결손: `RideSettings.onNext` prop 누락(`onClose`만 호출되어 VehicleSelect 영영 안 뜸) + `setIsVehicleSelectOpen(true)` 호출 0건이던 흐름 단절 동시 해결
+- 차량 종류는 `rideConfig.isBicycleMode` 기본값(false=킥보드)로 고정
+
+#### 📊 PersonalLog (`PersonalInsights`) 효용성 강화 — Mock 5건 제거
+
+| # | 변경 | Before | After |
+|---|---|---|---|
+| 1 | 주간 변화율 | "12%" 하드코딩 | 실제 7일 vs 직전 7일 변화율, 케이스별 분기(없음/0/↑/↓) |
+| 2 | 막대그래프 | `[30,45,25,60,40,80,50]` 가짜 | 최근 7일 일별 거리 실측 + 요일 라벨(오늘 강조) |
+| 3 | Total Effort 카드 | "N Sessions" 의미 모호 | **AVG SAFETY (RSR %)** — 안전 운전 습관 한눈에 |
+| 4 | Top Destinations 빈 메시지 | "주행 기록을 쌓아 분석을 확인하세요!" (거짓말) | "목적지 텍스트 저장 기능 준비 중" (정직 + 후속 명시) |
+| 5 | View All History | onClick 없음 (죽은 버튼) | "View Full Impact" + ShadowImpact 시트 오픈 연결 |
+
+부수: `getRideTs(r)` 유틸로 Supabase `start_time`/localStorage `date` 양쪽 timestamp 파싱 일원화 (Supabase 로드 데이터가 누락되던 버그 동시 해결)
+
+#### 🧹 UI 정리 (메인 도구 패널)
+
+- **위험 구역 히트맵 토글 제거** (주황 Activity 아이콘): AdminDashboard "Near-Miss Cluster Map"(P2-A, 동적 RPC) + ShadowImpact "시간대 위험 패턴"(P1-2, 실데이터)과 중복. 정적 `accidentHeatmap.json` mock 기반이라 혼란 유발 → 코드 + 정적 파일 통째 삭제 (87줄 순감소, MapContainer 6개 분기 동시 정리)
+- **디버그용 헬멧 강제 진입 버튼 제거** (보라 Shield 아이콘, `title="테스트 AI 헬멧 인식 강제 오픈"`): 정상 흐름이 완전 연결되어 중복 + 부정 적립 경로(임의 +100P 획득) 차단
+
+#### 📝 안전 퀴즈 개편 (8 → 13문항, 정답 확인 딜레이 2초)
+
+- `quiz_q7` (무면허 벌금) 삭제 — 4개 언어 모두
+- 5개 신규 문항 추가 — 4개 언어 모두 (총 40 라인 i18n)
+  - q10 (X): 주행 중 휴대폰 사용 허용?
+  - q11 (X): 음주 운전 적발 시 1만 원 이하 벌금만?
+  - q12 (O): 횡단보도에서 내려서 끌고 가야?
+  - q13 (O): 양쪽 이어폰 착용은 청각 차단으로 위험?
+  - q14 (O): 주행 종료 후 차도/인도 무단 방치는 도로교통법 위반?
+- 정답 분포: X=6 / O=7 (균형)
+- 매 시도마다 13문항 중 랜덤 3개 추출
+- 정답 확인 후 다음 문항 진행 딜레이 1.5초 → **2초** (해설 가독 시간 확보)
+
+#### 🚧 후속 필수 작업 (실서비스 진입 전, 상시 체크사항)
+
 헬멧 인증은 현재 **데모 수준**이며 실제 안전 검증 기능을 하지 않음.
 
 1. **모델 교체**: `dummy_helmet.onnx` → 실제 헬멧 검출 모델 + `useEdgeAI`의 confidence threshold 강화
 2. **우회 차단**: 헬멧 미인증 상태에서 앱 강제 종료·재시작으로 우회 시도 시 마일리지 차단 + 안전점수 감점
-3. 이 두 작업이 끝나기 전엔 헬멧 +100P 적립 / `helmet_streak_3` 미션 자동 완료 / RSI 산식의 헬멧 가중치(`AdminDashboard.jsx`의 H=95 시뮬레이션값) 모두 정확성 보장 불가
+3. 이 두 작업이 끝나기 전엔 헬멧 인증/반납 +200P / `helmet_streak_3` 미션 자동 완료 / RSI 산식 헬멧 가중치(H=95 시뮬레이션값) 모두 정확성 보장 불가
 
-> 코드 주석에도 명시: `App.jsx:1306-1307` "DEMO: Edge AI 헬멧 인증 — 현재 더미 모델이라 실제 헬멧 미착용도 통과 가능. 실서비스 시 confidence threshold 강화 필요."
+> 디버그 강제 진입 버튼 제거(2026-05-28)로 *가장 큰 우회 경로 하나*는 봉쇄됨. 나머지는 모델 교체와 함께 해결 예정.
+
+#### 🪛 향후 후속 가능 작업 (미해결, 우선순위 낮음)
+
+- TOP DESTINATIONS 가동: `rides` 테이블에 `to_loc_text` 컬럼 추가 + `endRideSession`이 검색바 목적지 텍스트 함께 저장
+- 도구 패널에 SafeCorridor / RideSettings 진입 버튼 추가 (자동 흐름에서 빠진 컴포넌트 복원)
+- 선택한 헬멧 거점을 `rides` 테이블에 `helmet_station_id`로 저장 (어느 거점 빌렸는지 추적)
+- 거점 데이터를 Supabase 테이블로 승격 (`helmet_stations`) — 동적 추가/운영
+- 헬멧 인증 토스트 중복(`HelmetDetectionCamera.handleSuccess` 내부 + App.jsx onSuccess 두 곳) 정리
+- `HelmetDetectionCamera`가 존재하지 않을 수 있는 `ride_logs` 테이블에 insert 시도 — 정리 필요
 
 ---
 
