@@ -31,6 +31,7 @@ import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import UserProfileSheet from './components/common/UserProfileSheet';
 import HelmetStationSelector from './components/common/HelmetStationSelector';
+import HelmetReturnSheet from './components/common/HelmetReturnSheet';
 import RewardWalletSheet from './components/common/RewardWalletSheet';
 // 5순위: AdminDashboard 레이지 로딩 — 초기 번들 ~39KB 절감
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
@@ -297,6 +298,7 @@ function App() {
   const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
   const [isHelmetStationOpen, setIsHelmetStationOpen] = useState(false);
   const [selectedHelmetStation, setSelectedHelmetStation] = useState(null);
+  const [isHelmetReturnOpen, setIsHelmetReturnOpen] = useState(false);
   const [qrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
@@ -672,8 +674,8 @@ function App() {
       });
     }
 
-    // Instead of RideSummaryModal directly, show Payment first
-    setIsPaymentReceiptOpen(true);
+    // 🪖 헬멧 반납 인증 시트 노출 (반납 시 +100P, 건너뛰기 가능) → 이후 결제 영수증
+    setIsHelmetReturnOpen(true);
   };
 
   const handlePaymentComplete = () => {
@@ -1310,6 +1312,53 @@ function App() {
             setSelectedHelmetStation(null);
             setIsHelmetStationOpen(false);
             setIsHelmetAIOpen(true);
+          }}
+        />
+
+        {/* 🪖 헬멧 반납 인증 시트 — 합법 주차 종료 직후, 결제 영수증 진입 직전 */}
+        <HelmetReturnSheet
+          isOpen={isHelmetReturnOpen}
+          selectedStation={selectedHelmetStation}
+          endLat={location?.lat ?? userLat}
+          endLng={location?.lng ?? userLng}
+          rewardPoints={100}
+          onConfirm={(station) => {
+            const HELMET_RETURN_REWARD = 100;
+            // 💰 Supabase profiles.points 서버 영속화 (시작 인증 +100P와 동일 패턴)
+            if (user?.id && !String(user.id).startsWith('guest_')) {
+              supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
+                .then(({ data }) => {
+                  const currentPoints = data?.points || 0;
+                  return supabase.from('profiles')
+                    .upsert({ id: user.id, points: currentPoints + HELMET_RETURN_REWARD })
+                    .then(() => loadUser());
+                })
+                .catch(err => console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', err?.message || err));
+            }
+            // 로컬 쿠폰에도 흔적 (시작 인증 패턴과 동일)
+            setCoupons(prev => [{
+              id: Date.now(),
+              shopName: `헬멧 반납 인증 (${station.name})`,
+              amount: `+${HELMET_RETURN_REWARD}P`,
+              issuedAt: new Date().toLocaleDateString(),
+              type: '안전 보상',
+              status: 'active'
+            }, ...prev]);
+            toast(`🏆 ${station.name}에 반납 인증 완료! +${HELMET_RETURN_REWARD}P 적립`, 'success');
+            setIsHelmetReturnOpen(false);
+            setSelectedHelmetStation(null);
+            setIsPaymentReceiptOpen(true);
+          }}
+          onSkip={() => {
+            setIsHelmetReturnOpen(false);
+            setSelectedHelmetStation(null);
+            setIsPaymentReceiptOpen(true);
+          }}
+          onClose={() => {
+            // backdrop/X 클릭 = 건너뛰기와 동일 처리 (결제 흐름은 계속 진행)
+            setIsHelmetReturnOpen(false);
+            setSelectedHelmetStation(null);
+            setIsPaymentReceiptOpen(true);
           }}
         />
 
