@@ -10,7 +10,8 @@ const SafetyQuiz = ({ onComplete }) => {
     /** * [2026 최신 법규 반영 데이터]
      * 1. 2인 탑승 허용 (X)   2. 인도 주행 원칙 (X)      3. 안전모 착용 의무 (O)
      * 4. 시속 25km 초과 (X)  5. 음주 후 운행 가능 (X)    6. 기본 점검 필수 (O)
-     * 7. 무면허 벌금 (O)      8. 야간 전조등 필수 (O)    9. 13세 미만 금지 (O)
+     * 8. 야간 전조등 필수 (O)  9. 13세 미만 금지 (O)
+     * (quiz_q7 무면허 항목은 2026-05-28 삭제 — 키 번호는 호환성 위해 유지)
      */
     const quizDataArray = [
         { question: t("quiz_q1"), answer: false, desc: t("quiz_desc1") },
@@ -19,7 +20,6 @@ const SafetyQuiz = ({ onComplete }) => {
         { question: t("quiz_q4"), answer: false, desc: t("quiz_desc4") },
         { question: t("quiz_q5"), answer: false, desc: t("quiz_desc5") }, // 음주 운행 불가능 (X)
         { question: t("quiz_q6"), answer: true, desc: t("quiz_desc6") },
-        { question: t("quiz_q7"), answer: true, desc: t("quiz_desc7") },
         { question: t("quiz_q8"), answer: true, desc: t("quiz_desc8") },
         { question: t("quiz_q9"), answer: true, desc: t("quiz_desc9") },
     ];
