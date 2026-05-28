@@ -30,6 +30,7 @@ import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
 import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import UserProfileSheet from './components/common/UserProfileSheet';
+import HelmetStationSelector from './components/common/HelmetStationSelector';
 import RewardWalletSheet from './components/common/RewardWalletSheet';
 // 5순위: AdminDashboard 레이지 로딩 — 초기 번들 ~39KB 절감
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
@@ -294,6 +295,8 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [, setRideSummaryPhoto] = useState(null);
   const [isHelmetAIOpen, setIsHelmetAIOpen] = useState(false);
+  const [isHelmetStationOpen, setIsHelmetStationOpen] = useState(false);
+  const [selectedHelmetStation, setSelectedHelmetStation] = useState(null);
   const [qrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
 
@@ -310,17 +313,17 @@ function App() {
     console.log("[C-Safe] App Initialized. State persistence active.");
   }, []);
 
-  // 🪖 route_ready 시 헬멧 인증 모달로 직행 (목적지 설정 → 바로 헬멧 인증)
-  // 이전엔 SafeCorridor → RideSettings → VehicleSelect → HelmetAuth 5단계 시트
-  // 자동 체인이었으나, 중간 단계에서 사용자가 빠져나가 헬멧 인증에 도달 못하는
-  // 문제가 있어 단순화. SafeCorridor/RideSettings/VehicleSelect 컴포넌트는 그대로
-  // 보존되어 추후 도구 패널 등에서 별도 진입 가능.
+  // 🪖 route_ready 시 헬멧 거점 선택 시트 노출 (목적지 → 헬멧 거점 선택 → 헬멧 인증)
+  // 사용자가 목적지 근처 헬멧 스테이션/스토어 중에서 선택 또는 "선택안함"으로 다음
+  // 단계로. 어느 쪽이든 헬멧 인증 모달로 자동 진입.
   useEffect(() => {
     if (navStep === 'route_ready' && routeDestination) {
-      setIsHelmetAIOpen(true);
+      setIsHelmetStationOpen(true);
     } else if (navStep === 'idle') {
       setIsSafeCorridorOpen(false);
       setIsNavLaunchOpen(false);
+      setIsHelmetStationOpen(false);
+      setSelectedHelmetStation(null);
     }
   }, [navStep, routeDestination]);
 
@@ -1285,6 +1288,29 @@ function App() {
             setIsFavoritesOpen(false);
           }}
           userLocation={{ lat: 36.833, lng: 127.179 }} // Mock user location
+        />
+
+        {/* 🪖 목적지 근처 헬멧 거점 선택 시트 — route_ready 시 자동 노출, 선택/스킵 후 헬멧 인증으로 진입 */}
+        <HelmetStationSelector
+          isOpen={isHelmetStationOpen}
+          destinationLat={routeDestination?.lat}
+          destinationLng={routeDestination?.lng}
+          onClose={() => {
+            // backdrop/X 닫기 = 선택안함 처리 (헬멧 인증으로 계속 진행)
+            setIsHelmetStationOpen(false);
+            setIsHelmetAIOpen(true);
+          }}
+          onSelect={(station) => {
+            setSelectedHelmetStation(station);
+            toast(`🪖 ${station.name} 선택 — 헬멧 인증으로 이동합니다`, 'success');
+            setIsHelmetStationOpen(false);
+            setIsHelmetAIOpen(true);
+          }}
+          onSkip={() => {
+            setSelectedHelmetStation(null);
+            setIsHelmetStationOpen(false);
+            setIsHelmetAIOpen(true);
+          }}
         />
 
         <HelmetDetectionCamera

@@ -1,0 +1,112 @@
+[
+  {
+    "id": "hs-001",
+    "name": "단국대 정문 헬멧 스테이션",
+    "type": "STATION",
+    "lat": 36.8339,
+    "lng": 127.1786,
+    "address": "천안시 동남구 안서동 단국대 정문 앞",
+    "hours": "06:00 - 24:00",
+    "helmetCount": 12,
+    "brandPartners": ["G-Bike", "Swing", "Beam"]
+  },
+  {
+    "id": "hs-002",
+    "name": "공학관 PM 거점",
+    "type": "STATION",
+    "lat": 36.8418,
+    "lng": 127.1862,
+    "address": "천안시 동남구 안서동 단국대 공학관",
+    "hours": "07:00 - 22:00",
+    "helmetCount": 8,
+    "brandPartners": ["G-Bike", "Dear"]
+  },
+  {
+    "id": "hs-003",
+    "name": "단대 후문 안전 거점",
+    "type": "STATION",
+    "lat": 36.8362,
+    "lng": 127.1842,
+    "address": "천안시 동남구 안서동 단국대 후문",
+    "hours": "24시간",
+    "helmetCount": 6,
+    "brandPartners": ["Swing", "Lime"]
+  },
+  {
+    "id": "hs-004",
+    "name": "GS25 단대 정문점",
+    "type": "STORE",
+    "lat": 36.8334,
+    "lng": 127.1791,
+    "address": "천안시 동남구 안서동 12-3",
+    "hours": "24시간",
+    "helmetCount": 4,
+    "brandPartners": ["Swing"]
+  },
+  {
+    "id": "hs-005",
+    "name": "CU 안서점",
+    "type": "STORE",
+    "lat": 36.8355,
+    "lng": 127.1815,
+    "address": "천안시 동남구 안서동 8-12",
+    "hours": "24시간",
+    "helmetCount": 3,
+    "brandPartners": ["G-Bike", "Beam"]
+  },
+  {
+    "id": "hs-006",
+    "name": "이마트24 단대후문점",
+    "type": "STORE",
+    "lat": 36.8371,
+    "lng": 127.1854,
+    "address": "천안시 동남구 안서동 24-1",
+    "hours": "06:00 - 24:00",
+    "helmetCount": 2,
+    "brandPartners": ["Dear", "Alphon"]
+  },
+  {
+    "id": "hs-007",
+    "name": "신부동 환승 거점",
+    "type": "STATION",
+    "lat": 36.8189,
+    "lng": 127.1564,
+    "address": "천안시 동남구 신부동 종합터미널 인근",
+    "hours": "05:30 - 23:30",
+    "helmetCount": 15,
+    "brandPartners": ["G-Bike", "Swing", "Beam", "Lime", "Dear"]
+  },
+  {
+    "id": "hs-008",
+    "name": "두정동 PM 허브",
+    "type": "STATION",
+    "lat": 36.8358,
+    "lng": 127.1469,
+    "address": "천안시 서북구 두정동 575",
+    "hours": "06:00 - 23:00",
+    "helmetCount": 10,
+    "brandPartners": ["Swing", "Beam", "Elecle"]
+  },
+  {
+    "id": "hs-009",
+    "name": "스타벅스 신부점",
+    "type": "STORE",
+    "lat": 36.8195,
+    "lng": 127.1572,
+    "address": "천안시 동남구 신부동 신부광장로 41",
+    "hours": "07:00 - 22:00",
+    "helmetCount": 3,
+    "brandPartners": ["Swing"]
+  },
+  {
+    "id": "hs-010",
+    "name": "메가커피 두정점",
+    "type": "STORE",
+    "lat": 36.8362,
+    "lng": 127.1474,
+    "address": "천안시 서북구 두정동 두정공원로 12",
+    "hours": "07:00 - 23:00",
+    "helmetCount": 2,
+    "brandPartners": ["G-Bike"]
+  }
+]
