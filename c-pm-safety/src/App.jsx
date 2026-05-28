@@ -1147,6 +1147,7 @@ function App() {
           isOpen={isDashboardOpen}
           onClose={() => setIsDashboardOpen(false)}
           history={rideHistory}
+          onOpenShadowImpact={() => setIsShadowSheetOpen(true)}
         />
         <ShadowImpactSheet
           isOpen={isShadowSheetOpen}
