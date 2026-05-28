@@ -81,12 +81,8 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
     onClose();
   };
 
-  // AI가 헬멧을 추론했을 때 자동 처리
-  useEffect(() => {
-    if (isHelmetDetected) {
-      handleSuccess(true);
-    }
-  }, [isHelmetDetected, user, onClose, onSuccess]);
+  // 헬멧 추론 완료 시 자동 통과는 제거 (2026-05-28) — 사용자 명시적 "잠금 해제"
+  // 버튼 클릭이 있어야 다음 단계로 진행되도록 변경. 부정 우회·자동 통과 방지.
 
   if (!isOpen) return null;
 
@@ -190,13 +186,30 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
             </div>
           )}
 
-          {/* 데이터 수집을 위한 강제 패스 버튼 */}
-          <button
-            onClick={() => handleSuccess(false)}
-            className="mt-6 px-6 py-3 bg-white/5 hover:bg-white/10 active:bg-white/20 text-white/70 hover:text-white font-bold text-sm rounded-xl border border-white/10 backdrop-blur-md transition-all shadow-lg w-full max-w-xs flex items-center justify-center gap-2"
-          >
-            {hasPermission === false ? '수동으로 주행 시작하기' : '검증 건너뛰기 (테스트 모드)'}
-          </button>
+          {/* 🔓 잠금 해제 버튼 — isHelmetDetected=true 시 활성화. 사용자 명시적 클릭 필수 */}
+          {hasPermission !== false && (
+            <button
+              onClick={() => handleSuccess(true)}
+              disabled={!isHelmetDetected}
+              className={`mt-6 w-full max-w-xs py-4 rounded-2xl font-black text-base uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                isHelmetDetected
+                  ? 'bg-cyber-green text-black active:scale-95 shadow-neon-green'
+                  : 'bg-white/5 text-gray-600 cursor-not-allowed border border-white/10'
+              }`}
+            >
+              {isHelmetDetected ? '🔓 잠금 해제 · 주행 시작' : '헬멧 인증 대기 중...'}
+            </button>
+          )}
+
+          {/* 권한 거부 시에만 우회 버튼 노출 (테스트용 강제 통과는 제거) */}
+          {hasPermission === false && (
+            <button
+              onClick={() => handleSuccess(false)}
+              className="mt-6 px-6 py-3 bg-white/5 hover:bg-white/10 active:bg-white/20 text-white/70 hover:text-white font-bold text-sm rounded-xl border border-white/10 backdrop-blur-md transition-all shadow-lg w-full max-w-xs flex items-center justify-center gap-2"
+            >
+              수동으로 주행 시작 (카메라 권한 거부 우회)
+            </button>
+          )}
         </div>
       </div>
     </div>
