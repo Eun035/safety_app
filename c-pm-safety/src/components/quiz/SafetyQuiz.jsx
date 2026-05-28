@@ -67,7 +67,7 @@ const SafetyQuiz = ({ onComplete }) => {
 
         setTimeout(() => {
             nextQuiz();
-        }, 1500);
+        }, 2000);
     };
 
     if (isDone) {
