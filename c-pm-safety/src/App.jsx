@@ -1305,15 +1305,29 @@ function App() {
           onSuccess={() => {
             // DEMO: Edge AI 헬멧 인증 — onSuccess는 useEdgeAI의 detectionProgress 100% 시점에 호출되지만
             // 현재 더미 모델이라 실제 헬멧 미착용도 통과 가능. 실서비스 시 confidence threshold 강화 필요.
+            const HELMET_REWARD = 100;
             const newPoint = {
               id: Date.now(),
               shopName: 'AI 헬멧 인증 (선지급)',
-              amount: '+100P',
+              amount: `+${HELMET_REWARD}P`,
               issuedAt: new Date().toLocaleDateString(),
               type: '안전 보상',
               status: 'active'
             };
             setCoupons(prev => [newPoint, ...prev]);
+
+            // 💰 Supabase profiles.points 서버 영속화 (퀴즈/주행종료와 동일 패턴)
+            if (user?.id && !String(user.id).startsWith('guest_')) {
+              supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
+                .then(({ data }) => {
+                  const currentPoints = data?.points || 0;
+                  return supabase.from('profiles')
+                    .upsert({ id: user.id, points: currentPoints + HELMET_REWARD })
+                    .then(() => loadUser());
+                })
+                .catch(err => console.warn('[C-Safe] 헬멧 보상 적립 실패:', err?.message || err));
+            }
+            toast(`🪖 헬멧 인증 완료! +${HELMET_REWARD}P 적립`, 'success');
 
             // 🛡️ 헬멧 착용 상태 기록 (Near-Miss 맥락 데이터)
             helmetOnRef.current = true;
@@ -1352,6 +1366,11 @@ function App() {
         <RideSettings
           isOpen={isRideSettingsOpen}
           onClose={() => setIsRideSettingsOpen(false)}
+          onNext={() => {
+            // 흐름 연결: 출발지 → 목적지 → SafeCorridor → RideSettings → VehicleSelect → HelmetAuth → 주행
+            setIsRideSettingsOpen(false);
+            setIsVehicleSelectOpen(true);
+          }}
           config={rideConfig}
           setConfig={setRideConfig}
         />
