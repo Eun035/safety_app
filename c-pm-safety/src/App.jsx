@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Shield, ShieldCheck, Cloud, AlertTriangle, Moon,
   Layers, Play, Star, Zap, TrendingUp, Download,
-  Sliders, Wallet, Leaf, X, LocateFixed, Share2,
+  Sliders, Wallet, X, LocateFixed, Share2,
   Settings, Users
 } from 'lucide-react';
 
@@ -27,7 +27,6 @@ import RideSummaryModal from './components/common/RideSummaryModal';
 import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
 import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
-import ESGDashboard from './components/common/ESGDashboard';
 import ShadowImpactSheet from './components/common/ShadowImpactSheet';
 import UserProfileSheet from './components/common/UserProfileSheet';
 import HelmetStationSelector from './components/common/HelmetStationSelector';
@@ -240,7 +239,6 @@ function App() {
 
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
-  const [isESGDashboardOpen, setIsESGDashboardOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
   const [rideConfig, setRideConfig] = useState({
@@ -839,13 +837,6 @@ function App() {
                 <Download size={16} />
               </button>
               <button
-                onClick={() => setIsESGDashboardOpen(true)}
-                className="w-10 h-10 bg-cyber-green/80 backdrop-blur-md rounded-xl border border-cyber-green/30 flex items-center justify-center text-white shadow-neon-green"
-                title="ESG 임팩트 대시보드"
-              >
-                <Leaf size={18} />
-              </button>
-              <button
                 onClick={() => setIsRideSettingsOpen(true)}
                 className="w-10 h-10 bg-[#1C1C1E]/80 backdrop-blur-md rounded-xl border border-gray-600/50 flex items-center justify-center text-white shadow-lg"
                 title="주행 환경 설정 (속도/야간/자전거 모드/브랜드)"
@@ -1143,6 +1134,12 @@ function App() {
           userName={profile?.nickname || '라이더'}
           rideHistory={rideHistory}
           getLocalNearMisses={getLocalNearMisses}
+          metrics={{
+            carbonSaved: (profile?.total_distance * 0.2) || 0,
+            safetyScore: profile?.safety_score || 0,
+            hazardReports: historyMetrics.hazardReports || 0,
+            safetyStreak: historyMetrics.safetyStreak || 1
+          }}
         />
         <UserProfileSheet
           isOpen={isProfileSheetOpen}
@@ -1398,18 +1395,6 @@ function App() {
           data={digitalTwinData}
         />
 
-        {/* ESG Dashboard Modal */}
-        <ESGDashboard
-          isOpen={isESGDashboardOpen}
-          onClose={() => setIsESGDashboardOpen(false)}
-          metrics={{
-            carbonSaved: (profile?.total_distance * 0.2).toFixed(1) || 0,
-            safetyScore: profile?.safety_score || 0,
-            hazardReports: historyMetrics.hazardReports || 0,
-            safetyStreak: historyMetrics.safetyStreak || 1
-          }}
-          history={rideHistory}
-        />
 
         {/* 주행 환경 설정 시트 — 도구 패널에서 진입 (속도/야간/자전거모드/브랜드 필터) */}
         <RideSettings

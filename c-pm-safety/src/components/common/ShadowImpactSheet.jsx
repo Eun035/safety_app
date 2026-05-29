@@ -51,7 +51,7 @@ function nearMissToSvgPos(event, path, width = 400, height = 200, padding = 20) 
     return { x: x.toFixed(1), y: y.toFixed(1) };
 }
 
-const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], getLocalNearMisses }) => {
+const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], getLocalNearMisses, metrics }) => {
     const { t } = useTranslation();
 
     // 로컬 아차사고 데이터 — 전체(히트맵용) + 최근 10건(리스트용)
@@ -93,6 +93,20 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
             nearMissCount: nearMisses.length,
         };
     }, [recentRides, nearMisses]);
+
+    // P2 (2026-05-29): 환경/안전 임팩트 — ESG 흡수 후 핵심 4개 지표만 노출
+    const environment = useMemo(() => {
+        const carbonSaved = Number(metrics?.carbonSaved) || 0;
+        const safetyScore = Number(metrics?.safetyScore) || 0;
+        const safetyStreak = Number(metrics?.safetyStreak) || 0;
+        const trees = Math.round((carbonSaved / 2) * 10) / 10;   // 2kg CO₂ ≈ 1그루 (engagement)
+        return {
+            carbonSaved: carbonSaved.toFixed(1),
+            trees: trees.toFixed(1),
+            safetyScore: Math.round(safetyScore),
+            safetyStreak
+        };
+    }, [metrics]);
 
     // P1-2: 최근 14일 RSR 추이 (일별 평균) — Supabase ride_rsr 또는 localStorage rideRsr
     const rsrTrend = useMemo(() => {
@@ -237,6 +251,29 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                         <p className="text-xs text-gray-600">여기에 실제 데이터가 표시됩니다</p>
                                     </div>
                                 )}
+                            </section>
+
+                            {/* ── Card NEW-C (2026-05-29): 환경/안전 임팩트 (ESG 흡수) ── */}
+                            <section className="bg-gradient-to-br from-cyber-green/10 to-black p-4 rounded-[2rem] border border-cyber-green/20 shadow-xl">
+                                <p className="text-[9px] font-black text-cyber-green/70 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                    🌿 환경 · 안전 임팩트
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { label: 'CO₂ 절감', value: `${environment.carbonSaved}kg`, color: '#22c55e' },
+                                        { label: '🌳 나무 식재 환산', value: `${environment.trees}그루`, color: '#22c55e' },
+                                        { label: '안전 점수', value: `${environment.safetyScore}%`, color: '#40ffdc' },
+                                        { label: '🔥 안전 스트릭', value: `${environment.safetyStreak}일`, color: '#f59e0b' },
+                                    ].map(({ label, value, color }) => (
+                                        <div key={label} className="bg-white/5 rounded-xl p-2.5 text-center border border-white/5">
+                                            <p className="text-[9px] text-gray-500 font-bold mb-0.5">{label}</p>
+                                            <p className="text-sm font-black" style={{ color }}>{value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-[9px] text-gray-600 mt-2 text-center leading-tight">
+                                    누적 주행 거리 · 안전 행동 데이터 기반. 2kg CO₂ ≈ 1그루
+                                </p>
                             </section>
 
                             {/* ── Card NEW-A (P1-2): RSR 14일 추이 ── */}
