@@ -1286,7 +1286,7 @@ function App() {
           }}
           onSelect={(station) => {
             setSelectedHelmetStation(station);
-            toast(`🪖 ${station.name} 선택 — 헬멧 인증으로 이동합니다`, 'success');
+            toast(`🪖 헬멧 거점 선택 · ${station.name}`, 'success');
             setIsHelmetStationOpen(false);
             setIsHelmetAIOpen(true);
           }}
@@ -1326,7 +1326,7 @@ function App() {
               type: '안전 보상',
               status: 'active'
             }, ...prev]);
-            toast(`🏆 ${station.name}에 반납 인증 완료! +${HELMET_RETURN_REWARD}P 적립`, 'success');
+            toast(`🪖 헬멧 반납 완료 · ${station.name} · +${HELMET_RETURN_REWARD}P 적립`, 'success');
             setIsHelmetReturnOpen(false);
             setSelectedHelmetStation(null);
             setIsPaymentReceiptOpen(true);
@@ -1372,7 +1372,7 @@ function App() {
                 })
                 .catch(err => console.warn('[C-Safe] 헬멧 보상 적립 실패:', err?.message || err));
             }
-            toast(`🪖 헬멧 인증 완료! +${HELMET_REWARD}P 적립`, 'success');
+            toast(`🪖 헬멧 인증 완료 · +${HELMET_REWARD}P 적립`, 'success');
 
             // 🛡️ 헬멧 착용 상태 기록 (Near-Miss 맥락 데이터)
             helmetOnRef.current = true;

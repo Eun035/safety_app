@@ -189,7 +189,7 @@ const HelmetStationSelector = ({
                                 onClick={() => (onSkip ? onSkip() : onClose?.())}
                                 className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-white/5 hover:bg-white/10 active:bg-white/20 text-gray-300 border border-white/10 transition-all"
                             >
-                                선택안함 (헬멧 지참)
+                                건너뛰기 (헬멧 지참)
                             </button>
                             <p className="text-[10px] text-gray-600 text-center mt-2">
                                 이미 헬멧이 있다면 다음 단계로 진행하세요

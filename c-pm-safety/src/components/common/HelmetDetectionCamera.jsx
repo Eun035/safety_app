@@ -124,7 +124,8 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
             <ShieldCheck size={48} className={`mb-4 transition-colors duration-500 ${isHelmetDetected ? 'text-cyber-green drop-shadow-[0_0_15px_rgba(64,255,100,0.8)]' : 'text-gray-400'}`} />
           </motion.div>
           
-          <h2 className="text-white font-black text-xl mb-2 drop-shadow-md">실시간 헬멧 검증 (Edge AI)</h2>
+          <h2 className="text-white text-[20px] font-black italic tracking-tighter uppercase mb-2 drop-shadow-md">Helmet Verify</h2>
+          <p className="text-[10px] font-bold text-cyber-cyan tracking-wider uppercase">실시간 Edge AI 검증</p>
 
           {hasPermission !== false && (
             <div className="w-full max-w-xs mt-4 bg-black/40 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
