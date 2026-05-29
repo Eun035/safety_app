@@ -2,15 +2,11 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Camera, ShieldCheck, AlertCircle, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEdgeAI } from '../../hooks/useEdgeAI';
-import { supabase } from '../../lib/supabaseClient';
-import { useUserStore } from '../../hooks/useUserStore';
-import { toast } from '../../hooks/useToast';
 
 const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [hasPermission, setHasPermission] = useState(null);
-  const { user } = useUserStore();
 
   const { isModelLoaded, isHelmetDetected, detectionProgress } = useEdgeAI(videoRef, isOpen && hasPermission);
 
@@ -44,39 +40,12 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
     };
   }, [isOpen]);
 
-  // 검증 성공 또는 스킵 시 후속 처리 함수
-  const handleSuccess = async (isVerified) => {
-    try {
-      if (user) {
-        const { error } = await supabase
-          .from('ride_logs')
-          .insert([
-            {
-              user_id: user.id,
-              is_helmet_verified: isVerified,
-              timestamp: new Date().toISOString()
-            }
-          ]);
-
-        if (error) {
-          console.error('Supabase 기록 실패:', error);
-        }
-      }
-    } catch (err) {
-      console.error('기록 에러:', err);
-    }
-
-    // 스트림 정지
+  // 검증 성공 또는 스킵 시 후속 처리 — 스트림 정지 + onSuccess 위임
+  // (ride_logs insert·토스트는 App.jsx onSuccess 콜백 단일 책임으로 통합)
+  const handleSuccess = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
     }
-
-    if (isVerified) {
-      toast('🛡️ 안전 인증 완료! 100P 적립', 'success');
-    } else {
-      toast('⚠️ 헬멧 검증 생략 완료 (데이터 수집 모드)', 'warning');
-    }
-    
     onSuccess?.();
     onClose();
   };
@@ -189,7 +158,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
           {/* 🔓 잠금 해제 버튼 — isHelmetDetected=true 시 활성화. 사용자 명시적 클릭 필수 */}
           {hasPermission !== false && (
             <button
-              onClick={() => handleSuccess(true)}
+              onClick={handleSuccess}
               disabled={!isHelmetDetected}
               className={`mt-6 w-full max-w-xs py-4 rounded-2xl font-black text-base uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                 isHelmetDetected
@@ -204,7 +173,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess }) => {
           {/* 권한 거부 시에만 우회 버튼 노출 (테스트용 강제 통과는 제거) */}
           {hasPermission === false && (
             <button
-              onClick={() => handleSuccess(false)}
+              onClick={handleSuccess}
               className="mt-6 px-6 py-3 bg-white/5 hover:bg-white/10 active:bg-white/20 text-white/70 hover:text-white font-bold text-sm rounded-xl border border-white/10 backdrop-blur-md transition-all shadow-lg w-full max-w-xs flex items-center justify-center gap-2"
             >
               수동으로 주행 시작 (카메라 권한 거부 우회)
