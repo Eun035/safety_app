@@ -96,7 +96,7 @@ src/
 |-------------|------|
 | `profiles` | 사용자 프로필: 포인트, 안전점수, 누적거리, 닉네임 |
 | `hazards` | 커뮤니티 신고 위험 구역 (실시간 Realtime 구독) |
-| `rides` | 주행 세션 기록. ✨ 2026-05-27 컬럼 확장: `top_speed`, `sudden_brake_count`, `duration_minutes`, `ride_rsr`, `helmet_on_pct`, `co2_saved_kg`, `is_legal_park` + 이상치 CHECK 제약 5종 + 인덱스 2종 |
+| `rides` | 주행 세션 기록. ✨ 2026-05-27 컬럼 확장: `top_speed`, `sudden_brake_count`, `duration_minutes`, `ride_rsr`, `helmet_on_pct`, `co2_saved_kg`, `is_legal_park` + 이상치 CHECK 제약 5종 + 인덱스 2종. ✨ 2026-05-29 추가 확장: `to_loc_text` (목적지 텍스트), `helmet_pickup_station_id` (시작 거점), `helmet_return_station_id` (반납 거점) + partial index 3종 |
 | `ride_paths` | 세션별 GPS 경로 좌표 배열 |
 | `near_miss_events` | 아차사고 이벤트 (GPS + 맥락 데이터) |
 | `zone_events` | ✨ NEW (2026-05-27): 위험구역 진출입 이벤트 + 사전계산 `rsr_value`. RSR(Risk Suppression Rate)의 서버 SoT |
@@ -240,6 +240,111 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 ---
 
 ## 📜 개발 이력 (Changelog)
+
+### [2026-05-29] UI 중복 정리 + 데이터 영속화 보강 + Dev 편의성
+
+오늘 6개 커밋. "중복되거나 복잡한 아이콘·기능 정리" 사용자 요청에 따라 5개 영역(Pick 1·2·4·5·6)을 순차 정리하고 dev 환경 QA 편의성도 보강.
+
+#### 🅰️ Pick 1 — 도구 패널 정리 + 죽은 컴포넌트 3개 제거 (`45c52ebb`)
+
+어제 흐름 단축 작업의 부수효과로 자동 트리거에서 빠진 후 진입점 0건이던 컴포넌트들 처리.
+
+- **제거된 컴포넌트 (3개 파일 통째 삭제):**
+  - `StationUnlockScreen` — title="스테이션 언락 테스트", 디버그 잔재
+  - `DrivingConsoleUI` — speedLimit만 조정, RideSettings의 부분집합
+  - `VehicleSelectModal` — RideSettings의 `isBicycleMode` 토글에 이미 동일 기능
+- **도구 패널(FAB Layers) 재구성:**
+  - Before: Dashboard / PWA / 스테이션 언락 / ESG / 주행 콘솔 / 보행자 스트레스 존
+  - After: Dashboard / PWA / ESG / 🆕 **주행 환경 설정** (Sliders, RideSettings) / 🆕 **경로 안전 분석** (ShieldCheck, SafeCorridor) / 보행자 스트레스 존
+  - SafeCorridor 진입 버튼은 `routeDestination` 없으면 disabled
+- 약 408줄 순감소
+
+#### 🅱️ Pick 2 — ESGDashboard → ShadowImpactSheet 흡수 (`2d8c6b03`)
+
+두 시트가 CO₂·도시 기여 데이터를 중복 표시하고 진입점이 분산되어 있던 문제 해소.
+
+- ShadowImpactSheet에 신규 Card "🌿 환경 · 안전 임팩트" — CO₂(kg) / 나무 식재(2kg≈1그루) / 안전 점수(%) / 안전 스트릭(일) 2×2 그리드
+- App.jsx에서 ESG 진입점(도구 패널 Leaf 버튼) + state + 렌더 + import 모두 제거
+- `ESGDashboard.jsx` 파일 삭제 (~300줄 감소)
+- 사용자 진입점 통합: 하단 Activity 탭 1개로 환경 + 라이더 인사이트 모두 노출
+
+#### 🅳 Pick 4 — HelmetDetectionCamera 잡동사니 정리 (`0ff55b81`)
+
+- **ride_logs insert 제거**: 존재하지 않는 테이블 호출(매 인증마다 console.error 발생)
+- **토스트 중복 발화 제거**: HelmetDetectionCamera 내부 + App.jsx onSuccess 양쪽에서 발화하던 토스트를 App.jsx 단일 책임으로 통합
+- handleSuccess 시그니처 단순화 (인자 제거)
+- 미사용 import 정리 (supabase / useUserStore / toast)
+
+#### 🅴 Pick 5 — 헬멧 3화면 일관성 통일 (`dba68a4a`)
+
+- **타이틀 통일**: HelmetDetectionCamera 헤더를 `text-xl` → `text-[20px] font-black italic uppercase` + 서브타이틀 (Selector·Return과 동일 패턴), 텍스트 "Helmet Verify" + "실시간 Edge AI 검증"
+- **보조 액션 라벨 통일**: Selector "선택안함" → "건너뛰기" (Return의 "건너뛰기"와 동사 일치)
+- **토스트 메시지 패턴 통일** — `🪖 헬멧 [동작] · [정보]`
+  - 거점 선택: `🪖 헬멧 거점 선택 · ${station.name}`
+  - 인증 완료: `🪖 헬멧 인증 완료 · +100P 적립`
+  - 반납 완료: `🪖 헬멧 반납 완료 · ${station.name} · +100P 적립`
+- 🏆 이모지는 미션 완료 전용으로 분리
+
+#### 🆕 Pick 6 — rides 컬럼 3개 추가 (`81eef4df`)
+
+README 미해결 후속 작업 2건 동시 처리.
+
+**DB 마이그레이션** ([`supabase_p3_rides_destination_helmet_station.sql`](supabase/migrations/supabase_p3_rides_destination_helmet_station.sql)):
+- `rides.to_loc_text` — 검색바 목적지 텍스트
+- `rides.helmet_pickup_station_id` — 시작 시 선택한 거점 id
+- `rides.helmet_return_station_id` — 반납 인증 거점 id
+- partial index 3종 (NULL 제외, 분석 쿼리 가속)
+
+**코드 변경:**
+- `useRideSession.endRideSession` 시그니처에 `destinationText`, `helmetPickupStationId` 옵션 추가
+- `rideId`를 try 블록 밖으로 이동 → `summary.db_ride_id`로 노출하여 헬멧 반납 시점에 같은 row UPDATE 가능 (게스트는 null)
+- App.jsx의 endRideSession 호출 2곳 모두 `routeDestination?.title` + `selectedHelmetStation?.id` 전달
+- `HelmetReturnSheet.onConfirm`에 `rides.helmet_return_station_id` UPDATE 추가
+
+**자동 가동되는 기능 (마이그레이션 실행 후):**
+- PersonalLog **TOP DESTINATIONS** 카드 (이전 "Coming soon" → 실데이터 누적 빈도 TOP 3)
+- 헬멧 거점별 사용 패턴 / 시작-반납 매칭 데이터 (B2G 분석 + 개인 사이클 추적)
+
+#### 🛠️ Dev 편의성 — 로컬에서 안전 퀴즈 항상 노출 (`3dc9c363`)
+
+`csafe_quiz_meta` localStorage에 통과 기록이 누적되면 어제 작업한 정책(만점/15일/누적 10회+)에 따라 매번 건너뛰어 QA·확인이 번거로움.
+
+```js
+// App.jsx quizGateDecision useEffect
+if (import.meta.env.DEV) {
+  setQuizGateDecision(true);
+  return;
+}
+```
+
+- **로컬 dev (npm run dev)**: 항상 퀴즈 노출
+- **운영 빌드 (Vercel)**: 어제 정책(만점 미달 / 15일 경과 / 누적 10회 미만 확률) 그대로 적용
+
+#### 🔴 운영 체크리스트 — Supabase Dashboard SQL Editor에서 마이그레이션 1건 실행 필요
+
+```
+c-pm-safety/supabase/migrations/supabase_p3_rides_destination_helmet_station.sql
+```
+
+검증 쿼리:
+```sql
+SELECT '컬럼' AS 항목, count(*)::text AS 개수, '3이면 정상' AS 기대
+FROM information_schema.columns
+WHERE table_schema='public' AND table_name='rides'
+  AND column_name IN ('to_loc_text','helmet_pickup_station_id','helmet_return_station_id')
+UNION ALL
+SELECT '인덱스', count(*)::text, '3이면 정상' FROM pg_indexes
+WHERE schemaname='public' AND tablename='rides'
+  AND indexname IN ('idx_rides_to_loc_text','idx_rides_helmet_pickup_station','idx_rides_helmet_return_station');
+```
+
+#### 🚧 미해결 후속 (별도 일정)
+
+- **하단 5탭 재정의** (Pick 3) — VIBE/Activity/Wallet/Saved/Profile 통합·정리. 사용자가 매번 보는 핵심 UI라 큰 UX 변화이므로 신중 진행
+- **헬멧 거점 Supabase 테이블 승격** — `helmet_stations.json` → `public.helmet_stations`로 운영 유연성 확보
+- **헬멧 인증 모델 교체** — `dummy_helmet.onnx` → 실제 검출 모델 + threshold 강화 + 입력 위변조 차단 (실서비스 진입 필수)
+
+---
 
 ### [2026-05-28] 헬멧 인증 풀 사이클 + UI 정리 + 퀴즈 개편
 
