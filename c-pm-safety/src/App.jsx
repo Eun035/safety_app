@@ -118,6 +118,12 @@ function App() {
     if (!hasAgreedDisclaimer) return;
     if (quizGateDecision !== null) return;
 
+    // 🛠️ Dev 모드(로컬)에서는 항상 퀴즈 노출 — QA/확인 편의. 운영 빌드에선 정책 적용.
+    if (import.meta.env.DEV) {
+      setQuizGateDecision(true);
+      return;
+    }
+
     const decide = () => {
       if (!quizMeta.lastCompletedAt) return true;
       if ((quizMeta.lastCorrectCount ?? 0) < 3) return true;
