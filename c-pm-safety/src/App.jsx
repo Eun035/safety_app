@@ -629,11 +629,21 @@ function App() {
         // 비합법 주차: 페널티 모달 표시 + 보상 차단
         speak(t('tts_parking_illegal'));
         setParkingGeofenceModal({ isOpen: true, success: false });
-        await endRideSession(user?.id, { isLegalPark: false, helmetOn: helmetOnRef.current }); // 주행 기록은 저장하되 +100P 보상 제외
+        await endRideSession(user?.id, {
+          isLegalPark: false,
+          helmetOn: helmetOnRef.current,
+          destinationText: routeDestination?.title || routeDestination?.name || null,
+          helmetPickupStationId: selectedHelmetStation?.id || null
+        }); // 주행 기록은 저장하되 +100P 보상 제외
         return; // 결제 모달 진입 차단
       }
 
-      const summary = await endRideSession(user?.id, { isLegalPark: true, helmetOn: helmetOnRef.current });
+      const summary = await endRideSession(user?.id, {
+        isLegalPark: true,
+        helmetOn: helmetOnRef.current,
+        destinationText: routeDestination?.title || routeDestination?.name || null,
+        helmetPickupStationId: selectedHelmetStation?.id || null
+      });
       if (summary) {
         setFinalRideSummary(summary);
 
@@ -1316,6 +1326,16 @@ function App() {
                     .then(() => loadUser());
                 })
                 .catch(err => console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', err?.message || err));
+
+              // 🪖 rides.helmet_return_station_id 기록 (이번 주행 row 보강)
+              if (finalRideSummary?.db_ride_id) {
+                supabase.from('rides')
+                  .update({ helmet_return_station_id: station.id })
+                  .eq('id', finalRideSummary.db_ride_id)
+                  .then(({ error }) => {
+                    if (error) console.warn('[C-Safe] helmet_return_station_id UPDATE 실패:', error?.message || error);
+                  });
+              }
             }
             // 로컬 쿠폰에도 흔적 (시작 인증 패턴과 동일)
             setCoupons(prev => [{

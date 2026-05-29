@@ -204,7 +204,12 @@ export const useRideSession = create((set, get) => ({
         };
     }),
 
-    endRideSession: async (userId, { isLegalPark = true, helmetOn = false } = {}) => {
+    endRideSession: async (userId, {
+        isLegalPark = true,
+        helmetOn = false,
+        destinationText = null,
+        helmetPickupStationId = null
+    } = {}) => {
         const state = get();
         if (!state.isRiding) return null;
 
@@ -248,8 +253,18 @@ export const useRideSession = create((set, get) => ({
             console.warn('[C-Safe] zone events 로컬 저장 실패:', err);
         }
 
+        const isGuest = userId?.toString().startsWith('guest_');
+
+        // P0-3 + 2026-05-29: ride_id를 클라이언트에서 미리 생성. 정상 사용자는 supabase
+        // rides 테이블의 PK로 사용되고, 게스트는 localStorage 캐시 id로만 활용. summary에
+        // 포함되어 헬멧 반납 시점에 같은 row를 UPDATE할 수 있게 함.
+        const rideId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : `ride-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
         const summary = {
             id: `ride-${Date.now()}`,
+            db_ride_id: (userId && !isGuest) ? rideId : null,   // supabase rides.id (헬멧 반납 UPDATE용)
             date: new Date().toLocaleDateString(),
             distance: finalDistance,
             time: durationMinutes,
@@ -261,17 +276,10 @@ export const useRideSession = create((set, get) => ({
         };
 
         // 1. Supabase 'rides' 테이블에 저장 (비동기) - 게스트 모드일 경우 스킵
-        const isGuest = userId?.toString().startsWith('guest_');
         if (userId && !isGuest) {
             try {
                 const isSafe = state.suddenBrakeCount === 0;
                 const helmetOnPct = helmetOn ? 100 : 0;
-
-                // P0-3: ride_id를 클라이언트에서 미리 생성하여 rides insert가 실패해도
-                // ride_paths/zone_events가 같은 id 참조로 큐에 적재될 수 있게 함.
-                const rideId = (typeof crypto !== 'undefined' && crypto.randomUUID)
-                    ? crypto.randomUUID()
-                    : `ride-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
                 const ridePayload = {
                     id: rideId,
@@ -286,7 +294,9 @@ export const useRideSession = create((set, get) => ({
                     ride_rsr: rideRsr !== null ? Math.round(rideRsr * 100) / 100 : null,
                     helmet_on_pct: helmetOnPct,
                     co2_saved_kg: Number((state.totalDistance * 0.2).toFixed(2)),
-                    is_legal_park: isLegalPark
+                    is_legal_park: isLegalPark,
+                    to_loc_text: destinationText,
+                    helmet_pickup_station_id: helmetPickupStationId
                 };
 
                 // P0-3: 모든 insert는 try-catch + enqueue 패턴
