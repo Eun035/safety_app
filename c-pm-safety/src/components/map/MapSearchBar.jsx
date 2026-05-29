@@ -234,7 +234,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                         <button
                             key={idx}
                             onClick={() => handlePresetClick(preset.query)}
-                            className="shrink-0 px-3 py-1.5 bg-[#0e1724]/90 backdrop-blur-md border border-white/5 hover:border-cyber-cyan/30 rounded-xl text-[10px] font-black text-gray-300 hover:text-cyber-cyan transition-all duration-300 shadow-md"
+                            className="shrink-0 px-3.5 py-2 bg-white/15 backdrop-blur-md border border-white/30 hover:bg-cyber-cyan/20 hover:border-cyber-cyan/60 active:scale-95 rounded-xl text-[11px] font-black text-white hover:text-cyber-cyan transition-all duration-300 shadow-lg shadow-black/20"
                         >
                             {label}
                         </button>
