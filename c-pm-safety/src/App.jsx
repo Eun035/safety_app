@@ -1,9 +1,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Shield, Cloud, AlertTriangle, Moon,
+  Shield, ShieldCheck, Cloud, AlertTriangle, Moon,
   Layers, Play, Star, Zap, TrendingUp, Download,
-  Sliders, Wallet, Unlock, Leaf, X, LocateFixed, Share2,
+  Sliders, Wallet, Leaf, X, LocateFixed, Share2,
   Settings, Users
 } from 'lucide-react';
 
@@ -41,19 +41,16 @@ import { useRideSession } from './hooks/useRideSession';
 import { useSafetyGrid } from './hooks/useSafetyGrid';
 import StationRewardModal from './components/common/StationRewardModal';
 import DropAndGoModal from './components/common/DropAndGoModal';
-import StationUnlockScreen from './components/common/StationUnlockScreen';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
-import DrivingConsoleUI from './components/common/DrivingConsoleUI';
 import ProfileEditModal from './components/common/ProfileEditModal';
 import AISafetyCoach from './components/common/AISafetyCoach';
 import { useNearMissEngine } from './hooks/useNearMissEngine';
 import { useBeginnerMissions } from './hooks/useBeginnerMissions';
 import SafeCorridorSheet from './components/common/SafeCorridorSheet';
 import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
-import VehicleSelectModal from './components/common/VehicleSelectModal';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -86,7 +83,6 @@ function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
-  const [isDrivingConsoleOpen, setIsDrivingConsoleOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
@@ -241,8 +237,6 @@ function App() {
   const [finalRideSummary, setFinalRideSummary] = useState(null);
   const [isDropAndGoOpen, setIsDropAndGoOpen] = useState(false);
   const [selectedDropStation, setSelectedDropStation] = useState(null);
-  const [isStationUnlockOpen, setIsStationUnlockOpen] = useState(false);
-  const [isVehicleSelectOpen, setIsVehicleSelectOpen] = useState(false);
 
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
@@ -741,16 +735,6 @@ function App() {
       >
 
         {/* Phase Station: Unlock & Sterilization Screen */}
-        {isStationUnlockOpen && (
-          <StationUnlockScreen
-            onClose={() => setIsStationUnlockOpen(false)}
-            onUnlockComplete={() => {
-              setIsStationUnlockOpen(false);
-              toast("🔓 스테이션 잠금이 해제되었습니다. 주행을 시작하세요!", "success");
-            }}
-          />
-        )}
-        
         {/* Phase 26: Real-time Hazard Alert Overlay */}
         <HazardAlertOverlay activeHazard={activeHazard} />
 
@@ -855,13 +839,6 @@ function App() {
                 <Download size={16} />
               </button>
               <button
-                onClick={() => setIsStationUnlockOpen(true)}
-                className="w-10 h-10 bg-blue-600/80 backdrop-blur-md rounded-xl border border-blue-400/30 flex items-center justify-center text-white"
-                title="스테이션 언락 테스트"
-              >
-                <Unlock size={18} />
-              </button>
-              <button
                 onClick={() => setIsESGDashboardOpen(true)}
                 className="w-10 h-10 bg-cyber-green/80 backdrop-blur-md rounded-xl border border-cyber-green/30 flex items-center justify-center text-white shadow-neon-green"
                 title="ESG 임팩트 대시보드"
@@ -869,11 +846,23 @@ function App() {
                 <Leaf size={18} />
               </button>
               <button
-                onClick={() => setIsDrivingConsoleOpen(true)}
+                onClick={() => setIsRideSettingsOpen(true)}
                 className="w-10 h-10 bg-[#1C1C1E]/80 backdrop-blur-md rounded-xl border border-gray-600/50 flex items-center justify-center text-white shadow-lg"
-                title="맞춤형 주행 콘솔"
+                title="주행 환경 설정 (속도/야간/자전거 모드/브랜드)"
               >
                 <Sliders size={18} />
+              </button>
+              <button
+                onClick={() => setIsSafeCorridorOpen(true)}
+                disabled={!routeDestination}
+                className={`w-10 h-10 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
+                  routeDestination
+                    ? 'bg-cyber-cyan/80 text-white border-cyber-cyan/40 shadow-neon-cyan'
+                    : 'bg-gray-900/40 text-gray-600 border-white/5 cursor-not-allowed'
+                }`}
+                title={routeDestination ? '경로 안전 분석 (Safe Corridor)' : '경로 안전 분석 — 목적지 설정 후 활성'}
+              >
+                <ShieldCheck size={18} />
               </button>
 
               <button
@@ -1249,14 +1238,10 @@ function App() {
           data={coachingData}
         />
 
-        {/* 🗺️ Safe Corridor — 경로 안전 분석 시트 (route_ready 시 자동 오픈) */}
+        {/* 🗺️ Safe Corridor — 경로 안전 분석 시트 (도구 패널에서 진입) */}
         <SafeCorridorSheet
           isOpen={isSafeCorridorOpen}
-          onClose={() => {
-            setIsSafeCorridorOpen(false);
-            // 안전 분석 확인 후 주행 환경 설정 모달로 이동
-            setIsRideSettingsOpen(true);
-          }}
+          onClose={() => setIsSafeCorridorOpen(false)}
           routeOrigin={routeOrigin}
           routeDestination={routeDestination}
           locations={locations}
@@ -1426,41 +1411,15 @@ function App() {
           history={rideHistory}
         />
 
+        {/* 주행 환경 설정 시트 — 도구 패널에서 진입 (속도/야간/자전거모드/브랜드 필터) */}
         <RideSettings
           isOpen={isRideSettingsOpen}
           onClose={() => setIsRideSettingsOpen(false)}
-          onNext={() => {
-            // 흐름 연결: 출발지 → 목적지 → SafeCorridor → RideSettings → VehicleSelect → HelmetAuth → 주행
-            setIsRideSettingsOpen(false);
-            setIsVehicleSelectOpen(true);
-          }}
+          onNext={() => setIsRideSettingsOpen(false)}
           config={rideConfig}
           setConfig={setRideConfig}
         />
 
-        <VehicleSelectModal
-          isOpen={isVehicleSelectOpen}
-          onClose={() => setIsVehicleSelectOpen(false)}
-          isBicycleMode={rideConfig.isBicycleMode}
-          onSelect={(isBicycle) => {
-            setRideConfig(prev => ({ ...prev, isBicycleMode: isBicycle }));
-            setIsVehicleSelectOpen(false);
-            if (isBicycle) {
-              speak(t('tts_vehicle_bicycle'));
-            } else {
-              speak(t('tts_vehicle_kickboard'));
-            }
-            setIsHelmetAIOpen(true);
-          }}
-          config={rideConfig}
-          setConfig={setRideConfig}
-        />
-
-        <DrivingConsoleUI
-          isOpen={isDrivingConsoleOpen}
-          onClose={() => setIsDrivingConsoleOpen(false)}
-          onApply={(maxSpeed) => setRideConfig(prev => ({ ...prev, speedLimit: maxSpeed }))}
-        />
 
         {/* Carbon Saved / Eco Badge Modal (New Engagement Feature) */}
         {showEcoBadge && (
