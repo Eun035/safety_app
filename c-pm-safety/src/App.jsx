@@ -830,8 +830,8 @@ function App() {
           </div>
         )}
 
-        {/* Phase 40: Unified Tools Menu (FAB Grouping) */}
-        <div className="absolute left-4 bottom-[160px] z-[100] flex flex-col gap-2 pointer-events-auto items-center">
+        {/* Phase 40: Unified Tools Menu (FAB Grouping) — START 후엔 숨김 */}
+        <div className={`absolute left-4 bottom-[160px] z-[100] flex flex-col gap-2 pointer-events-auto items-center transition-opacity duration-300 ${navStep === 'idle' && !isRiding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           {isToolsOpen && (
             <div className="flex flex-col gap-2 mb-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
               <button
@@ -1033,8 +1033,8 @@ function App() {
             )}
           </div>
 
-          {/* Fab Group (Layers & Location) - Shifted Up to avoid overlap */}
-          <div className="absolute bottom-40 right-6 flex flex-col gap-3 z-[100] pointer-events-auto">
+          {/* Fab Group (Share & GPS) — START 후엔 숨김 */}
+          <div className={`absolute bottom-40 right-6 flex flex-col gap-3 z-[100] pointer-events-auto transition-opacity duration-300 ${navStep === 'idle' && !isRiding ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <button
               onClick={handleShareApp}
               className="w-12 h-12 rounded-xl bg-gray-900/80 backdrop-blur-md text-white border border-white/10 flex items-center justify-center active:scale-90 transition-all shadow-xl"
@@ -1068,7 +1068,7 @@ function App() {
           </div>
         </main>
 
-        <footer className="bg-cyber-panel border-t border-white/5 pb-[env(safe-area-inset-bottom)] z-[40]">
+        <footer className={`bg-cyber-panel border-t border-white/5 pb-[env(safe-area-inset-bottom)] z-[40] transition-all duration-300 ${navStep === 'idle' && !isRiding ? 'opacity-100 max-h-32' : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'}`}>
           <div className="max-w-xl mx-auto grid grid-cols-5 items-center">
             {/* VIBE */}
             <button
