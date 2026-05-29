@@ -629,7 +629,8 @@ const MapContainer = ({
                     {ridingPath}
                     {safetyGridOverlay}
 
-                    {safeRouteInfo?.routePath && !isRiding && (
+                    {/* 출발지 → 목적지 안내 루트 (Polyline) — 주행 중에도 표시 유지 */}
+                    {safeRouteInfo?.routePath && (
                         <Polyline
                             path={safeRouteInfo.routePath.map(p => ({ lat: p.latitude, lng: p.longitude }))}
                             strokeWeight={6}
@@ -639,7 +640,8 @@ const MapContainer = ({
                         />
                     )}
 
-                    {safeRouteInfo?.warningPoints && !isRiding && safeRouteInfo.warningPoints.map((wp, i) => (
+                    {/* 경로 상 위험 지점 경고 — 주행 중에도 표시 유지 */}
+                    {safeRouteInfo?.warningPoints && safeRouteInfo.warningPoints.map((wp, i) => (
                         <Circle
                             key={`wp-${i}`}
                             center={{ lat: wp.latitude, lng: wp.longitude }}

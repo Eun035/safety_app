@@ -939,9 +939,9 @@ function App() {
 
         <main className="flex-1 w-full relative">
 
-          {/* 🔍 Floating Map Search Bar */}
-          {navStep !== 'route_ready' && (
-            <div 
+          {/* 🔍 Floating Map Search Bar — route_ready 또는 주행 중에는 숨김 */}
+          {navStep !== 'route_ready' && !isRiding && (
+            <div
               className="absolute left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-sm z-[100] pointer-events-auto transition-all duration-300"
               style={{ top: navStep === 'idle' ? '16px' : '190px' }}
             >
