@@ -127,10 +127,14 @@ function App() {
     const decide = () => {
       if (!quizMeta.lastCompletedAt) return true;                           // 조건 1: 미완료
       if ((quizMeta.lastCorrectCount ?? 0) < 3) return true;                // 조건 2: 만점 미달
-      if ((quizMeta.totalAttempts ?? 0) < 3) return true;                   // 조건 3 (신규): 누적 3회 미만 = 시드 학습 보장
-      const daysSince = (Date.now() - new Date(quizMeta.lastCompletedAt).getTime()) / 86400000;
-      if (daysSince >= 7) return true;                                      // 조건 4: 7일 경과 (이전 15일 → 단축)
-      if ((quizMeta.totalAttempts ?? 0) < 10) {                             // 조건 5: 누적 10회 미만 + 확률
+      if ((quizMeta.totalAttempts ?? 0) < 3) return true;                   // 조건 3: 누적 3회 미만 = 시드 학습 보장
+
+      // 조건 4 (신규): 일별 1회 강제 노출 — 같은 날 여러 번 진입은 1번만, 다음 날 다시
+      const today = new Date().toISOString().slice(0, 10);
+      const lastDay = new Date(quizMeta.lastCompletedAt).toISOString().slice(0, 10);
+      if (lastDay !== today) return true;
+
+      if ((quizMeta.totalAttempts ?? 0) < 10) {                             // 조건 5: 누적 10회 미만 + 확률 (드물게 같은 날 재진입 시)
         const safetyScore = profile?.safety_score ?? 100;
         const rideCount = rideHistory?.length ?? 0;
         const safetyFactor = Math.max(0, Math.min(1, (100 - safetyScore) / 60));
