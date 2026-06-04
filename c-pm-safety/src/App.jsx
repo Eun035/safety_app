@@ -125,16 +125,15 @@ function App() {
     }
 
     const decide = () => {
-      if (!quizMeta.lastCompletedAt) return true;
-      if ((quizMeta.lastCorrectCount ?? 0) < 3) return true;
+      if (!quizMeta.lastCompletedAt) return true;                           // 조건 1: 미완료
+      if ((quizMeta.lastCorrectCount ?? 0) < 3) return true;                // 조건 2: 만점 미달
+      if ((quizMeta.totalAttempts ?? 0) < 3) return true;                   // 조건 3 (신규): 누적 3회 미만 = 시드 학습 보장
       const daysSince = (Date.now() - new Date(quizMeta.lastCompletedAt).getTime()) / 86400000;
-      if (daysSince >= 15) return true;
-      if ((quizMeta.totalAttempts ?? 0) < 10) {
+      if (daysSince >= 7) return true;                                      // 조건 4: 7일 경과 (이전 15일 → 단축)
+      if ((quizMeta.totalAttempts ?? 0) < 10) {                             // 조건 5: 누적 10회 미만 + 확률
         const safetyScore = profile?.safety_score ?? 100;
         const rideCount = rideHistory?.length ?? 0;
-        // safety_score 100 → 0, 40 이하 → 1.0
         const safetyFactor = Math.max(0, Math.min(1, (100 - safetyScore) / 60));
-        // 주행 0회 → 1.0, 10회+ → 0
         const rideFactor = Math.max(0, Math.min(1, (10 - rideCount) / 10));
         const probability = Math.max(safetyFactor, rideFactor);
         if (Math.random() < probability) return true;
