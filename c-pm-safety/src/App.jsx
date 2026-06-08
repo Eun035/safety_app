@@ -112,6 +112,10 @@ function App() {
   // Phase 35: Lightweight Ride Session & Static Safety Grid
   const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, enterZone, exitZone, sampleZoneSpeed } = useRideSession();
 
+  // 🅿️ 자동 체크아웃 — 라이딩 중 PM 주차장 10m 이내 + 속도 0이 10초 유지되면
+  // triggerAutoCheckout() 자동 발화 → endRideSession 전체 정상 종료 흐름 실행
+  useAutoCheckout();
+
   // Phase 19: 안전 퀴즈 게이트 노출 정책 평가 (Disclaimer 동의 후 1회만)
   // 조건 1: 직전 시도에서 3개 다 맞히지 못함  → 재노출
   // 조건 2: 마지막 완료로부터 15일 이상 경과  → 재노출
