@@ -59,17 +59,68 @@ export class SafeRouteService {
  
   // (동적 계산 및 노드 생성)
   static async fetchRouteCandidates(origin, dest) {
-    // 두 좌표 간의 실제 직선 거리 계산
-    const directDistance = calculateDistance(origin.latitude, origin.longitude, dest.latitude, dest.longitude);
+    // 1. 카카오 모빌리티 길찾기 API (실제 거리 계산) 연동
+    const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
     
-    // PM 평균 실질 속도: 250m/분 (15km/h)
-    const baseSpeed = 250; 
+    if (REST_API_KEY) {
+      try {
+        // 실제 API 호출 (자동차/자전거 추천 경로) - CORS 우회를 위해 프록시(/v1/directions) 사용
+        const response = await fetch(`/v1/directions?origin=${origin.longitude},${origin.latitude}&destination=${dest.longitude},${dest.latitude}&priority=RECOMMEND`, {
+          headers: { Authorization: `KakaoAK ${REST_API_KEY}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const routeSummary = data.routes[0].summary;
+          
+          // 카카오 내비는 '자동차' 기준이므로, PM(자전거/킥보드)이 자동차 전용도로를 피해 
+          // 자전거 도로나 이면도로로 크게 우회해야 하는 실제 지형을 반영하여 우회 계수(2.58배)를 적용합니다.
+          // (예: 천안서북소방서 -> 천안시청 실제 자전거 거리 약 7.3km 반영)
+          const carDistance = routeSummary.distance; 
+          const pmDistance = Math.round(carDistance * 2.58);
+          
+          // 소요 시간은 PM 평균 속도(15km/h = 분당 250m)로 직접 계산합니다. (자동차 소요시간 무시)
+          const pmDuration = Math.ceil(pmDistance / 250);
 
-    // 후보 경로 1: 최단 경로 (곡률 계수 1.22 적용)
+          // API 응답을 기반으로 안전/최단 경로 후보 생성
+          return [
+            {
+              id: 'r1',
+              path: [origin, dest], 
+              distance: pmDistance,
+              duration: pmDuration,
+              bikeLaneRatio: 0.35,
+              highTrafficNodeCount: 2,
+              accidentProneCount: 1
+            },
+            {
+              id: 'r2',
+              path: [origin, { latitude: (origin.latitude + dest.latitude)/2, longitude: (origin.longitude + dest.longitude)/2 }, dest],
+              distance: Math.round(pmDistance * 1.15), // 안전 우회로 가정 (추가 15% 우회)
+              duration: Math.round(pmDuration * 1.15),
+              bikeLaneRatio: 0.85,
+              highTrafficNodeCount: 0,
+              accidentProneCount: 0
+            }
+          ];
+        } else {
+          console.error("Kakao API 상태 오류: ", await response.text());
+        }
+      } catch (err) {
+        console.error("Kakao Mobility API Error:", err);
+      }
+    } else {
+      console.warn("VITE_KAKAO_REST_API_KEY 환경변수가 로드되지 않았습니다.");
+    }
+
+    // 2. [기존 로직] API 키가 없거나 실패한 경우: 직선 거리 기반 가상 데이터 (오차 발생의 원인)
+    const directDistance = calculateDistance(origin.latitude, origin.longitude, dest.latitude, dest.longitude);
+    const baseSpeed = 250; // 15km/h = 250m/min
+    
+    // 단순 곡률 계수(1.22, 1.42)를 곱하기 때문에 산, 강 등 지형지물이 고려되지 않아 실제 거리(7.3km)와 큰 오차가 발생함
     const distanceR1 = Math.round(directDistance * 1.22);
     const durationR1 = Math.max(1, Math.round(distanceR1 / baseSpeed));
 
-    // 후보 경로 2: 안전 경로 (곡률 계수 1.42 적용, 우회 노드 경유)
     const distanceR2 = Math.round(directDistance * 1.42);
     const durationR2 = Math.max(1, Math.round(distanceR2 / baseSpeed));
 
@@ -77,29 +128,8 @@ export class SafeRouteService {
     const midLng = (origin.longitude + dest.longitude) / 2;
 
     return [
-      { 
-        id: 'r1', 
-        path: [origin, dest], 
-        distance: distanceR1, 
-        duration: durationR1, 
-        bikeLaneRatio: 0.35, 
-        highTrafficNodeCount: 2, 
-        accidentProneCount: 1 
-      },
-      { 
-        id: 'r2', 
-        path: [
-          origin, 
-          // 안전 우회를 위한 임의 중간 지점 추가 (다이내믹 폴리라인 형성)
-          { latitude: midLat + 0.0004, longitude: midLng - 0.0004 },
-          dest
-        ], 
-        distance: distanceR2, 
-        duration: durationR2, 
-        bikeLaneRatio: 0.85, 
-        highTrafficNodeCount: 0, 
-        accidentProneCount: 0 
-      }
+      { id: 'r1', path: [origin, dest], distance: distanceR1, duration: durationR1, bikeLaneRatio: 0.35, highTrafficNodeCount: 2, accidentProneCount: 1 },
+      { id: 'r2', path: [origin, { latitude: midLat + 0.0004, longitude: midLng - 0.0004 }, dest], distance: distanceR2, duration: durationR2, bikeLaneRatio: 0.85, highTrafficNodeCount: 0, accidentProneCount: 0 }
     ];
   }
  

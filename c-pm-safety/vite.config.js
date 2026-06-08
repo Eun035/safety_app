@@ -86,6 +86,12 @@ export default defineConfig({
     port: 8888,
     strictPort: true,
     host: true,
+    proxy: {
+      '/v1/directions': {
+        target: 'https://apis-navi.kakaomobility.com',
+        changeOrigin: true
+      }
+    }
   },
   build: {
     outDir: 'dist',
