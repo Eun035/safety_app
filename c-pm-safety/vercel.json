@@ -6,6 +6,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/v1/directions/(.*)",
+      "destination": "https://apis-navi.kakaomobility.com/v1/directions/$1"
+    },
+    {
+      "source": "/v1/directions",
+      "destination": "https://apis-navi.kakaomobility.com/v1/directions"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
