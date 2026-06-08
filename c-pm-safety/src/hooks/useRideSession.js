@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
+import helmetStations from '../data/helmet_stations.json';
+import { calculateDistance } from '../utils/distance';
 
 export const useRideSession = create((set, get) => ({
     isRiding: false,
@@ -116,7 +118,6 @@ export const useRideSession = create((set, get) => ({
         });
     },
 
-    // 비동기 하드웨어 제어(잠금/해제) 모킹 유틸리티
     simulateHardwareAction: async (actionType) => {
         set({ isHardwareSyncing: true });
         console.log(`[IoT Mock] ${actionType} 명령을 블루투스/MQTT로 킥보드로 전송 중...`);
@@ -124,6 +125,27 @@ export const useRideSession = create((set, get) => ({
         await new Promise(resolve => setTimeout(resolve, 1500));
         console.log(`[IoT Mock] ${actionType} 명령 완료.`);
         set({ isHardwareSyncing: false });
+    },
+
+    // 자동 종료 시 호출될 방어적 메서드 추가 (기존 구조를 유지하며 상태 변경)
+    triggerAutoCheckout: async () => {
+        const currentState = get();
+        if (!currentState.isRiding) return; // 이미 종료되었거나 라이딩 중이 아니면 무시
+
+        // UserStore에서 현재 userId 가져오기
+        const { useUserStore } = await import('./useUserStore');
+        const userId = useUserStore.getState().user?.id;
+
+        // 안전하게 라이딩 상태 해제 및 필요한 후속 처리 트리거 (결제, 보상 등 정상 종료 흐름 수행)
+        await currentState.endRideSession(userId, {
+            isLegalPark: true, // Auto checkout은 주차장 10m 이내에서만 발동하므로 합법주차로 간주
+            helmetOn: false,
+        });
+
+        // 자동 종료 여부 마킹
+        set({
+            autoCheckedOut: true,
+        });
     },
 
     startRide: async () => {
@@ -365,8 +387,23 @@ export const useRideSession = create((set, get) => ({
                 }
 
                 // 2. 사용자 프로필 업데이트 (포인트 + 누적 거리)
-                // 합법 주차 시에만 +100P 보상. 비합법 주차는 누적 거리만 반영(보상 0).
-                const earnedPoints = isLegalPark ? 100 : 0;
+                // 스테이션 반납 여부 검증
+                const lastLocation = state.currentPath.length > 0 ? state.currentPath[state.currentPath.length - 1] : null;
+                let stationIncentive = 0;
+                
+                if (lastLocation) {
+                    const isNearStation = helmetStations.some(station => {
+                        const d = calculateDistance(lastLocation.lat, lastLocation.lng, station.lat, station.lng);
+                        return d <= 20; // 20m 이내 반납 시 인정
+                    });
+                
+                    if (isNearStation) {
+                        stationIncentive = 50; // 스테이션 반납 추가 인센티브
+                    }
+                }
+
+                // 합법 주차(100P) + 스테이션 반납 보상(50P)
+                const earnedPoints = (isLegalPark ? 100 : 0) + stationIncentive;
 
                 const { error: profileError } = await supabase.rpc('increment_user_stats', {
                     user_id_in: userId,

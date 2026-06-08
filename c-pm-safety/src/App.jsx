@@ -50,6 +50,7 @@ import { useNearMissEngine } from './hooks/useNearMissEngine';
 import { useBeginnerMissions } from './hooks/useBeginnerMissions';
 import SafeCorridorSheet from './components/common/SafeCorridorSheet';
 import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
+import { useAutoCheckout } from './hooks/useAutoCheckout';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -71,6 +72,7 @@ const STRESS_ZONES = [
 ];
 
 function App() {
+  useAutoCheckout(); // 자동 체크아웃 훅 활성화
   const { t } = useTranslation();
   const { locations, tagoPms, weatherRisk, currentTemp, isLoading: mapLoading } = useSafeData();
   const { user, profile, isLoading: authLoading, signInAnonymously, loadUser } = useUserStore();
@@ -861,18 +863,6 @@ function App() {
                 title="주행 환경 설정 (속도/야간/자전거 모드/브랜드)"
               >
                 <Sliders size={18} />
-              </button>
-              <button
-                onClick={() => setIsSafeCorridorOpen(true)}
-                disabled={!routeDestination}
-                className={`w-10 h-10 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${
-                  routeDestination
-                    ? 'bg-cyber-cyan/80 text-white border-cyber-cyan/40 shadow-neon-cyan'
-                    : 'bg-gray-900/40 text-gray-600 border-white/5 cursor-not-allowed'
-                }`}
-                title={routeDestination ? '경로 안전 분석 (Safe Corridor)' : '경로 안전 분석 — 목적지 설정 후 활성'}
-              >
-                <ShieldCheck size={18} />
               </button>
 
               <button

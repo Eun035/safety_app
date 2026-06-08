@@ -194,7 +194,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
             {/* 검색 바 입력부 */}
             <div className="relative flex items-center">
                 <div className="absolute left-4 text-gray-400">
-                    <Search size={18} className="text-cyber-cyan shadow-neon-cyan/20 animate-pulse" />
+                    <Search size={isOpen ? 24 : 18} className="text-cyber-cyan shadow-neon-cyan/20 animate-pulse transition-all duration-300" />
                 </div>
                 <input
                     type="text"
@@ -205,7 +205,9 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     }}
                     onFocus={() => setIsOpen(true)}
                     placeholder={t('search_placeholder')}
-                    className="w-full pl-11 pr-10 py-3.5 bg-gray-950/80 backdrop-blur-xl border border-white/10 focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 rounded-2xl text-white text-xs font-bold tracking-tight shadow-2xl transition-all outline-none"
+                    className={`w-full pl-12 pr-12 bg-gray-950/80 backdrop-blur-xl border border-white/10 focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 rounded-2xl text-white font-bold tracking-tight shadow-2xl transition-all duration-300 outline-none ${
+                        isOpen ? 'py-5 text-base' : 'py-3.5 text-xs'
+                    }`}
                 />
                 {query && (
                     <button
@@ -213,15 +215,15 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                             setQuery('');
                             setResults([]);
                         }}
-                        className="absolute right-4 text-gray-400 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition"
+                        className="absolute right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition"
                     >
-                        <X size={16} />
+                        <X size={20} />
                     </button>
                 )}
             </div>
 
             {/* 프리셋 빠른 필터 태그 */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none scroll-smooth">
+            <div className={`flex transition-all duration-300 ${isOpen ? 'gap-2 overflow-x-auto pb-2 mt-2 scrollbar-none' : 'gap-1.5 w-full pb-1 mt-1'}`}>
                 {PRESETS.map((preset, idx) => {
                     const presetLabels = {
                         '시청': t('🏢 천안시청', { defaultValue: '🏢 천안시청' }),
@@ -234,7 +236,9 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                         <button
                             key={idx}
                             onClick={() => handlePresetClick(preset.query)}
-                            className="shrink-0 px-3.5 py-2 bg-white/15 backdrop-blur-md border border-white/30 hover:bg-cyber-cyan/20 hover:border-cyber-cyan/60 active:scale-95 rounded-xl text-[11px] font-black text-white hover:text-cyber-cyan transition-all duration-300 shadow-lg shadow-black/20"
+                            className={`bg-white/15 backdrop-blur-md border border-white/30 hover:bg-cyber-cyan/20 hover:border-cyber-cyan/60 active:scale-95 rounded-xl font-black text-white hover:text-cyber-cyan transition-all duration-300 shadow-lg shadow-black/20 ${
+                                isOpen ? 'shrink-0 px-5 py-3.5 text-sm' : 'flex-1 px-1 py-2 text-[11px] whitespace-nowrap overflow-hidden text-ellipsis'
+                            }`}
                         >
                             {label}
                         </button>
@@ -244,7 +248,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
 
             {/* 실시간 하이브리드 검색 결과 리스트 */}
             {isOpen && (query || results.length > 0) && (
-                <div className="absolute top-[88px] left-0 right-0 max-h-[300px] overflow-y-auto bg-gray-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[200] divide-y divide-white/5 scrollbar-thin">
+                <div className="absolute top-[130px] left-0 right-0 max-h-[300px] overflow-y-auto bg-gray-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[200] divide-y divide-white/5 scrollbar-thin">
                     {results.length > 0 ? (
                         results.map((item) => {
                             const isLandmark = item.type !== 'kakao_place';

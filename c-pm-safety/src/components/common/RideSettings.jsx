@@ -41,22 +41,30 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Zap size={12} /> Ride Mode (Limit)
                         </h3>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-3 gap-2">
                             <button
                                 onClick={() => setConfig({ ...config, speedLimit: 15, isBicycleMode: false })}
                                 className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 15 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                             >
-                                <Shield size={20} />
+                                <Shield size={18} />
                                 <span className="text-xs font-black uppercase italic">15 km/h</span>
-                                <span className="text-[9px] font-bold opacity-60">PM Mode (Safety)</span>
+                                <span className="text-[8px] font-bold opacity-60">전동스쿠터 모드</span>
                             </button>
                             <button
                                 onClick={() => setConfig({ ...config, speedLimit: 25, isBicycleMode: true })}
                                 className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 25 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                             >
-                                <Zap size={20} />
+                                <Zap size={18} />
                                 <span className="text-xs font-black uppercase italic">25 km/h</span>
-                                <span className="text-[9px] font-bold opacity-60">Bicycle (Normal)</span>
+                                <span className="text-[8px] font-bold opacity-60">전동자전거 모드</span>
+                            </button>
+                            <button
+                                onClick={() => setConfig({ ...config, speedLimit: 999, isBicycleMode: true })}
+                                className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit >= 999 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
+                            >
+                                <Bike size={18} />
+                                <span className="text-xs font-black uppercase italic">PRO</span>
+                                <span className="text-[8px] font-bold opacity-60">제한속도 해제</span>
                             </button>
                         </div>
                     </section>
@@ -80,31 +88,6 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                         </button>
                     </section>
 
-                    {/* Bicycle Mode Toggle */}
-                    <section className="flex items-center justify-between p-6 bg-gray-800/40 rounded-2xl border border-gray-700/50">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${config.isBicycleMode ? 'bg-emerald-600 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-gray-700 text-gray-400'}`}>
-                                <Bike size={20} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-black text-white">자전거 모드 (Bicycle)</p>
-                                <p className="text-[10px] text-gray-500 font-bold">자전거 사용 시 초과속도 경고 해제</p>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => {
-                                const newBicycleMode = !config.isBicycleMode;
-                                setConfig({ 
-                                    ...config, 
-                                    isBicycleMode: newBicycleMode,
-                                    speedLimit: newBicycleMode ? 25 : 15 // 속도제한 자동 연동
-                                });
-                            }}
-                            className={`w-14 h-8 rounded-full transition-all relative ${config.isBicycleMode ? 'bg-emerald-600 shadow-[0_4px_12px_rgba(16,185,129,0.3)]' : 'bg-gray-700'}`}
-                        >
-                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${config.isBicycleMode ? 'left-7' : 'left-1'}`}></div>
-                        </button>
-                    </section>
 
                     {/* Brand Filtering */}
                     <section>
