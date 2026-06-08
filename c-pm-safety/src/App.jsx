@@ -740,6 +740,13 @@ function App() {
             lastCompletedAt: new Date().toISOString()
           });
           setQuizCompletedThisSession(true);
+
+          // 첫 사용자에게만(퀴즈 통과 후 1회) Ride Control 자동 오픈
+          const hasSeenSettings = localStorage.getItem('hasSeenInitialRideSettings');
+          if (!hasSeenSettings) {
+            setIsRideSettingsOpen(true);
+            localStorage.setItem('hasSeenInitialRideSettings', 'true');
+          }
           if (user?.id) {
             supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
               .then(({ data }) => {
