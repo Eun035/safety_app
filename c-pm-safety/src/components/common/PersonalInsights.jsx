@@ -131,7 +131,7 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
                         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-[60px] group-hover:bg-purple-600/20 transition-all duration-700"></div>
                         
                         <div className="relative z-10">
-                            <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                            <h3 className="text-[11px] font-black text-purple-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                                 <Calendar size={12} /> This Week Recap
                             </h3>
                             <div className="flex items-baseline gap-2 mb-2">
@@ -140,13 +140,13 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
                             </div>
                             {/* 실데이터 주간 변화율 (기존 "12%" 하드코딩 mock 제거) */}
                             {insights.weekVarPct === null ? (
-                                <p className="text-xs font-bold text-gray-500">비교할 지난주 데이터가 없습니다.</p>
+                                <p className="text-sm font-bold text-gray-500">비교할 지난주 데이터가 없습니다.</p>
                             ) : insights.weekVarPct === 0 ? (
-                                <p className="text-xs font-bold text-gray-400">지난주와 비슷한 활동량입니다.</p>
+                                <p className="text-sm font-bold text-gray-400">지난주와 비슷한 활동량입니다.</p>
                             ) : insights.weekVarPct > 0 ? (
-                                <p className="text-xs font-bold text-gray-400">지난주 대비 <span className="text-purple-400">▲ {insights.weekVarPct}%</span> 더 많이 이동했습니다.</p>
+                                <p className="text-sm font-bold text-gray-400">지난주 대비 <span className="text-purple-400">▲ {insights.weekVarPct}%</span> 더 많이 이동했습니다.</p>
                             ) : (
-                                <p className="text-xs font-bold text-gray-400">지난주 대비 <span className="text-amber-400">▼ {Math.abs(insights.weekVarPct)}%</span> 적게 이동했습니다.</p>
+                                <p className="text-sm font-bold text-gray-400">지난주 대비 <span className="text-amber-400">▼ {Math.abs(insights.weekVarPct)}%</span> 적게 이동했습니다.</p>
                             )}
 
                             {/* 실데이터 7일 일별 거리 막대그래프 (기존 [30,45,25,60,40,80,50] 하드코딩 mock 제거) */}
@@ -174,7 +174,7 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
                                                 // i=0(6일전) → i=6(오늘). 라벨은 해당 일자의 요일.
                                                 const dow = (todayDow - (6 - i) + 7) % 7;
                                                 return (
-                                                    <div key={i} className={`flex-1 text-center text-[9px] font-bold ${i === 6 ? 'text-purple-400' : 'text-gray-600'}`}>
+                                                    <div key={i} className={`flex-1 text-center text-[10px] font-bold ${i === 6 ? 'text-purple-400' : 'text-gray-600'}`}>
                                                         {dayLabels[dow]}
                                                     </div>
                                                 );
@@ -188,7 +188,7 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
 
                     {/* Story Style Card 2: Top Destinations */}
                     <div className="bg-black/40 p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden shadow-inner">
-                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <h3 className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                             <Target size={12} /> Top Destinations
                         </h3>
                         
@@ -221,7 +221,7 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
                             <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center mb-3">
                                 <Clock size={20} className="text-purple-400" />
                             </div>
-                            <p className="text-[9px] font-black text-purple-400/60 uppercase tracking-widest mb-1">Peak Time</p>
+                            <p className="text-[10px] font-black text-purple-400/60 uppercase tracking-widest mb-1">Peak Time</p>
                             <p className="text-sm font-black text-white italic">{insights.peakTime}</p>
                         </div>
                         {/* Total Effort → AVG SAFETY (평균 RSR%)로 교체. 안전 운전 습관 한눈에. */}
@@ -229,7 +229,7 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
                             <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center mb-3">
                                 <Zap size={20} className="text-purple-400" />
                             </div>
-                            <p className="text-[9px] font-black text-purple-400/60 uppercase tracking-widest mb-1">Avg Safety</p>
+                            <p className="text-[10px] font-black text-purple-400/60 uppercase tracking-widest mb-1">Avg Safety</p>
                             <p className="text-sm font-black text-white italic">
                                 {insights.avgRsr !== null ? `${insights.avgRsr}%` : 'N/A'}
                             </p>
@@ -245,7 +245,7 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact })
                             }
                         }}
                         disabled={typeof onOpenShadowImpact !== 'function'}
-                        className="w-full h-14 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl border border-white/10 flex items-center justify-center gap-2 text-xs font-black text-gray-400 uppercase tracking-widest transition-all active:scale-95"
+                        className="w-full h-14 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl border border-white/10 flex items-center justify-center gap-2 text-sm font-black text-gray-400 uppercase tracking-widest transition-all active:scale-95"
                     >
                         <History size={16} /> View Full Impact
                     </button>

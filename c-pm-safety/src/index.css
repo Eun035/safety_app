@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* 전역 base font-size: 16px → 17px (+6.25%, 가독성 살짝 ↑) */
+html { font-size: 17px; }
+
 @theme {
   --color-cyber-bg: #0a1118;
   --color-cyber-panel: #12232a;

@@ -275,16 +275,16 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5">
-                                            <h4 className="text-xs font-black text-white truncate">{t(item.title, { defaultValue: item.title })}</h4>
-                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 border uppercase tracking-wider ${
-                                                isLandmark 
-                                                    ? 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/30 shadow-sm' 
+                                            <h4 className="text-sm font-black text-white truncate">{t(item.title, { defaultValue: item.title })}</h4>
+                                            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 border uppercase tracking-wider ${
+                                                isLandmark
+                                                    ? 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/30 shadow-sm'
                                                     : 'bg-white/5 text-gray-400 border-white/5'
                                             }`}>
                                                 {t(item.badge, { defaultValue: item.badge })}
                                             </span>
                                         </div>
-                                        <p className="text-[10px] text-gray-400 font-bold truncate mt-0.5">{t(item.desc, { defaultValue: item.desc })}</p>
+                                        <p className="text-[11px] text-gray-400 font-bold truncate mt-0.5">{t(item.desc, { defaultValue: item.desc })}</p>
                                     </div>
                                 </div>
                             );
