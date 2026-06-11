@@ -108,5 +108,65 @@
     "hours": "07:00 - 23:00",
     "helmetCount": 2,
     "brandPartners": ["G-Bike"]
+  },
+  {
+    "id": "hs-011",
+    "name": "천안아산역 환승 거점",
+    "type": "STATION",
+    "lat": 36.7943,
+    "lng": 127.1045,
+    "address": "아산시 배방읍 KTX 천안아산역 인근",
+    "hours": "05:30 - 24:00",
+    "helmetCount": 15,
+    "brandPartners": ["G-Bike", "Swing", "Beam", "Lime", "Dear"],
+    "region": "asan"
+  },
+  {
+    "id": "hs-012",
+    "name": "순천향대 정문 PM 거점",
+    "type": "STATION",
+    "lat": 36.7708,
+    "lng": 126.9322,
+    "address": "아산시 신창면 순천향로 22 정문 앞",
+    "hours": "06:00 - 23:00",
+    "helmetCount": 10,
+    "brandPartners": ["G-Bike", "Swing", "Dear"],
+    "region": "asan"
+  },
+  {
+    "id": "hs-013",
+    "name": "아산시청 안전 거점",
+    "type": "STATION",
+    "lat": 36.7898,
+    "lng": 127.0019,
+    "address": "아산시 시민로 456 아산시청 앞",
+    "hours": "07:00 - 22:00",
+    "helmetCount": 8,
+    "brandPartners": ["Swing", "Beam"],
+    "region": "asan"
+  },
+  {
+    "id": "hs-014",
+    "name": "GS25 온양온천역점",
+    "type": "STORE",
+    "lat": 36.7837,
+    "lng": 127.0042,
+    "address": "아산시 온양동 온양온천역 인근",
+    "hours": "24시간",
+    "helmetCount": 3,
+    "brandPartners": ["Swing", "Lime"],
+    "region": "asan"
+  },
+  {
+    "id": "hs-015",
+    "name": "CU 신정호점",
+    "type": "STORE",
+    "lat": 36.7790,
+    "lng": 126.9851,
+    "address": "아산시 신정호 인근",
+    "hours": "24시간",
+    "helmetCount": 2,
+    "brandPartners": ["G-Bike", "Beam"],
+    "region": "asan"
   }
 ]

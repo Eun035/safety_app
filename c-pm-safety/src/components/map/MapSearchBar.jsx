@@ -1,107 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X, MapPin, Building, ShieldAlert, Sparkles, Navigation } from 'lucide-react';
+import { Search, X, MapPin, Building, ShieldAlert, Sparkles, Navigation, ChevronDown } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
+import { LANDMARKS } from '../../data/landmarks';
+import { useRegion } from '../../hooks/useRegion';
+import { REGION_LIST, REGIONS } from '../../config/regions';
 
-// 🏢 천안 핵심 랜드마크 데이터베이스 (시청, 소방서, 대학교 등 우선순위 매칭)
+// 🏢 천안·아산 핵심 랜드마크 데이터베이스는 src/data/landmarks.js 단일 소스를 사용
 const PRESETS = [
-    { label: '🏢 천안시청', query: '시청' },
+    { label: '🏢 시청', query: '시청' },
     { label: '🚒 소방서', query: '소방서' },
     { label: '🏫 대학교', query: '대학교' },
     { label: '🚉 역/터미널', query: '역' }
-];
-
-const LANDMARKS = [
-    {
-        id: 'landmark-cityhall',
-        title: '천안시청',
-        desc: '충청남도 천안시 서북구 번영로 156 (공공기관)',
-        lat: 36.815129,
-        lng: 127.113893,
-        type: 'city_hall',
-        badge: '🏢 시청 우선',
-        safetyTip: '시청 주변은 자전거 도로 정비가 잘 되어 있으나 보행자가 많으니 안전 속도(시속 20km)를 유지하세요.'
-    },
-    {
-        id: 'landmark-seobuk-fire',
-        title: '천안서북소방서',
-        desc: '충청남도 천안시 서북구 백석동 8 (재난안전)',
-        lat: 36.832791,
-        lng: 127.113289,
-        type: 'fire_station',
-        badge: '🚒 소방서 우선',
-        safetyTip: '긴급 출동 차량이 수시로 출입하는 구역입니다. 소방서 차고지 앞 주차 및 서성임은 금지됩니다.'
-    },
-    {
-        id: 'landmark-dongnam-fire',
-        title: '천안동남소방서',
-        desc: '충청남도 천안시 동남구 구성동 282-1 (재난안전)',
-        lat: 36.802521,
-        lng: 127.161877,
-        type: 'fire_station',
-        badge: '🚒 소방서 우선',
-        safetyTip: '소방차량 긴급 출동 동선 확보를 위해 주변 5m 이내에 절대 주차(PM 거치)하지 마세요.'
-    },
-    {
-        id: 'landmark-dankook',
-        title: '단국대학교 천안캠퍼스',
-        desc: '충청남도 천안시 동남구 단대로 119 (대학)',
-        lat: 36.832655,
-        lng: 127.167888,
-        type: 'university',
-        badge: '🏫 대학교',
-        safetyTip: '단대 호수(안서호) 주변 산책로는 PM 진입이 금지되거나 제한되므로 주의하여 우회하세요.'
-    },
-    {
-        id: 'landmark-sangmyung',
-        title: '상명대학교 천안캠퍼스',
-        desc: '충청남도 천안시 동남구 상명대길 31 (대학)',
-        lat: 36.833543,
-        lng: 127.179331,
-        type: 'university',
-        badge: '🏫 대학교',
-        safetyTip: '캠퍼스 내 경사 구간이 매우 가파릅니다. 급경사 다운힐 시 반드시 풋브레이크와 전면 감속을 실행하세요.'
-    },
-    {
-        id: 'landmark-baekseok',
-        title: '백석대학교',
-        desc: '충청남도 천안시 동남구 문암로 76 (대학)',
-        lat: 36.839843,
-        lng: 127.186542,
-        type: 'university',
-        badge: '🏫 대학교',
-        safetyTip: '등하교 시간 대학가 주변 보행자 밀집도가 매우 높습니다. 보행자 보호구역 진입 시 반드시 서행하세요.'
-    },
-    {
-        id: 'landmark-cheonan-station',
-        title: '천안역 (동부광장)',
-        desc: '충청남도 천안시 동남구 대흥로 239 (철도역)',
-        lat: 36.811451,
-        lng: 127.146522,
-        type: 'station',
-        badge: '🚉 교통거점',
-        safetyTip: '천안역 광장 앞은 유동인구가 매우 조밀한 구역입니다. 하차 후 보행 시 끌고 가시는 것이 안전합니다.'
-    },
-    {
-        id: 'landmark-dujeong-station',
-        title: '두정역',
-        desc: '충청남도 천안시 서북구 두정역길 43 (지하철역)',
-        lat: 36.831521,
-        lng: 127.148811,
-        type: 'station',
-        badge: '🚉 교통거점',
-        safetyTip: '퇴근 시간 두정역 출구 인근은 PM 반납 혼잡구역입니다. 반드시 지정된 노란색 합법 주차선 안에 주차하세요.'
-    },
-    {
-        id: 'landmark-terminal',
-        title: '천안종합버스터미널',
-        desc: '충청남도 천안시 동남구 만남로 43 (버스터미널)',
-        lat: 36.819662,
-        lng: 127.155822,
-        type: 'terminal',
-        badge: '🚉 교통거점',
-        safetyTip: '신부동 터미널 앞 도로는 대표적인 사고 다발 지점입니다. 인도 주행은 불가하며, 자전거도로로 서행하세요.'
-    }
 ];
 
 const MapSearchBar = ({ onSelectLocation, speak }) => {
@@ -109,13 +19,19 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [isRegionMenuOpen, setIsRegionMenuOpen] = useState(false);
     const searchRef = useRef(null);
+
+    const currentRegion = useRegion(s => s.currentRegion);
+    const setRegion = useRegion(s => s.setRegion);
+    const regionMeta = REGIONS[currentRegion] || REGIONS.cheonan;
 
     // 외부 클릭 시 검색결과 창 닫기
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
                 setIsOpen(false);
+                setIsRegionMenuOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -131,21 +47,26 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
 
         const trimmed = query.trim().toLowerCase();
 
-        // 1. 사전 지정 랜드마크 필터링 (우선순위 1)
-        const matchedLandmarks = LANDMARKS.filter(landmark => 
-            landmark.title.toLowerCase().includes(trimmed) || 
-            landmark.desc.toLowerCase().includes(trimmed) ||
-            landmark.badge.toLowerCase().includes(trimmed)
-        );
+        // 1. 사전 지정 랜드마크 필터링 — 현재 지역 우선 정렬 (다른 지역도 결과 노출)
+        const matchedLandmarks = LANDMARKS
+            .filter(landmark =>
+                landmark.title.toLowerCase().includes(trimmed) ||
+                landmark.desc.toLowerCase().includes(trimmed) ||
+                landmark.badge.toLowerCase().includes(trimmed)
+            )
+            .sort((a, b) => {
+                const aSame = (a.region || 'cheonan') === currentRegion ? 0 : 1;
+                const bSame = (b.region || 'cheonan') === currentRegion ? 0 : 1;
+                return aSame - bSame;
+            });
 
-        // 2. 카카오 맵 로컬 키워드 검색 수행 (우선순위 2 - 폴백)
+        // 2. 카카오 맵 로컬 키워드 검색 수행 — 현재 지역 중심 좌표 기준
         if (window.kakao?.maps?.services) {
             const places = new window.kakao.maps.services.Places();
             places.keywordSearch(trimmed, (kakaoResults, status) => {
                 if (status === window.kakao.maps.services.Status.OK) {
-                    // 중복 방지 처리 (사전 정의된 랜드마크와 겹치지 않게 필터링)
                     const formattedKakao = kakaoResults
-                        .filter(item => !LANDMARKS.some(l => 
+                        .filter(item => !LANDMARKS.some(l =>
                             l.title.includes(item.place_name) || item.place_name.includes(l.title)
                         ))
                         .map(item => ({
@@ -164,13 +85,13 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     setResults(matchedLandmarks);
                 }
             }, {
-                location: new window.kakao.maps.LatLng(36.833, 127.179), // 천안 기준
-                radius: 10000 // 10km 이내
+                location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
+                radius: 10000
             });
         } else {
             setResults(matchedLandmarks);
         }
-    }, [query]);
+    }, [query, currentRegion, regionMeta.center.lat, regionMeta.center.lng]);
 
     const handleSelect = (item) => {
         setQuery(item.title);
@@ -205,10 +126,49 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     }}
                     onFocus={() => setIsOpen(true)}
                     placeholder={t('search_placeholder')}
-                    className={`w-full pl-12 pr-12 bg-gray-950/80 backdrop-blur-xl border border-white/10 focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 rounded-2xl text-white font-bold tracking-tight shadow-2xl transition-all duration-300 outline-none ${
+                    className={`w-full pl-12 pr-28 bg-gray-950/80 backdrop-blur-xl border border-white/10 focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 rounded-2xl text-white font-bold tracking-tight shadow-2xl transition-all duration-300 outline-none ${
                         isOpen ? 'py-5 text-base' : 'py-3.5 text-xs'
                     }`}
                 />
+
+                {/* 🏙️ 지역 토글 칩 (천안 ▾ / 아산 ▾) */}
+                <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsRegionMenuOpen(v => !v);
+                        }}
+                        className={`flex items-center gap-1 bg-white/10 border border-white/15 hover:border-cyber-cyan/50 active:scale-95 rounded-lg shadow-sm transition-all ${
+                            isOpen ? 'px-2 py-1 text-xs' : 'px-1.5 py-0.5 text-[10px]'
+                        } font-black text-cyber-cyan`}
+                    >
+                        <span>🏙️ {regionMeta.name}</span>
+                        <ChevronDown size={isOpen ? 14 : 12} />
+                    </button>
+                    {isRegionMenuOpen && (
+                        <div className="absolute right-0 top-full mt-1.5 bg-gray-950/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-[300] min-w-[100px]">
+                            {REGION_LIST.map(r => (
+                                <button
+                                    key={r.id}
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setRegion(r.id);
+                                        setIsRegionMenuOpen(false);
+                                        toast(`🏙️ ${r.name} 지역으로 전환`, 'success');
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-cyber-cyan/15 transition ${
+                                        r.id === currentRegion ? 'text-cyber-cyan bg-cyber-cyan/10' : 'text-gray-300'
+                                    }`}
+                                >
+                                    {r.id === currentRegion ? '✓ ' : ''}{r.name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {query && (
                     <button
                         onClick={() => {

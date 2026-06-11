@@ -57,6 +57,7 @@ import pmParkingData from './data/pm_parking_data.json';
 import { calculateDistance } from './utils/distance';
 import { useUserStore } from './hooks/useUserStore';
 import { useGeolocation } from './hooks/useGeolocation';
+import { useRegion } from './hooks/useRegion';
 import { calculateStopDistance } from './utils/physics';
 import DigitalTwinIndicator from './components/common/DigitalTwinIndicator';
 import ToastContainer from './components/common/ToastContainer';
@@ -68,7 +69,9 @@ import { toast } from './hooks/useToast';
 // 컴포넌트 외부 상수로 두어 매 렌더마다 재생성 → useEffect 재실행되는 것을 방지
 const STRESS_ZONES = [
   { id: 's1', lat: 36.833, lng: 127.179, radius: 150, name: "단국대 정문 보행자 보호구역" },
-  { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" }
+  { id: 's2', lat: 36.818, lng: 127.156, radius: 200, name: "종합터미널 보행자 밀집구역" },
+  { id: 's3', lat: 36.7898, lng: 127.0019, radius: 150, name: "아산시청 보행자 보호구역", region: 'asan' },
+  { id: 's4', lat: 36.7708, lng: 126.9322, radius: 200, name: "순천향대 정문 보행자 보호구역", region: 'asan' }
 ];
 
 function App() {
@@ -183,6 +186,14 @@ function App() {
 
   // Phase 38: Realtime Geolocation Tracker
   const { location, startTracking, stopTracking } = useGeolocation();
+
+  // 🏙️ 첫 GPS fix 시 1회 지역 자동 감지 (사용자 수동 변경 후에는 useRegion 내부에서 무시)
+  const autoDetectRegion = useRegion(s => s.autoDetectFromGPS);
+  React.useEffect(() => {
+    if (location?.lat && location?.lng) {
+      autoDetectRegion(location.lat, location.lng);
+    }
+  }, [location?.lat, location?.lng, autoDetectRegion]);
 
   // 현재 위치 좌표 (GPS 수신 중이면 실시간 위치, 아니면 단국대 앞 모킹 위치)
   const userLat = location?.lat || DEFAULT_LAT;

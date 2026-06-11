@@ -12,100 +12,9 @@ import { supabase } from '../../lib/supabaseClient';
 import { toast } from '../../hooks/useToast';
 import { SafeRouteService } from '../../services/SafeRouteService';
 import { useSafeNavigation } from '../../hooks/useSafeNavigation';
-
-// 🏢 천안 랜드마크 데이터베이스 (가이드 패널 및 지도 연동용)
-const LANDMARKS = [
-    {
-        id: 'landmark-cityhall',
-        title: '천안시청',
-        desc: '충청남도 천안시 서북구 번영로 156 (공공기관)',
-        lat: 36.815129,
-        lng: 127.113893,
-        type: 'city_hall',
-        badge: '🏢 시청 우선',
-        safetyTip: '시청 주변은 자전거 도로 정비가 잘 되어 있으나 보행자가 많으니 안전 속도(시속 20km)를 유지하세요.'
-    },
-    {
-        id: 'landmark-seobuk-fire',
-        title: '천안서북소방서',
-        desc: '충청남도 천안시 서북구 백석동 8 (재난안전)',
-        lat: 36.832791,
-        lng: 127.113289,
-        type: 'fire_station',
-        badge: '🚒 소방서 우선',
-        safetyTip: '긴급 출동 차량이 수시로 출입하는 구역입니다. 소방서 차고지 앞 주차 및 서성임은 금지됩니다.'
-    },
-    {
-        id: 'landmark-dongnam-fire',
-        title: '천안동남소방서',
-        desc: '충청남도 천안시 동남구 구성동 282-1 (재난안전)',
-        lat: 36.802521,
-        lng: 127.161877,
-        type: 'fire_station',
-        badge: '🚒 소방서 우선',
-        safetyTip: '소방차량 긴급 출동 동선 확보를 위해 주변 5m 이내에 절대 주차(PM 거치)하지 마세요.'
-    },
-    {
-        id: 'landmark-dankook',
-        title: '단국대학교 천안캠퍼스',
-        desc: '충청남도 천안시 동남구 단대로 119 (대학)',
-        lat: 36.832655,
-        lng: 127.167888,
-        type: 'university',
-        badge: '🏫 대학교',
-        safetyTip: '단대 호수(안서호) 주변 산책로는 PM 진입이 금지되거나 제한되므로 주의하여 우회하세요.'
-    },
-    {
-        id: 'landmark-sangmyung',
-        title: '상명대학교 천안캠퍼스',
-        desc: '충청남도 천안시 동남구 상명대길 31 (대학)',
-        lat: 36.833543,
-        lng: 127.179331,
-        type: 'university',
-        badge: '🏫 대학교',
-        safetyTip: '캠퍼스 내 경사 구간이 매우 가파릅니다. 급경사 다운힐 시 반드시 풋브레이크와 전면 감속을 실행하세요.'
-    },
-    {
-        id: 'landmark-baekseok',
-        title: '백석대학교',
-        desc: '충청남도 천안시 동남구 문암로 76 (대학)',
-        lat: 36.839843,
-        lng: 127.186542,
-        type: 'university',
-        badge: '🏫 대학교',
-        safetyTip: '등하교 시간 대학가 주변 보행자 밀집도가 매우 높습니다. 보행자 보호구역 진입 시 반드시 서행하세요.'
-    },
-    {
-        id: 'landmark-cheonan-station',
-        title: '천안역 (동부광장)',
-        desc: '충청남도 천안시 동남구 대흥로 239 (철도역)',
-        lat: 36.811451,
-        lng: 127.146522,
-        type: 'station',
-        badge: '🚉 교통거점',
-        safetyTip: '천안역 광장 앞은 유동인구가 매우 조밀한 구역입니다. 하차 후 보행 시 끌고 가시는 것이 안전합니다.'
-    },
-    {
-        id: 'landmark-dujeong-station',
-        title: '두정역',
-        desc: '충청남도 천안시 서북구 두정역길 43 (지하철역)',
-        lat: 36.831521,
-        lng: 127.148811,
-        type: 'station',
-        badge: '🚉 교통거점',
-        safetyTip: '퇴근 시간 두정역 출구 인근은 PM 반납 혼잡구역입니다. 반드시 지정된 노란색 합법 주차선 안에 주차하세요.'
-    },
-    {
-        id: 'landmark-terminal',
-        title: '천안종합버스터미널',
-        desc: '충청남도 천안시 동남구 만남로 43 (버스터미널)',
-        lat: 36.819662,
-        lng: 127.155822,
-        type: 'terminal',
-        badge: '🚉 교통거점',
-        safetyTip: '신부동 터미널 앞 도로는 대표적인 사고 다발 지점입니다. 인도 주행은 불가하며, 자전거도로로 서행하세요.'
-    }
-];
+import { LANDMARKS } from '../../data/landmarks';
+import { useRegion } from '../../hooks/useRegion';
+import { REGIONS } from '../../config/regions';
 
 const MapContainer = ({
     data,
@@ -136,9 +45,21 @@ const MapContainer = ({
     const [map, setMap] = useState(null);
     const pmParkings = usePMParkingData();
     const [pmStations, setPmStations] = useState([]);
-    const [mapCenter, setMapCenter] = useState({ lat: 36.833, lng: 127.179 });
+
+    // 🏙️ 지역 상태 — 현재 활성 지역의 중심·줌으로 지도 자동 정렬
+    const currentRegion = useRegion(s => s.currentRegion);
+    const regionMeta = REGIONS[currentRegion] || REGIONS.cheonan;
+
+    const [mapCenter, setMapCenter] = useState(regionMeta.center);
+    const [mapLevel, setMapLevel] = useState(regionMeta.level);
     const [highlightedStationId, setHighlightedStationId] = useState(null);
     const [safetyGridScores, setSafetyGridScores] = useState([]);
+
+    // 지역 변경 시 지도 중심·줌을 해당 지역으로 이동
+    useEffect(() => {
+        setMapCenter(regionMeta.center);
+        setMapLevel(regionMeta.level);
+    }, [currentRegion, regionMeta.center.lat, regionMeta.center.lng, regionMeta.level]);
 
     const [safeRouteInfo, setSafeRouteInfo] = useState(null);
     useSafeNavigation(safeRouteInfo?.warningPoints);
@@ -186,7 +107,7 @@ const MapContainer = ({
                     setSearchResults(matchedLandmarks);
                 }
             }, {
-                location: new window.kakao.maps.LatLng(36.833, 127.179),
+                location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
                 radius: 10000
             });
         } else {
@@ -472,7 +393,7 @@ const MapContainer = ({
                             resolve([]);
                         }
                     }, {
-                        location: new window.kakao.maps.LatLng(36.833, 127.179),
+                        location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
                         radius: 5000,
                         size: 15
                     });
@@ -487,7 +408,7 @@ const MapContainer = ({
                         } else {
                             resolve([]);
                         }
-                    }, { location: new window.kakao.maps.LatLng(36.833, 127.179), radius: 5000 });
+                    }, { location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng), radius: 5000 });
                 });
             };
 
@@ -589,7 +510,7 @@ const MapContainer = ({
             >
                 <Map
                     center={mapCenter}
-                    level={4}
+                    level={mapLevel}
                     style={{ width: '100%', height: '100%' }}
                     ref={mapRef}
                     onDragStart={handleDragStart}
