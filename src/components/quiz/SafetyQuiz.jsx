@@ -53,10 +53,10 @@ const SafetyQuiz = ({ onComplete }) => {
             const nextIdx = currentIdx + 1;
             setCurrentIdx(nextIdx);
             setSelected(null);
-            speak(`${t("next_question_is")} ${shuffledQuiz[nextIdx].question}`);
+            speak(`${t("next_question_is")} ${shuffledQuiz[nextIdx].question}`, 'QUIZ');
         } else {
             setIsDone(true);
-            speak(t("EDUCATED RIDER"));
+            speak(t("EDUCATED RIDER"), 'QUIZ');
         }
     };
 
@@ -67,14 +67,14 @@ const SafetyQuiz = ({ onComplete }) => {
         const isCorrect = choice === shuffledQuiz[currentIdx].answer;
         if (isCorrect) {
             setCorrectCount(prev => prev + 1);
-            speak(`${t("CORRECT")}!`);
+            speak(`${t("CORRECT")}!`, 'QUIZ_FEEDBACK');
         } else {
-            speak(`${t("INCORRECT")}.`);
+            speak(`${t("INCORRECT")}.`, 'QUIZ_FEEDBACK');
         }
 
         setTimeout(() => {
             nextQuiz();
-        }, 2000);
+        }, 1500);
     };
 
     if (isDone) {
@@ -119,7 +119,7 @@ const SafetyQuiz = ({ onComplete }) => {
                                 const silence = new Audio("data:audio/mp3;base64,//MkxAAQAAAAgAFAAAhAAAMoAQAAAE/gAAAAAABzwAAAAABwAAhAAAMoAQAAAE/gAAAAAABzwAAAAAAA=");
                                 silence.play().catch(e => console.log('Audio init skipped', e));
                             } catch (e) { }
-                            speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`);
+                            speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`, 'QUIZ');
                             setIsQuizStarted(true);
                         }}
                         className="w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95 flex items-center justify-center gap-2"

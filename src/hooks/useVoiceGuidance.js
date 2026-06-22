@@ -75,7 +75,11 @@ export const useVoiceGuidance = () => {
         L1: { rate: 0.95, pitch: 0.95, volume: 0.75, interrupt: false },
         L2: { rate: 1.0,  pitch: 1.05, volume: 0.9,  interrupt: false },
         L3: { rate: 1.1,  pitch: 1.15, volume: 1.0,  interrupt: true  },
-        L4: { rate: 1.15, pitch: 1.25, volume: 1.0,  interrupt: true  }
+        L4: { rate: 1.15, pitch: 1.25, volume: 1.0,  interrupt: true  },
+        // 퀴즈 문제 낭독: 또렷·편안. 사용자가 중간에 답을 누르면 QUIZ_FEEDBACK이 즉시 끊고 들어감.
+        QUIZ:          { rate: 0.85, pitch: 0.95, volume: 1.0, interrupt: true },
+        // 정답/오답 즉답: 짧고 명료, 진행 중 발화를 무조건 잘라낸다.
+        QUIZ_FEEDBACK: { rate: 1.0,  pitch: 1.05, volume: 1.0, interrupt: true }
     };
 
     const speak = useCallback((text, level = 'L2') => {
