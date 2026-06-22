@@ -17,7 +17,7 @@ export default defineConfig({
       devOptions: {
         enabled: false
       },
-      includeAssets: ['favicon.ico', 'icon.svg'],
+      includeAssets: ['favicon.ico', 'icon.svg', 'pwa-icon-512.png'],
       manifest: {
         name: 'C-Safe: 전동킥보드 안전 가이드',
         short_name: 'C-Safe',
@@ -30,10 +30,16 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: '/icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
+            src: '/pwa-icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/pwa-icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
