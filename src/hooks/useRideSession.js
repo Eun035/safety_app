@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
 import helmetStations from '../data/helmet_stations.json';
 import { calculateDistance } from '../utils/distance';
+import { useUserStore } from './useUserStore';
+import { enqueue } from '../lib/pendingSyncQueue';
 
 export const useRideSession = create((set, get) => ({
     isRiding: false,
@@ -133,7 +135,6 @@ export const useRideSession = create((set, get) => ({
         if (!currentState.isRiding) return; // 이미 종료되었거나 라이딩 중이 아니면 무시
 
         // UserStore에서 현재 userId 가져오기
-        const { useUserStore } = await import('./useUserStore');
         const userId = useUserStore.getState().user?.id;
 
         // 안전하게 라이딩 상태 해제 및 필요한 후속 처리 트리거 (결제, 보상 등 정상 종료 흐름 수행)
@@ -322,7 +323,6 @@ export const useRideSession = create((set, get) => ({
                 };
 
                 // P0-3: 모든 insert는 try-catch + enqueue 패턴
-                const { enqueue } = await import('../lib/pendingSyncQueue');
 
                 // 1. rides
                 try {

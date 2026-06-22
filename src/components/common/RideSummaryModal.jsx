@@ -6,7 +6,7 @@ import { toast } from '../../hooks/useToast';
 import ShareCard from './ShareCard';
 import { buildReferralCode, buildReferralUrl, generateQrDataUrl } from '../../utils/referral';
 
-const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId }) => {
+const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId, helmetOn = false }) => {
 
 
     const [currentTime, setCurrentTime] = useState("");
@@ -55,7 +55,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             const file = new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' });
 
             // 3) Web Share Level 2 (파일 공유) 지원 시 → 인스타·카톡 직통
-            const shareText = `오늘도 안전하게 ${metrics?.distance ?? 12.4}km 달렸어요. C-Safe와 함께 안전 라이딩!`;
+            const shareText = `${Number(metrics?.distance ?? 2.4).toFixed(1)}km 비행 완료 ⚡ C-Safe와 함께 안전 라이딩.`;
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -255,6 +255,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                         ratio={shareRatio}
                         qrDataUrl={qrDataUrl}
                         referralCode={referralCode}
+                        helmetOn={helmetOn}
                     />
 
                     <p className="text-center text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-8 mb-2">

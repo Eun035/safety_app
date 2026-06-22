@@ -54,6 +54,7 @@ import SafeCorridorSheet from './components/common/SafeCorridorSheet';
 import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
 import RideStartScreen from './components/common/RideStartScreen';
 import { useAutoCheckout } from './hooks/useAutoCheckout';
+import { useWakeLock } from './hooks/useWakeLock';
 
 
 import pmParkingData from './data/pm_parking_data.json';
@@ -68,6 +69,7 @@ import { calculateStopDistance } from './utils/physics';
 import DigitalTwinIndicator from './components/common/DigitalTwinIndicator';
 import ToastContainer from './components/common/ToastContainer';
 import { supabase } from './lib/supabaseClient';
+import { flush as flushPendingSync } from './lib/pendingSyncQueue';
 import { toast } from './hooks/useToast';
 
 
@@ -81,7 +83,6 @@ const STRESS_ZONES = [
 ];
 
 function App() {
-  useAutoCheckout(); // 자동 체크아웃 훅 활성화
   const { t } = useTranslation();
   const { locations, tagoPms, weatherRisk, currentTemp, isLoading: mapLoading } = useSafeData();
   const { user, profile, isLoading: authLoading, signInAnonymously, loadUser } = useUserStore();
@@ -124,6 +125,10 @@ function App() {
   // 🅿️ 자동 체크아웃 — 라이딩 중 PM 주차장 10m 이내 + 속도 0이 10초 유지되면
   // triggerAutoCheckout() 자동 발화 → endRideSession 전체 정상 종료 흐름 실행
   useAutoCheckout();
+
+  // 🔋 라이딩 중 화면 절전 차단 (Screen Wake Lock).
+  // 백그라운드 복귀 시 usePageVisibility로 자동 재획득. 미지원 브라우저는 no-op.
+  useWakeLock(isRiding);
 
   // Phase 19: 안전 퀴즈 게이트 노출 정책 평가 (Disclaimer 동의 후 1회만)
   // 조건 1: 직전 시도에서 3개 다 맞히지 못함  → 재노출
@@ -401,8 +406,7 @@ function App() {
     let cancelled = false;
     const doFlush = async () => {
       try {
-        const { flush } = await import('./lib/pendingSyncQueue');
-        const result = await flush(user.id);
+        const result = await flushPendingSync(user.id);
         if (!cancelled && result.flushed > 0) {
           console.log(`[C-Safe][sync] flushed ${result.flushed} rows, remaining ${result.remaining}`);
         }
@@ -1366,6 +1370,7 @@ function App() {
           vibeName={currentVibeRoute ? `${currentVibeRoute.title} (${currentVibeRoute.subTitle.split(' ')[0]})` : "Safety Route"}
           suddenBrakeCount={finalRideSummary?.suddenBrakeCount || suddenBrakeCount}
           userId={user?.id}
+          helmetOn={helmetOnRef.current}
         />
 
         {/* 🧠 AI Safety Coach — 주행 후 개인화 피드백 */}
