@@ -24,10 +24,10 @@ const DisclaimerModal = ({ onAgree, onBack }) => {
                 {onBack && (
                     <button
                         onClick={onBack}
-                        className="absolute top-3 left-3 sm:top-5 sm:left-5 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:bg-white/10 hover:text-white active:scale-95 transition"
+                        className="absolute top-3 left-3 sm:top-5 sm:left-5 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:bg-white/10 hover:text-white active:scale-95 transition"
                         aria-label="뒤로가기"
                     >
-                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                 )}
 
@@ -52,15 +52,15 @@ const DisclaimerModal = ({ onAgree, onBack }) => {
                 </div>
 
                 <div
-                    className="flex items-center gap-2 sm:gap-3 w-full p-3 sm:p-4 mb-3 sm:mb-8 bg-black/40 rounded-xl cursor-pointer border border-white/5 hover:border-white/20 transition-colors"
+                    className="flex items-center gap-2 sm:gap-3 w-full p-4 sm:p-5 mb-3 sm:mb-8 bg-black/40 rounded-xl cursor-pointer border border-white/5 hover:border-white/20 transition-colors active:scale-95"
                     onClick={() => setIsChecked(!isChecked)}
                 >
                     <div className="flex-shrink-0">
                         {isChecked
-                            ? <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6 text-cyber-green" />
-                            : <Square className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />}
+                            ? <CheckSquare className="w-6 h-6 sm:w-7 sm:h-7 text-cyber-green" />
+                            : <Square className="w-6 h-6 sm:w-7 sm:h-7 text-gray-500" />}
                     </div>
-                    <span className={`text-xs sm:text-sm font-bold select-none ${isChecked ? 'text-white' : 'text-gray-400'}`}>
+                    <span className={`text-sm sm:text-base font-bold select-none ${isChecked ? 'text-white' : 'text-gray-400'}`}>
                         {t("disclaimer_check")}
                     </span>
                 </div>
@@ -68,12 +68,12 @@ const DisclaimerModal = ({ onAgree, onBack }) => {
                 <button
                     onClick={handleAgree}
                     disabled={!isChecked}
-                    className={`w-full py-3 sm:py-4 rounded-xl font-black text-base sm:text-lg shadow-xl uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${isChecked
+                    className={`w-full py-5 sm:py-6 rounded-2xl font-black text-base sm:text-lg shadow-xl uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${isChecked
                         ? 'bg-red-600 text-white hover:bg-red-700 active:scale-95'
                         : 'bg-white/5 text-gray-600 cursor-not-allowed'
                         }`}
                 >
-                    {t("disclaimer_btn")} <ChevronRight className={`w-4 h-4 sm:w-5 sm:h-5 ${isChecked ? 'text-white' : 'text-gray-600'}`} />
+                    {t("disclaimer_btn")} <ChevronRight className={`w-5 h-5 sm:w-6 sm:h-6 ${isChecked ? 'text-white' : 'text-gray-600'}`} />
                 </button>
             </div>
         </div>

@@ -97,7 +97,7 @@ const SafetyQuiz = ({ onComplete }) => {
                     </p>
                     <button
                         onClick={() => onComplete(correctCount)}
-                        className="w-full py-3 sm:py-5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95"
+                        className="w-full py-5 sm:py-6 rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95"
                     >
                         {t("Access Map")}
                     </button>
@@ -134,7 +134,7 @@ const SafetyQuiz = ({ onComplete }) => {
                             speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`, 'QUIZ');
                             setIsQuizStarted(true);
                         }}
-                        className="w-full py-3 sm:py-5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95 flex items-center justify-center gap-2"
+                        className="w-full py-5 sm:py-6 rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95 flex items-center justify-center gap-2"
                     >
                         테스트 시작하기
                     </button>
@@ -176,7 +176,7 @@ const SafetyQuiz = ({ onComplete }) => {
                     <button
                         onClick={() => handleAnswer(true)}
                         disabled={selected !== null}
-                        className={`py-5 sm:py-8 rounded-xl sm:rounded-2xl border-2 font-black text-3xl sm:text-4xl transition-all flex justify-center items-center ${selected === true
+                        className={`py-7 sm:py-10 rounded-2xl border-2 font-black text-4xl sm:text-5xl transition-all flex justify-center items-center ${selected === true
                             ? (currentQuiz.answer === true ? 'bg-cyber-green/10 border-cyber-green text-cyber-green shadow-[0_0_20px_rgba(56,239,125,0.3)]' : 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]')
                             : 'bg-black/40 border-white/5 text-gray-500 hover:border-cyber-cyan/50 hover:text-cyber-cyan'
                             } ${selected !== null && selected !== true ? 'opacity-20' : ''}`}
@@ -186,7 +186,7 @@ const SafetyQuiz = ({ onComplete }) => {
                     <button
                         onClick={() => handleAnswer(false)}
                         disabled={selected !== null}
-                        className={`py-5 sm:py-8 rounded-xl sm:rounded-2xl border-2 font-black text-3xl sm:text-4xl transition-all flex justify-center items-center ${selected === false
+                        className={`py-7 sm:py-10 rounded-2xl border-2 font-black text-4xl sm:text-5xl transition-all flex justify-center items-center ${selected === false
                             ? (currentQuiz.answer === false ? 'bg-cyber-green/10 border-cyber-green text-cyber-green shadow-[0_0_20px_rgba(56,239,125,0.3)]' : 'bg-red-500/10 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]')
                             : 'bg-black/40 border-white/5 text-gray-500 hover:border-cyber-cyan/50 hover:text-cyber-cyan'
                             } ${selected !== null && selected !== false ? 'opacity-20' : ''}`}

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Globe, Check } from 'lucide-react';
 
 const LanguageSelectorScreen = ({ onComplete }) => {
     const { i18n } = useTranslation();
+    const [pendingLanguage, setPendingLanguage] = useState(null);
 
     const languages = [
         { code: 'ko', label: '한국어', desc: 'Korean' },
@@ -12,8 +13,9 @@ const LanguageSelectorScreen = ({ onComplete }) => {
         { code: 'zh-CN', label: '中文', desc: 'Chinese' }
     ];
 
-    const handleSelectLanguage = (code) => {
-        i18n.changeLanguage(code);
+    const handleConfirm = () => {
+        if (!pendingLanguage) return;
+        i18n.changeLanguage(pendingLanguage);
         onComplete();
     };
 
@@ -33,19 +35,57 @@ const LanguageSelectorScreen = ({ onComplete }) => {
                     <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-cyber-cyan" />
                 </div>
 
-                <h2 className="text-lg sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-4 sm:mb-8">Select Language</h2>
+                <h2 className="text-lg sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-4 sm:mb-6">Select Language</h2>
 
-                <div className="flex flex-col gap-2 sm:gap-4 w-full relative z-10">
-                    {languages.map((lang) => (
-                        <button
-                            key={lang.code}
-                            onClick={() => handleSelectLanguage(lang.code)}
-                            className="w-full bg-black/40 border border-white/5 py-3 sm:py-5 rounded-xl sm:rounded-2xl flex items-center justify-between px-4 sm:px-6 hover:bg-white/10 hover:border-cyber-cyan/50 hover:shadow-[0_0_15px_rgba(64,255,220,0.2)] transition-all active:scale-95 group"
-                        >
-                            <span className="text-base sm:text-xl font-bold text-white group-hover:text-cyber-cyan transition-colors">{lang.label}</span>
-                            <span className="text-xs sm:text-sm font-medium text-gray-500">{lang.desc}</span>
-                        </button>
-                    ))}
+                <div className="flex flex-col gap-2 sm:gap-3 w-full relative z-10">
+                    {languages.map((lang) => {
+                        const isPending = pendingLanguage === lang.code;
+                        return (
+                            <button
+                                key={lang.code}
+                                onClick={() => setPendingLanguage(lang.code)}
+                                className={`w-full border py-5 sm:py-6 rounded-2xl flex items-center justify-between px-4 sm:px-6 transition-all active:scale-95 ${
+                                    isPending
+                                        ? 'bg-cyber-cyan/15 border-cyber-cyan shadow-[0_0_20px_rgba(64,255,220,0.35)]'
+                                        : 'bg-black/40 border-white/5 hover:bg-white/10 hover:border-cyber-cyan/40'
+                                }`}
+                            >
+                                <span className={`text-lg sm:text-xl font-bold transition-colors ${isPending ? 'text-cyber-cyan' : 'text-white'}`}>
+                                    {lang.label}
+                                </span>
+                                {isPending
+                                    ? <Check className="w-5 h-5 text-cyber-cyan" />
+                                    : <span className="text-xs sm:text-sm font-medium text-gray-500">{lang.desc}</span>
+                                }
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Cancel + Confirm 2-step */}
+                <div className="flex gap-2 sm:gap-3 w-full mt-4 sm:mt-6">
+                    <button
+                        onClick={() => setPendingLanguage(null)}
+                        disabled={!pendingLanguage}
+                        className={`flex-1 py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all active:scale-95 ${
+                            pendingLanguage
+                                ? 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
+                                : 'bg-white/5 text-gray-600 cursor-not-allowed border border-white/5'
+                        }`}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleConfirm}
+                        disabled={!pendingLanguage}
+                        className={`flex-[2] py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all active:scale-95 ${
+                            pendingLanguage
+                                ? 'bg-cyber-cyan text-black shadow-neon-cyan'
+                                : 'bg-white/5 text-gray-600 cursor-not-allowed'
+                        }`}
+                    >
+                        Confirm
+                    </button>
                 </div>
             </div>
         </div>
