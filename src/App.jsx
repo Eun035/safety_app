@@ -1050,12 +1050,10 @@ function App() {
 
         <main className="flex-1 w-full relative">
 
-          {/* 🔍 Floating Map Search Bar — route_ready 또는 주행 중에는 숨김 */}
-          {navStep !== 'route_ready' && !isRiding && (
-            <div
-              className="absolute left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-sm z-[100] pointer-events-auto transition-all duration-300"
-              style={{ top: navStep === 'idle' ? '16px' : '190px' }}
-            >
+          {/* 🔍 Floating Map Search Bar — idle 상태에서만 노출
+              (select_origin / select_destination에서는 가이드 패널 입력이 마이크 포함된 전용 검색이라 중복 회피) */}
+          {navStep === 'idle' && !isRiding && (
+            <div className="absolute left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-sm z-[100] pointer-events-auto transition-all duration-300 top-4">
               <MapSearchBar
                 speak={speak}
                 onSelectLocation={(loc) => {
