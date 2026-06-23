@@ -827,10 +827,13 @@ function App() {
 
       {/* 3️⃣ Disclaimer (언어 선택 후) */}
       {!showSplash && hasSelectedLanguage && !hasAgreedDisclaimer && (
-        <DisclaimerModal onAgree={() => {
-          speak('');
-          setHasAgreedDisclaimer(true);
-        }} />
+        <DisclaimerModal
+          onAgree={() => {
+            speak('');
+            setHasAgreedDisclaimer(true);
+          }}
+          onBack={() => setHasSelectedLanguage(false)}
+        />
       )}
 
       {/* 4️⃣ Safety Quiz (면책 동의 후, 정책상 노출 결정 시) */}

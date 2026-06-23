@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckSquare, Square, ChevronRight } from 'lucide-react';
+import { AlertTriangle, CheckSquare, Square, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const DisclaimerModal = ({ onAgree }) => {
+const DisclaimerModal = ({ onAgree, onBack }) => {
     const { t } = useTranslation();
     const [isChecked, setIsChecked] = useState(false);
 
@@ -14,6 +14,16 @@ const DisclaimerModal = ({ onAgree }) => {
     return (
         <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 text-pretendard animate-in fade-in duration-500">
             <div className="bg-[#111] w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative border border-white/10 flex flex-col items-center">
+
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="absolute top-5 left-5 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:bg-white/10 hover:text-white active:scale-95 transition"
+                        aria-label="뒤로가기"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                )}
 
                 <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
                     <AlertTriangle size={36} className="text-red-500 drop-shadow-lg" />
