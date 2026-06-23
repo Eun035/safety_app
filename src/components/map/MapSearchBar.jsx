@@ -21,16 +21,18 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
     const [results, setResults] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [isRegionMenuOpen, setIsRegionMenuOpen] = useState(false);
+    const [voiceAlternatives, setVoiceAlternatives] = useState([]); // 음성 인식 확률순 후보 (best 제외)
     const searchRef = useRef(null);
 
     const currentRegion = useRegion(s => s.currentRegion);
     const setRegion = useRegion(s => s.setRegion);
     const regionMeta = REGIONS[currentRegion] || REGIONS.cheonan;
 
-    // 음성 검색 — 인식 결과를 query에 즉시 반영 → 기존 useEffect 검색 파이프라인이 자동 트리거
+    // 음성 검색 — best는 input에 표시, 나머지 후보는 별도 저장하여 같이 검색
     const { start: startVoice, isListening, isSupported: voiceSupported } = useSpeechRecognition({
-        onResult: (text) => {
+        onResult: (text, alternatives) => {
             setQuery(text);
+            setVoiceAlternatives(Array.isArray(alternatives) ? alternatives.slice(1) : []);
             setIsOpen(true);
         },
         onError: (errCode) => {
@@ -60,86 +62,110 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // 검색어 입력에 따른 실시간 하이브리드 검색 실행
+    // 검색어 입력에 따른 실시간 하이브리드 검색 실행 — query + voiceAlternatives 동시 조회
     useEffect(() => {
-        if (!query.trim()) {
+        const allQueries = [query, ...voiceAlternatives]
+            .map(q => (q || '').trim())
+            .filter(q => q.length > 0);
+        const uniqueQueries = [...new Set(allQueries)];
+
+        if (uniqueQueries.length === 0) {
             setResults([]);
             return;
         }
 
-        const trimmed = query.trim().toLowerCase();
+        // 1. 사전 지정 랜드마크 필터링 — 모든 후보에 대해 검색, dedup
+        const matchedLandmarksSet = new Map();
+        uniqueQueries.forEach(q => {
+            const trimmed = q.toLowerCase();
+            LANDMARKS
+                .filter(landmark =>
+                    landmark.title.toLowerCase().includes(trimmed) ||
+                    landmark.desc.toLowerCase().includes(trimmed) ||
+                    landmark.badge.toLowerCase().includes(trimmed)
+                )
+                .forEach(l => { if (!matchedLandmarksSet.has(l.id)) matchedLandmarksSet.set(l.id, l); });
+        });
+        const matchedLandmarks = [...matchedLandmarksSet.values()].sort((a, b) => {
+            const aSame = (a.region || 'cheonan') === currentRegion ? 0 : 1;
+            const bSame = (b.region || 'cheonan') === currentRegion ? 0 : 1;
+            return aSame - bSame;
+        });
 
-        // 1. 사전 지정 랜드마크 필터링 — 현재 지역 우선 정렬 (다른 지역도 결과 노출)
-        const matchedLandmarks = LANDMARKS
-            .filter(landmark =>
-                landmark.title.toLowerCase().includes(trimmed) ||
-                landmark.desc.toLowerCase().includes(trimmed) ||
-                landmark.badge.toLowerCase().includes(trimmed)
-            )
-            .sort((a, b) => {
-                const aSame = (a.region || 'cheonan') === currentRegion ? 0 : 1;
-                const bSame = (b.region || 'cheonan') === currentRegion ? 0 : 1;
-                return aSame - bSame;
-            });
-
-        // 2. 카카오 맵 키워드 + 주소 동시 검색 — 키워드는 POI("천안시청"), 주소는 도로명/지번("쌍용대로 32")
+        // 2. 카카오 키워드 + 주소 동시 검색 — uniqueQueries 전부에 대해 병렬 발사
         if (window.kakao?.maps?.services) {
             const placeOptions = {
                 location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
                 radius: 10000
             };
 
-            const keywordSearch = new Promise((resolve) => {
-                const places = new window.kakao.maps.services.Places();
-                places.keywordSearch(trimmed, (data, status) => {
-                    resolve(status === window.kakao.maps.services.Status.OK ? data : []);
-                }, placeOptions);
-            });
+            const searches = uniqueQueries.flatMap(q => [
+                new Promise((resolve) => {
+                    const places = new window.kakao.maps.services.Places();
+                    places.keywordSearch(q, (data, status) => {
+                        resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+                    }, placeOptions);
+                }),
+                new Promise((resolve) => {
+                    const geocoder = new window.kakao.maps.services.Geocoder();
+                    geocoder.addressSearch(q, (data, status) => {
+                        resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+                    });
+                })
+            ]);
 
-            const addressSearch = new Promise((resolve) => {
-                const geocoder = new window.kakao.maps.services.Geocoder();
-                geocoder.addressSearch(query.trim(), (data, status) => {
-                    resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+            Promise.all(searches).then(arrays => {
+                const seenCoords = new Set();
+                const formattedPlaces = [];
+                const formattedAddresses = [];
+
+                arrays.forEach((arr, idx) => {
+                    const isAddressSearch = idx % 2 === 1; // 짝=Places, 홀=Geocoder
+                    arr.forEach(item => {
+                        const lat = Number(item.y);
+                        const lng = Number(item.x);
+                        if (!lat || !lng) return;
+                        const coordKey = `${lat.toFixed(5)}_${lng.toFixed(5)}`;
+                        if (seenCoords.has(coordKey)) return;
+                        seenCoords.add(coordKey);
+
+                        if (isAddressSearch) {
+                            const roadName = item.road_address?.address_name;
+                            const lotName = item.address?.address_name || item.address_name;
+                            formattedAddresses.push({
+                                id: `kakao-addr-${coordKey}`,
+                                title: roadName || lotName,
+                                desc: roadName ? lotName : '지번 주소',
+                                lat, lng,
+                                type: 'kakao_address',
+                                badge: '🏠 주소',
+                                safetyTip: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                            });
+                        } else {
+                            // landmark와 중복인 POI는 제외
+                            const dup = LANDMARKS.some(l =>
+                                l.title.includes(item.place_name) || item.place_name.includes(l.title)
+                            );
+                            if (dup) return;
+                            formattedPlaces.push({
+                                id: `kakao-${item.id}`,
+                                title: item.place_name,
+                                desc: item.road_address_name || item.address_name,
+                                lat, lng,
+                                type: 'kakao_place',
+                                badge: '📍 일반 장소',
+                                safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                            });
+                        }
+                    });
                 });
-            });
 
-            Promise.all([keywordSearch, addressSearch]).then(([places, addresses]) => {
-                const formattedPlaces = places
-                    .filter(item => !LANDMARKS.some(l =>
-                        l.title.includes(item.place_name) || item.place_name.includes(l.title)
-                    ))
-                    .map(item => ({
-                        id: `kakao-${item.id}`,
-                        title: item.place_name,
-                        desc: item.road_address_name || item.address_name,
-                        lat: Number(item.y),
-                        lng: Number(item.x),
-                        type: 'kakao_place',
-                        badge: '📍 일반 장소',
-                        safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
-                    }));
-
-                const formattedAddresses = addresses.map((item, idx) => {
-                    const roadName = item.road_address?.address_name;
-                    const lotName = item.address?.address_name || item.address_name;
-                    return {
-                        id: `kakao-addr-${idx}-${item.x}-${item.y}`,
-                        title: roadName || lotName,
-                        desc: roadName ? lotName : '지번 주소',
-                        lat: Number(item.y),
-                        lng: Number(item.x),
-                        type: 'kakao_address',
-                        badge: '🏠 주소',
-                        safetyTip: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
-                    };
-                });
-
-                setResults([...matchedLandmarks, ...formattedAddresses, ...formattedPlaces]);
+                setResults([...matchedLandmarks, ...formattedAddresses, ...formattedPlaces].slice(0, 15));
             });
         } else {
             setResults(matchedLandmarks);
         }
-    }, [query, currentRegion, regionMeta.center.lat, regionMeta.center.lng]);
+    }, [query, voiceAlternatives, currentRegion, regionMeta.center.lat, regionMeta.center.lng]);
 
     const handleSelect = (item) => {
         setQuery(item.title);
@@ -170,6 +196,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
+                        setVoiceAlternatives([]);
                         setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
@@ -221,6 +248,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     <button
                         onClick={() => {
                             setQuery('');
+                            setVoiceAlternatives([]);
                             setResults([]);
                         }}
                         className="absolute right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition"

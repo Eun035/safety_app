@@ -69,11 +69,13 @@ const MapContainer = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [voiceAlternatives, setVoiceAlternatives] = useState([]); // 음성 인식 확률순 후보 (best 제외)
 
-    // 음성 검색 — 출발지/목적지 양쪽 입력에 동일 핸들러
+    // 음성 검색 — best는 input에 표시, 나머지 후보는 별도 저장
     const { start: startVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
-        onResult: (text) => {
+        onResult: (text, alternatives) => {
             setSearchQuery(text);
+            setVoiceAlternatives(Array.isArray(alternatives) ? alternatives.slice(1) : []);
             setIsSearchFocused(true);
         },
         onError: (errCode) => {
@@ -106,64 +108,83 @@ const MapContainer = ({
             landmark.desc.toLowerCase().includes(trimmed)
         );
 
-        // 2. 카카오 키워드 + 주소 동시 검색 (POI + 도로명/지번 주소)
+        // 2. 카카오 키워드 + 주소 동시 검색 — searchQuery + voiceAlternatives 전부 병렬 발사
         if (window.kakao?.maps?.services) {
             const placeOptions = {
                 location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
                 radius: 10000
             };
 
-            const keywordSearch = new Promise((resolve) => {
-                const places = new window.kakao.maps.services.Places();
-                places.keywordSearch(trimmed, (data, status) => {
-                    resolve(status === window.kakao.maps.services.Status.OK ? data : []);
-                }, placeOptions);
-            });
+            const allQueries = [searchQuery.trim(), ...voiceAlternatives.map(s => s.trim())]
+                .filter(q => q.length > 0);
+            const uniqueQueries = [...new Set(allQueries)];
 
-            const addressSearch = new Promise((resolve) => {
-                const geocoder = new window.kakao.maps.services.Geocoder();
-                geocoder.addressSearch(searchQuery.trim(), (data, status) => {
-                    resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+            const searches = uniqueQueries.flatMap(q => [
+                new Promise((resolve) => {
+                    const places = new window.kakao.maps.services.Places();
+                    places.keywordSearch(q, (data, status) => {
+                        resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+                    }, placeOptions);
+                }),
+                new Promise((resolve) => {
+                    const geocoder = new window.kakao.maps.services.Geocoder();
+                    geocoder.addressSearch(q, (data, status) => {
+                        resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+                    });
+                })
+            ]);
+
+            Promise.all(searches).then(arrays => {
+                const seenCoords = new Set();
+                const formattedPlaces = [];
+                const formattedAddresses = [];
+
+                arrays.forEach((arr, idx) => {
+                    const isAddressSearch = idx % 2 === 1;
+                    arr.forEach(item => {
+                        const lat = Number(item.y);
+                        const lng = Number(item.x);
+                        if (!lat || !lng) return;
+                        const coordKey = `${lat.toFixed(5)}_${lng.toFixed(5)}`;
+                        if (seenCoords.has(coordKey)) return;
+                        seenCoords.add(coordKey);
+
+                        if (isAddressSearch) {
+                            const roadName = item.road_address?.address_name;
+                            const lotName = item.address?.address_name || item.address_name;
+                            formattedAddresses.push({
+                                id: `kakao-addr-${coordKey}`,
+                                title: roadName || lotName,
+                                desc: roadName ? lotName : '지번 주소',
+                                lat, lng,
+                                type: 'kakao_address',
+                                badge: '🏠 주소',
+                                safetyTip: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                            });
+                        } else {
+                            const dup = LANDMARKS.some(l =>
+                                l.title.includes(item.place_name) || item.place_name.includes(l.title)
+                            );
+                            if (dup) return;
+                            formattedPlaces.push({
+                                id: `kakao-${item.id}`,
+                                title: item.place_name,
+                                desc: item.road_address_name || item.address_name,
+                                lat, lng,
+                                type: 'kakao_place',
+                                badge: '📍 일반 장소',
+                                safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                            });
+                        }
+                    });
                 });
-            });
 
-            Promise.all([keywordSearch, addressSearch]).then(([places, addresses]) => {
-                const formattedPlaces = places
-                    .filter(item => !LANDMARKS.some(l =>
-                        l.title.includes(item.place_name) || item.place_name.includes(l.title)
-                    ))
-                    .map(item => ({
-                        id: `kakao-${item.id}`,
-                        title: item.place_name,
-                        desc: item.road_address_name || item.address_name,
-                        lat: Number(item.y),
-                        lng: Number(item.x),
-                        type: 'kakao_place',
-                        badge: '📍 일반 장소',
-                        safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
-                    }));
-
-                const formattedAddresses = addresses.map((item, idx) => {
-                    const roadName = item.road_address?.address_name;
-                    const lotName = item.address?.address_name || item.address_name;
-                    return {
-                        id: `kakao-addr-${idx}-${item.x}-${item.y}`,
-                        title: roadName || lotName,
-                        desc: roadName ? lotName : '지번 주소',
-                        lat: Number(item.y),
-                        lng: Number(item.x),
-                        type: 'kakao_address',
-                        badge: '🏠 주소',
-                        safetyTip: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
-                    };
-                });
-
-                setSearchResults([...matchedLandmarks, ...formattedAddresses, ...formattedPlaces]);
+                setSearchResults([...matchedLandmarks, ...formattedAddresses, ...formattedPlaces].slice(0, 15));
             });
         } else {
             setSearchResults(matchedLandmarks);
         }
-    }, [searchQuery]);
+    }, [searchQuery, voiceAlternatives]);
 
     const handleSelectOrigin = (item) => {
         setRouteOrigin({
@@ -177,6 +198,7 @@ const MapContainer = ({
         });
         setNavStep('select_destination');
         setSearchQuery('');
+        setVoiceAlternatives([]);
         setSearchResults([]);
         setIsSearchFocused(false);
         speak(`출발지가 ${item.title}로 설정되었습니다. 이제 목적지를 선택하세요.`);
@@ -197,6 +219,7 @@ const MapContainer = ({
         });
         setNavStep('route_ready');
         setSearchQuery('');
+        setVoiceAlternatives([]);
         setSearchResults([]);
         setIsSearchFocused(false);
         speak(`${item.title}이 목적지로 설정되었습니다.`);
@@ -755,7 +778,7 @@ const MapContainer = ({
                 {isSearchFocused && searchQuery.trim() && navStep !== 'route_ready' && (
                     <div
                         className="absolute inset-0 z-[200] pointer-events-auto flex flex-col"
-                        onClick={() => { setIsSearchFocused(false); setSearchQuery(''); }}
+                        onClick={() => { setIsSearchFocused(false); setSearchQuery(''); setVoiceAlternatives([]); }}
                     >
                         {/* 반투명 배경 (탭하면 닫힘) */}
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -778,7 +801,7 @@ const MapContainer = ({
                                         {searchResults.length}건
                                     </span>
                                     <button
-                                        onClick={() => { setIsSearchFocused(false); setSearchQuery(''); }}
+                                        onClick={() => { setIsSearchFocused(false); setSearchQuery(''); setVoiceAlternatives([]); }}
                                         className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-gray-400 hover:text-white"
                                     >
                                         <X size={12} />
@@ -867,6 +890,7 @@ const MapContainer = ({
                                                 value={searchQuery}
                                                 onChange={(e) => {
                                                     setSearchQuery(e.target.value);
+                                                    setVoiceAlternatives([]);
                                                     setIsSearchFocused(true);
                                                 }}
                                                 onFocus={() => setIsSearchFocused(true)}
@@ -906,6 +930,7 @@ const MapContainer = ({
                                                 value={searchQuery}
                                                 onChange={(e) => {
                                                     setSearchQuery(e.target.value);
+                                                    setVoiceAlternatives([]);
                                                     setIsSearchFocused(true);
                                                 }}
                                                 onFocus={() => setIsSearchFocused(true)}

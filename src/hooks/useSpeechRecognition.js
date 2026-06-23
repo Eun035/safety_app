@@ -94,7 +94,7 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
         recognition.lang = LANG_MAP[lang] || LANG_MAP[lang?.split('-')[0]] || 'ko-KR';
         recognition.continuous = false;
         recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+        recognition.maxAlternatives = 5;
 
         recognition.onstart = () => setIsListening(true);
         recognition.onend = () => {
@@ -107,8 +107,21 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
             onErrorRef.current?.(event.error || 'unknown');
         };
         recognition.onresult = (event) => {
-            const transcript = event.results?.[0]?.[0]?.transcript;
-            if (transcript) onResultRef.current?.(transcript.trim());
+            const result = event.results?.[0];
+            if (!result || result.length === 0) return;
+            // 확률 순으로 정렬된 대안 후보 전부 수집 (중복·빈문자열 제거)
+            const seen = new Set();
+            const alternatives = [];
+            for (let i = 0; i < result.length; i++) {
+                const t = result[i]?.transcript?.trim();
+                if (t && !seen.has(t)) {
+                    seen.add(t);
+                    alternatives.push(t);
+                }
+            }
+            if (alternatives.length === 0) return;
+            // 1st arg: best, 2nd arg: 전체 후보 배열 (best 포함)
+            onResultRef.current?.(alternatives[0], alternatives);
         };
 
         try {

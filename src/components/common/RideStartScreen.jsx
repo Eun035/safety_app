@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { toast } from '../../hooks/useToast';
+import { calculateDistance } from '../../utils/distance';
 
 // ─── 인기 목적지 (빠른 선택) ─────────────────────────────────────────────
 const QUICK_DESTINATIONS = [
@@ -203,12 +204,16 @@ const RideStartScreen = ({
   const [selectedDest, setSelectedDest] = useState(routeDestination || null);
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [etaPulse, setEtaPulse] = useState(false);
+  // 음성 인식 후보(확률순). best는 query에 들어가고, 나머지는 병렬 검색용.
+  const [voiceAlternatives, setVoiceAlternatives] = useState([]);
 
-  // 음성 검색 — 인식 결과를 query에 반영하면 기존 search useEffect 자동 트리거
+  // 음성 검색 — best는 input에 표시, 나머지 후보는 voiceAlternatives에 저장하여 같이 검색
   const { start: startVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
-    onResult: (text) => {
+    onResult: (text, alternatives) => {
       setSelectedDest(null);
       setQuery(text);
+      // best 제외한 alternatives만 별도 저장
+      setVoiceAlternatives(Array.isArray(alternatives) ? alternatives.slice(1) : []);
     },
     onError: (errCode) => {
       if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
@@ -242,22 +247,112 @@ const RideStartScreen = ({
     }
   }, [isOpen]);
 
-  // 디바운스 검색
+  // 출발지~좌표 거리로 ETA 추정 (PM 평균 15 km/h 기준)
+  const estimateEtaMin = useCallback((lat, lng) => {
+    if (!userLat || !userLng || !lat || !lng) return 5;
+    const meters = calculateDistance(userLat, userLng, lat, lng);
+    return Math.max(1, Math.round(meters / 250)); // 15 km/h ≈ 250 m/min
+  }, [userLat, userLng]);
+
+  // 디바운스 검색 — query + voiceAlternatives 모두 Kakao Places + Geocoder로 병렬 조회 후 병합
   useEffect(() => {
-    if (!query.trim()) {
+    const allQueries = [query, ...voiceAlternatives]
+      .map(q => (q || '').trim())
+      .filter(q => q.length > 0);
+    const uniqueQueries = [...new Set(allQueries)];
+
+    if (uniqueQueries.length === 0) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
+
     setIsSearching(true);
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
-      const results = mockSearch(query);
-      setSearchResults(results);
-      setIsSearching(false);
+      const hasKakao = typeof window !== 'undefined' && window.kakao?.maps?.services;
+
+      // Kakao SDK 미로딩 시 mockSearch 폴백 (6개 하드코딩 — 동작 보장)
+      if (!hasKakao) {
+        const merged = [];
+        const seen = new Set();
+        uniqueQueries.forEach(q => {
+          mockSearch(q).forEach(r => {
+            if (!seen.has(r.id)) { seen.add(r.id); merged.push(r); }
+          });
+        });
+        setSearchResults(merged);
+        setIsSearching(false);
+        return;
+      }
+
+      const placesSvc = new window.kakao.maps.services.Places();
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      const placeOptions = (userLat && userLng) ? {
+        location: new window.kakao.maps.LatLng(userLat, userLng),
+        radius: 20000
+      } : {};
+
+      const searches = uniqueQueries.flatMap(q => [
+        new Promise(resolve => {
+          placesSvc.keywordSearch(q, (data, status) => {
+            resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+          }, placeOptions);
+        }),
+        new Promise(resolve => {
+          geocoder.addressSearch(q, (data, status) => {
+            resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+          });
+        })
+      ]);
+
+      Promise.all(searches).then(arrays => {
+        const merged = [];
+        const seenCoords = new Set();
+
+        arrays.forEach((arr, idx) => {
+          const isAddressSearch = idx % 2 === 1; // 짝수 idx=Places, 홀수=Geocoder
+          arr.forEach(item => {
+            const lat = Number(item.y);
+            const lng = Number(item.x);
+            if (!lat || !lng) return;
+            const coordKey = `${lat.toFixed(5)}_${lng.toFixed(5)}`;
+            if (seenCoords.has(coordKey)) return;
+            seenCoords.add(coordKey);
+
+            if (isAddressSearch) {
+              const roadName = item.road_address?.address_name;
+              const lotName = item.address?.address_name || item.address_name;
+              merged.push({
+                id: `kakao-addr-${coordKey}`,
+                name: roadName || lotName,
+                address: roadName ? lotName : '지번 주소',
+                etaMin: estimateEtaMin(lat, lng),
+                lat,
+                lng
+              });
+            } else {
+              merged.push({
+                id: `kakao-${item.id}`,
+                name: item.place_name,
+                address: item.road_address_name || item.address_name || '',
+                etaMin: estimateEtaMin(lat, lng),
+                lat,
+                lng
+              });
+            }
+          });
+        });
+
+        setSearchResults(merged.slice(0, 12)); // 너무 많으면 부담 — 상위 12개
+        setIsSearching(false);
+      }).catch(() => {
+        setSearchResults([]);
+        setIsSearching(false);
+      });
     }, 350);
     return () => clearTimeout(searchTimer.current);
-  }, [query]);
+  }, [query, voiceAlternatives, userLat, userLng, estimateEtaMin]);
 
   // ETA 결정 시 pulse 애니메이션
   const handleSelectDest = useCallback((dest) => {
@@ -395,6 +490,7 @@ const RideStartScreen = ({
                       onChange={e => {
                         setQuery(e.target.value);
                         if (selectedDest) setSelectedDest(null);
+                        setVoiceAlternatives([]);
                       }}
                       placeholder="어디로 가시나요?"
                       className="w-full bg-transparent text-[13px] font-bold text-white placeholder-gray-600 outline-none"
@@ -402,7 +498,7 @@ const RideStartScreen = ({
                   </div>
                   {(query || selectedDest) && (
                     <button
-                      onClick={() => { setQuery(''); setSelectedDest(null); setSearchResults([]); }}
+                      onClick={() => { setQuery(''); setSelectedDest(null); setSearchResults([]); setVoiceAlternatives([]); }}
                       className="text-gray-600 hover:text-gray-400 transition-colors shrink-0"
                     >
                       <X size={14} />
