@@ -17,6 +17,31 @@ const LANG_MAP = {
     zh: 'zh-CN'
 };
 
+// SpeechRecognition.start()가 일부 브라우저에서 권한 다이얼로그를 못 띄우고
+// 바로 'not-allowed' 에러를 던지는 케이스가 있어서, getUserMedia로 먼저 명시적으로
+// 마이크 권한을 요청한다. 권한 받은 뒤 stream은 즉시 정리하고 SpeechRecognition을 시작.
+const ensureMicPermission = async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+        // getUserMedia 미지원 환경: 그냥 SpeechRecognition.start()에 맡김
+        return 'unknown';
+    }
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // 권한만 받고 즉시 트랙 정리 — SpeechRecognition이 다시 마이크 잡음
+        stream.getTracks().forEach(t => t.stop());
+        return 'granted';
+    } catch (err) {
+        const name = err?.name || '';
+        if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
+            return 'denied';
+        }
+        if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+            return 'no-device';
+        }
+        return 'error';
+    }
+};
+
 export const useSpeechRecognition = ({ onResult, onError } = {}) => {
     const { i18n } = useTranslation();
     const [isListening, setIsListening] = useState(false);
@@ -33,19 +58,37 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
         setIsSupported(Boolean(Ctor));
     }, []);
 
-    const start = useCallback(() => {
+    const start = useCallback(async () => {
         const Ctor = getRecognitionCtor();
         if (!Ctor) {
             onErrorRef.current?.('unsupported');
             return;
         }
 
-        // 이전 인스턴스가 살아있으면 정리
+        // HTTPS 체크 (localhost 제외) — 안 그러면 권한 자체가 막힘
+        if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            onErrorRef.current?.('insecure-context');
+            return;
+        }
+
+        // 1) 마이크 권한 명시적 요청 (다이얼로그 강제 노출)
+        const permResult = await ensureMicPermission();
+        if (permResult === 'denied') {
+            onErrorRef.current?.('not-allowed');
+            return;
+        }
+        if (permResult === 'no-device') {
+            onErrorRef.current?.('no-device');
+            return;
+        }
+
+        // 2) 이전 인스턴스 정리
         if (recognitionRef.current) {
             try { recognitionRef.current.stop(); } catch { /* noop */ }
             recognitionRef.current = null;
         }
 
+        // 3) SpeechRecognition 시작
         const recognition = new Ctor();
         const lang = i18n.language || (typeof window !== 'undefined' ? window.localStorage.getItem('i18nextLng') : null) || 'ko';
         recognition.lang = LANG_MAP[lang] || LANG_MAP[lang?.split('-')[0]] || 'ko-KR';
@@ -72,9 +115,9 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
             recognition.start();
             recognitionRef.current = recognition;
         } catch (err) {
-            // 이미 시작된 경우 등 — 무시
             console.warn('[C-Safe] SpeechRecognition start failed:', err);
             setIsListening(false);
+            onErrorRef.current?.('start-failed');
         }
     }, [i18n.language]);
 

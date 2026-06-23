@@ -78,11 +78,15 @@ const MapContainer = ({
         },
         onError: (errCode) => {
             if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
-                toast('🎤 마이크 권한이 필요합니다.', 'error');
+                toast('🎤 마이크 권한이 차단됨 — 주소창 자물쇠 → 마이크 → 허용으로 변경 후 재시도', 'error');
+            } else if (errCode === 'no-device') {
+                toast('🎤 사용 가능한 마이크를 찾지 못했어요.', 'error');
             } else if (errCode === 'no-speech') {
                 toast('🎤 음성이 감지되지 않았어요.', 'info');
             } else if (errCode === 'unsupported') {
                 toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+            } else if (errCode === 'insecure-context') {
+                toast('🎤 보안 컨텍스트(HTTPS)에서만 동작합니다.', 'error');
             }
         }
     });
