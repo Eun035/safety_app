@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Navigation, Clock, Share2, Shield,
   ChevronRight, X, Search, Loader2, CheckCircle2,
-  Send, MessageCircle, Instagram, Copy, ArrowRight
+  Send, MessageCircle, Instagram, Copy, ArrowRight, Mic
 } from 'lucide-react';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import { toast } from '../../hooks/useToast';
 
 // ─── 인기 목적지 (빠른 선택) ─────────────────────────────────────────────
 const QUICK_DESTINATIONS = [
@@ -201,6 +203,27 @@ const RideStartScreen = ({
   const [selectedDest, setSelectedDest] = useState(routeDestination || null);
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [etaPulse, setEtaPulse] = useState(false);
+
+  // 음성 검색 — 인식 결과를 query에 반영하면 기존 search useEffect 자동 트리거
+  const { start: startVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
+    onResult: (text) => {
+      setSelectedDest(null);
+      setQuery(text);
+    },
+    onError: (errCode) => {
+      if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
+        toast('🎤 마이크 권한이 차단됨 — 주소창 자물쇠 → 마이크 → 허용으로 변경 후 재시도', 'error');
+      } else if (errCode === 'no-device') {
+        toast('🎤 사용 가능한 마이크를 찾지 못했어요.', 'error');
+      } else if (errCode === 'no-speech') {
+        toast('🎤 음성이 감지되지 않았어요.', 'info');
+      } else if (errCode === 'unsupported') {
+        toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+      } else if (errCode === 'insecure-context') {
+        toast('🎤 보안 컨텍스트(HTTPS)에서만 동작합니다.', 'error');
+      }
+    }
+  });
   const inputRef = useRef(null);
   const searchTimer = useRef(null);
 
@@ -386,7 +409,23 @@ const RideStartScreen = ({
                     </button>
                   )}
                   {!query && !selectedDest && (
-                    <Search size={15} className="text-gray-600 shrink-0" />
+                    voiceSupported ? (
+                      <button
+                        type="button"
+                        onClick={startVoice}
+                        disabled={isVoiceListening}
+                        className={`p-1.5 rounded-full transition shrink-0 ${
+                          isVoiceListening
+                            ? 'text-red-400 bg-red-500/20 animate-pulse shadow-[0_0_12px_rgba(248,113,113,0.5)]'
+                            : 'text-gray-400 hover:text-red-400 hover:bg-white/10'
+                        }`}
+                        aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 목적지 검색'}
+                      >
+                        <Mic size={15} />
+                      </button>
+                    ) : (
+                      <Search size={15} className="text-gray-600 shrink-0" />
+                    )
                   )}
                 </div>
 
