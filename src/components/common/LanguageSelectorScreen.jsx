@@ -18,11 +18,15 @@ const LanguageSelectorScreen = ({ onComplete }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[10000] bg-[#070b12] flex items-center justify-center p-6 text-pretendard animate-in fade-in duration-500">
+        <div
+            className="fixed inset-0 z-[10000] bg-[#070b12] overflow-y-auto text-pretendard animate-in fade-in duration-500"
+            style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
             {/* Ambient Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyber-cyan/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-            <div className="bg-cyber-panel/95 backdrop-blur-2xl border border-white/10 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative flex flex-col items-center animate-in zoom-in duration-300">
+            <div className="min-h-full flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-cyber-panel/95 backdrop-blur-2xl border border-white/10 w-full max-w-sm rounded-[2.5rem] p-6 sm:p-8 shadow-2xl relative flex flex-col items-center animate-in zoom-in duration-300">
                 <div className="w-16 h-16 bg-cyber-cyan/10 rounded-full flex items-center justify-center mb-6 border border-cyber-cyan/30 shadow-neon-cyan relative">
                     <Globe size={32} className="text-cyber-cyan" />
                 </div>
@@ -41,6 +45,7 @@ const LanguageSelectorScreen = ({ onComplete }) => {
                         </button>
                     ))}
                 </div>
+            </div>
             </div>
         </div>
     );

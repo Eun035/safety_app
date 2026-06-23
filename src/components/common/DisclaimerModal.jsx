@@ -12,8 +12,12 @@ const DisclaimerModal = ({ onAgree, onBack }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 text-pretendard animate-in fade-in duration-500">
-            <div className="bg-[#111] w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative border border-white/10 flex flex-col items-center">
+        <div
+            className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl overflow-y-auto text-pretendard animate-in fade-in duration-500"
+            style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <div className="min-h-full flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-[#111] w-full max-w-sm rounded-[2rem] p-6 sm:p-8 shadow-2xl relative border border-white/10 flex flex-col items-center">
 
                 {onBack && (
                     <button
@@ -66,6 +70,7 @@ const DisclaimerModal = ({ onAgree, onBack }) => {
                     {t("disclaimer_btn")} <ChevronRight size={20} className={isChecked ? 'text-white' : 'text-gray-600'} />
                 </button>
             </div>
+          </div>
         </div>
     );
 };

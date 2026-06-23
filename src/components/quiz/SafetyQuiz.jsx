@@ -79,22 +79,27 @@ const SafetyQuiz = ({ onComplete }) => {
 
     if (isDone) {
         return (
-            <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6 text-pretendard animate-in fade-in duration-500">
-                <div className="flex flex-col items-center justify-center p-10 bg-cyber-panel/90 backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-[0_0_50px_rgba(64,255,220,0.1)] w-full max-w-sm text-center animate-in zoom-in duration-300 overflow-hidden">
-                    <div className="w-20 h-20 bg-cyber-green/10 rounded-full flex items-center justify-center mb-6 border border-cyber-green/30 relative overflow-hidden">
-                        <Check size={40} className="text-cyber-green drop-shadow-[0_0_10px_rgba(56,239,125,0.8)] relative z-10" />
-                        <div className="absolute inset-0 bg-cyber-green/5 blur-xl"></div>
+            <div
+                className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl overflow-y-auto text-pretendard animate-in fade-in duration-500"
+                style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            >
+                <div className="min-h-full flex items-center justify-center p-4 sm:p-6">
+                    <div className="flex flex-col items-center justify-center p-6 sm:p-10 bg-cyber-panel/90 backdrop-blur-2xl rounded-[3rem] border border-white/10 shadow-[0_0_50px_rgba(64,255,220,0.1)] w-full max-w-sm text-center animate-in zoom-in duration-300 overflow-hidden">
+                        <div className="w-20 h-20 bg-cyber-green/10 rounded-full flex items-center justify-center mb-6 border border-cyber-green/30 relative overflow-hidden">
+                            <Check size={40} className="text-cyber-green drop-shadow-[0_0_10px_rgba(56,239,125,0.8)] relative z-10" />
+                            <div className="absolute inset-0 bg-cyber-green/5 blur-xl"></div>
+                        </div>
+                        <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{t("EDUCATED RIDER")}</h2>
+                        <p className="text-gray-400 font-medium mb-8 leading-relaxed">
+                            {t("onboarding_desc")}
+                        </p>
+                        <button
+                            onClick={() => onComplete(correctCount)}
+                            className="w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95"
+                        >
+                            {t("Access Map")}
+                        </button>
                     </div>
-                    <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{t("EDUCATED RIDER")}</h2>
-                    <p className="text-gray-400 font-medium mb-8 leading-relaxed">
-                        {t("onboarding_desc")}
-                    </p>
-                    <button
-                        onClick={() => onComplete(correctCount)}
-                        className="w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95"
-                    >
-                        {t("Access Map")}
-                    </button>
                 </div>
             </div>
         );
@@ -104,28 +109,33 @@ const SafetyQuiz = ({ onComplete }) => {
 
     if (!isQuizStarted) {
         return (
-            <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 text-pretendard animate-in fade-in duration-500">
-                <div className="bg-cyber-panel/95 backdrop-blur-2xl border border-white/10 w-full max-w-md rounded-[2.5rem] shadow-[0_0_60px_rgba(0,0,0,0.8)] p-10 text-center animate-in zoom-in duration-300">
-                    <div className="w-20 h-20 bg-cyber-cyan/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyber-cyan/30">
-                        <HelpCircle size={40} className="text-cyber-cyan shadow-neon-cyan" />
+            <div
+                className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm overflow-y-auto text-pretendard animate-in fade-in duration-500"
+                style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            >
+                <div className="min-h-full flex items-center justify-center p-4 sm:p-6">
+                    <div className="bg-cyber-panel/95 backdrop-blur-2xl border border-white/10 w-full max-w-md rounded-[2.5rem] shadow-[0_0_60px_rgba(0,0,0,0.8)] p-6 sm:p-10 text-center animate-in zoom-in duration-300">
+                        <div className="w-20 h-20 bg-cyber-cyan/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyber-cyan/30">
+                            <HelpCircle size={40} className="text-cyber-cyan shadow-neon-cyan" />
+                        </div>
+                        <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{t("quiz_title")}</h2>
+                        <p className="text-gray-400 font-medium mb-10 leading-relaxed text-sm">
+                            안전한 주행을 위한 필수 지식 테스트입니다.<br />문제를 잘 듣고 O/X를 선택해 주세요.
+                        </p>
+                        <button
+                            onClick={() => {
+                                try {
+                                    const silence = new Audio("data:audio/mp3;base64,//MkxAAQAAAAgAFAAAhAAAMoAQAAAE/gAAAAAABzwAAAAABwAAhAAAMoAQAAAE/gAAAAAABzwAAAAAAA=");
+                                    silence.play().catch(e => console.log('Audio init skipped', e));
+                                } catch (e) { }
+                                speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`, 'QUIZ');
+                                setIsQuizStarted(true);
+                            }}
+                            className="w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            테스트 시작하기
+                        </button>
                     </div>
-                    <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{t("quiz_title")}</h2>
-                    <p className="text-gray-400 font-medium mb-10 leading-relaxed text-sm">
-                        안전한 주행을 위한 필수 지식 테스트입니다.<br />문제를 잘 듣고 O/X를 선택해 주세요.
-                    </p>
-                    <button
-                        onClick={() => {
-                            try {
-                                const silence = new Audio("data:audio/mp3;base64,//MkxAAQAAAAgAFAAAhAAAMoAQAAAE/gAAAAAABzwAAAAABwAAhAAAMoAQAAAE/gAAAAAABzwAAAAAAA=");
-                                silence.play().catch(e => console.log('Audio init skipped', e));
-                            } catch (e) { }
-                            speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`, 'QUIZ');
-                            setIsQuizStarted(true);
-                        }}
-                        className="w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95 flex items-center justify-center gap-2"
-                    >
-                        테스트 시작하기
-                    </button>
                 </div>
             </div>
         );
@@ -134,8 +144,12 @@ const SafetyQuiz = ({ onComplete }) => {
     const currentQuiz = shuffledQuiz[currentIdx];
 
     return (
-        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 text-pretendard animate-in fade-in duration-500">
-            <div className="bg-cyber-panel/95 backdrop-blur-2xl border border-white/10 w-full max-w-md rounded-[2.5rem] shadow-[0_0_60px_rgba(0,0,0,0.8)] p-8 relative overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
+        <div
+            className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm overflow-y-auto text-pretendard animate-in fade-in duration-500"
+            style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+            <div className="min-h-full flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-cyber-panel/95 backdrop-blur-2xl border border-white/10 w-full max-w-md rounded-[2.5rem] shadow-[0_0_60px_rgba(0,0,0,0.8)] p-6 sm:p-8 relative overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
                     <div
                         className="h-full bg-cyber-cyan transition-all duration-700 shadow-neon-cyan"
@@ -193,6 +207,7 @@ const SafetyQuiz = ({ onComplete }) => {
                         <p className="text-center text-[10px] text-cyber-cyan/60 mt-6 font-black animate-pulse uppercase tracking-[0.25em]">{t("Next Question")}</p>
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );
