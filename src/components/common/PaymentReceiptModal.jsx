@@ -5,11 +5,14 @@ import { toast } from '../../hooks/useToast';
 const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPaymentComplete }) => {
     const [isPaying, setIsPaying] = useState(false);
 
-    if (!isOpen || !metrics) return null;
+    if (!isOpen) return null;
+
+    // metrics 없을 때 폴백 — 체인 끊김 방지 (autoCheckout 등으로 endRideSession이 null 반환한 케이스)
+    const safeMetrics = metrics || { distance: '0', time: 0, topSpeed: '0', co2Saved: '0' };
 
     // 모의 과금 로직: 기본요금 1000원 + 분당 150원
     const baseFare = 1000;
-    const timeFare = (metrics.time || 1) * 150;
+    const timeFare = (Number(safeMetrics.time) || 1) * 150;
     const totalFare = baseFare + timeFare;
 
     // 쿠폰/포인트 할인 적용 (예: 100P 사용)
@@ -38,7 +41,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-white tracking-tight">전자 영수증</h2>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{metrics.date}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{safeMetrics.date}</p>
                         </div>
                     </div>
                 </div>
@@ -47,7 +50,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                 <div className="p-6 pb-2 border-b border-dashed border-white/10">
                     <div className="space-y-4 font-bold text-sm">
                         <div className="flex justify-between text-gray-400">
-                            <span>운행 시간 ({metrics.time}분)</span>
+                            <span>운행 시간 ({safeMetrics.time}분)</span>
                             <span className="text-white">{timeFare.toLocaleString()} 원</span>
                         </div>
                         <div className="flex justify-between text-gray-400">

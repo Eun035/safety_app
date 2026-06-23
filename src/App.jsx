@@ -783,6 +783,16 @@ function App() {
           progressMission('weekly_streak_7', 1);
           try { localStorage.setItem('csafe_last_ride_date', today); } catch { /* no-op */ }
         }
+      } else {
+        // endRideSession이 null 반환 (autoCheckout이 이미 종료시킨 케이스 등) — 폴백 요약으로 체인 보호
+        console.warn('[C-Safe] endRideSession returned null, applying fallback summary');
+        setFinalRideSummary({
+          distance: String(totalDistance || 0),
+          time: 0,
+          topSpeed: '0',
+          co2Saved: '0',
+          suddenBrakeCount: suddenBrakeCount || 0
+        });
       }
     } else {
       // Mock data if not actively riding, allowing UI testing
