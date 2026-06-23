@@ -17,28 +17,16 @@ const LANG_MAP = {
     zh: 'zh-CN'
 };
 
-// SpeechRecognition.start()가 일부 브라우저에서 권한 다이얼로그를 못 띄우고
-// 바로 'not-allowed' 에러를 던지는 케이스가 있어서, getUserMedia로 먼저 명시적으로
-// 마이크 권한을 요청한다. 권한 받은 뒤 stream은 즉시 정리하고 SpeechRecognition을 시작.
-const ensureMicPermission = async () => {
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-        // getUserMedia 미지원 환경: 그냥 SpeechRecognition.start()에 맡김
+// Permissions API로 mic 상태 조회 (지원 안 하면 'unknown')
+const queryMicPermission = async () => {
+    if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
         return 'unknown';
     }
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // 권한만 받고 즉시 트랙 정리 — SpeechRecognition이 다시 마이크 잡음
-        stream.getTracks().forEach(t => t.stop());
-        return 'granted';
-    } catch (err) {
-        const name = err?.name || '';
-        if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
-            return 'denied';
-        }
-        if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
-            return 'no-device';
-        }
-        return 'error';
+        const result = await navigator.permissions.query({ name: 'microphone' });
+        return result.state; // 'granted' | 'prompt' | 'denied'
+    } catch {
+        return 'unknown';
     }
 };
 
@@ -65,30 +53,27 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
             return;
         }
 
-        // HTTPS 체크 (localhost 제외) — 안 그러면 권한 자체가 막힘
+        // HTTPS 체크 (localhost 제외)
         if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
             onErrorRef.current?.('insecure-context');
             return;
         }
 
-        // 1) 마이크 권한 명시적 요청 (다이얼로그 강제 노출)
-        const permResult = await ensureMicPermission();
-        if (permResult === 'denied') {
+        // Permissions API로 사전 체크 (블로킹 X — 지원 안 하거나 unknown이면 그냥 진행)
+        // 명시적으로 'denied'인 경우만 가로채기. 그 외엔 SpeechRecognition.start()가
+        // 알아서 다이얼로그를 띄우거나 not-allowed 에러를 onerror로 던져준다.
+        const permState = await queryMicPermission();
+        if (permState === 'denied') {
             onErrorRef.current?.('not-allowed');
             return;
         }
-        if (permResult === 'no-device') {
-            onErrorRef.current?.('no-device');
-            return;
-        }
 
-        // 2) 이전 인스턴스 정리
+        // 이전 인스턴스 정리
         if (recognitionRef.current) {
             try { recognitionRef.current.stop(); } catch { /* noop */ }
             recognitionRef.current = null;
         }
 
-        // 3) SpeechRecognition 시작
         const recognition = new Ctor();
         const lang = i18n.language || (typeof window !== 'undefined' ? window.localStorage.getItem('i18nextLng') : null) || 'ko';
         recognition.lang = LANG_MAP[lang] || LANG_MAP[lang?.split('-')[0]] || 'ko-KR';
@@ -104,12 +89,12 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
         recognition.onerror = (event) => {
             setIsListening(false);
             recognitionRef.current = null;
+            console.warn('[C-Safe] SpeechRecognition onerror:', event.error);
             onErrorRef.current?.(event.error || 'unknown');
         };
         recognition.onresult = (event) => {
             const result = event.results?.[0];
             if (!result || result.length === 0) return;
-            // 확률 순으로 정렬된 대안 후보 전부 수집 (중복·빈문자열 제거)
             const seen = new Set();
             const alternatives = [];
             for (let i = 0; i < result.length; i++) {
@@ -120,7 +105,7 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
                 }
             }
             if (alternatives.length === 0) return;
-            // 1st arg: best, 2nd arg: 전체 후보 배열 (best 포함)
+            console.log('[C-Safe] SpeechRecognition result:', alternatives);
             onResultRef.current?.(alternatives[0], alternatives);
         };
 
@@ -140,7 +125,6 @@ export const useSpeechRecognition = ({ onResult, onError } = {}) => {
         }
     }, []);
 
-    // 언마운트 시 정리
     useEffect(() => {
         return () => {
             if (recognitionRef.current) {
