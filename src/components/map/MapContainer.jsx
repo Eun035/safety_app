@@ -2,8 +2,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap, MarkerClusterer } from 'react-kakao-maps-sdk';
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
 import InfoCard from './InfoCard';
-import { AlertTriangle, Navigation, Zap, X } from 'lucide-react';
+import { AlertTriangle, Navigation, Zap, X, Mic } from 'lucide-react';
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 import usePMParkingData from '../../hooks/usePMParkingData';
 import stationData from '../../data/station_data.json';
@@ -68,6 +69,23 @@ const MapContainer = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+    // 음성 검색 — 출발지/목적지 양쪽 입력에 동일 핸들러
+    const { start: startVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
+        onResult: (text) => {
+            setSearchQuery(text);
+            setIsSearchFocused(true);
+        },
+        onError: (errCode) => {
+            if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
+                toast('🎤 마이크 권한이 필요합니다.', 'error');
+            } else if (errCode === 'no-speech') {
+                toast('🎤 음성이 감지되지 않았어요.', 'info');
+            } else if (errCode === 'unsupported') {
+                toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+            }
+        }
+    });
 
     // 실시간 검색 기능 (가이드 패널 입력창용)
     useEffect(() => {
@@ -839,17 +857,34 @@ const MapContainer = ({
                                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/20' : 'border-white/10 bg-white/10'}`}>
                                     <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-gray-600 animate-pulse'}`} />
                                     {navStep === 'select_origin' ? (
-                                        <input
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => {
-                                                setSearchQuery(e.target.value);
-                                                setIsSearchFocused(true);
-                                            }}
-                                            onFocus={() => setIsSearchFocused(true)}
-                                            placeholder="출발지 직접 입력 (시청, 소방서, 대학교 등)..."
-                                            className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
-                                        />
+                                        <>
+                                            <input
+                                                type="text"
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value);
+                                                    setIsSearchFocused(true);
+                                                }}
+                                                onFocus={() => setIsSearchFocused(true)}
+                                                placeholder="출발지 입력 또는 음성검색 🎤"
+                                                className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
+                                            />
+                                            {voiceSupported && !searchQuery && (
+                                                <button
+                                                    type="button"
+                                                    onClick={startVoice}
+                                                    disabled={isVoiceListening}
+                                                    className={`p-1.5 rounded-full transition shrink-0 ${
+                                                        isVoiceListening
+                                                            ? 'text-cyber-cyan bg-cyber-cyan/15 animate-pulse shadow-[0_0_12px_rgba(64,255,220,0.5)]'
+                                                            : 'text-gray-400 hover:text-cyber-cyan hover:bg-white/10'
+                                                    }`}
+                                                    aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 출발지 검색'}
+                                                >
+                                                    <Mic size={16} />
+                                                </button>
+                                            )}
+                                        </>
                                     ) : (
                                         <span className={`text-xs font-black ${routeOrigin ? 'text-white' : 'text-gray-400'}`}>
                                             {routeOrigin ? routeOrigin.title : '출발지 선택 중...'}
@@ -861,17 +896,34 @@ const MapContainer = ({
                                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_destination' ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/10'}`}>
                                     <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600 animate-pulse'}`} />
                                     {navStep === 'select_destination' ? (
-                                        <input
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => {
-                                                setSearchQuery(e.target.value);
-                                                setIsSearchFocused(true);
-                                            }}
-                                            onFocus={() => setIsSearchFocused(true)}
-                                            placeholder="목적지 직접 입력 (시청, 소방서, 대학교 등)..."
-                                            className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
-                                        />
+                                        <>
+                                            <input
+                                                type="text"
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value);
+                                                    setIsSearchFocused(true);
+                                                }}
+                                                onFocus={() => setIsSearchFocused(true)}
+                                                placeholder="목적지 입력 또는 음성검색 🎤"
+                                                className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
+                                            />
+                                            {voiceSupported && !searchQuery && (
+                                                <button
+                                                    type="button"
+                                                    onClick={startVoice}
+                                                    disabled={isVoiceListening}
+                                                    className={`p-1.5 rounded-full transition shrink-0 ${
+                                                        isVoiceListening
+                                                            ? 'text-orange-400 bg-orange-500/20 animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.5)]'
+                                                            : 'text-gray-400 hover:text-orange-400 hover:bg-white/10'
+                                                    }`}
+                                                    aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 목적지 검색'}
+                                                >
+                                                    <Mic size={16} />
+                                                </button>
+                                            )}
+                                        </>
                                     ) : (
                                         <span className={`text-xs font-black ${routeDestination ? 'text-white' : 'text-gray-400'}`}>
                                             {routeDestination ? routeDestination.title : '목적지 선택 중...'}

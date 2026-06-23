@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X, MapPin, Building, ShieldAlert, Sparkles, Navigation, ChevronDown } from 'lucide-react';
+import { Search, X, MapPin, Building, ShieldAlert, Sparkles, Navigation, ChevronDown, Mic } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
 import { LANDMARKS } from '../../data/landmarks';
 import { useRegion } from '../../hooks/useRegion';
 import { REGION_LIST, REGIONS } from '../../config/regions';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 // 🏢 천안·아산 핵심 랜드마크 데이터베이스는 src/data/landmarks.js 단일 소스를 사용
 const PRESETS = [
@@ -25,6 +26,23 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
     const currentRegion = useRegion(s => s.currentRegion);
     const setRegion = useRegion(s => s.setRegion);
     const regionMeta = REGIONS[currentRegion] || REGIONS.cheonan;
+
+    // 음성 검색 — 인식 결과를 query에 즉시 반영 → 기존 useEffect 검색 파이프라인이 자동 트리거
+    const { start: startVoice, isListening, isSupported: voiceSupported } = useSpeechRecognition({
+        onResult: (text) => {
+            setQuery(text);
+            setIsOpen(true);
+        },
+        onError: (errCode) => {
+            if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
+                toast('🎤 마이크 권한이 필요합니다.', 'error');
+            } else if (errCode === 'no-speech') {
+                toast('🎤 음성이 감지되지 않았어요.', 'info');
+            } else if (errCode === 'unsupported') {
+                toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+            }
+        }
+    });
 
     // 외부 클릭 시 검색결과 창 닫기
     useEffect(() => {
@@ -195,15 +213,29 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     )}
                 </div>
 
-                {query && (
+                {query ? (
                     <button
                         onClick={() => {
                             setQuery('');
                             setResults([]);
                         }}
                         className="absolute right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition"
+                        aria-label="검색어 지우기"
                     >
                         <X size={20} />
+                    </button>
+                ) : voiceSupported && (
+                    <button
+                        onClick={startVoice}
+                        disabled={isListening}
+                        className={`absolute right-4 p-1.5 rounded-full transition ${
+                            isListening
+                                ? 'text-cyber-cyan bg-cyber-cyan/15 animate-pulse shadow-[0_0_12px_rgba(64,255,220,0.5)]'
+                                : 'text-gray-400 hover:text-cyber-cyan hover:bg-white/10'
+                        }`}
+                        aria-label={isListening ? '음성 인식 중' : '음성으로 검색'}
+                    >
+                        <Mic size={20} />
                     </button>
                 )}
             </div>
