@@ -84,7 +84,11 @@ const AccountDeletionModal = ({ isOpen, onClose }) => {
                 }]);
 
             if (feedbackError) {
-                console.warn('[C-Safe] feedback insert 실패 (그래도 탈퇴 진행):', feedbackError.message);
+                // 사용자에게 분명히 알리기 — 탈퇴는 계속 진행하되 피드백 저장 실패 사실은 노출
+                console.error('[C-Safe] feedback insert 실패:', feedbackError);
+                toast(`⚠️ 의견 저장 실패: ${feedbackError.message || feedbackError.code || '알 수 없는 오류'}`, 'error');
+            } else {
+                console.log('[C-Safe] feedback insert 성공');
             }
 
             // 로그아웃
