@@ -806,10 +806,12 @@ function App() {
     }
 
     // 🪖 헬멧 반납 인증 시트 노출 (반납 시 +100P, 건너뛰기 가능) → 이후 결제 영수증
+    console.log('[C-Safe][chain] step1 → HelmetReturn open');
     setIsHelmetReturnOpen(true);
   };
 
   const handlePaymentComplete = () => {
+    console.log('[C-Safe][chain] step3 → PaymentReceipt close, StationReward open');
     setIsPaymentReceiptOpen(false);
     setIsStationRewardOpen(true);
   };
@@ -1361,6 +1363,7 @@ function App() {
           isOpen={isStationRewardOpen}
           onClose={() => setIsStationRewardOpen(false)}
           onNext={() => {
+            console.log('[C-Safe][chain] step4 → StationReward close, RideSummary open');
             setIsStationRewardOpen(false);
             setIsRideSummaryOpen(true);
           }}
@@ -1503,17 +1506,20 @@ function App() {
               status: 'active'
             }, ...prev]);
             toast(`🪖 헬멧 반납 완료 · ${station.name} · +${HELMET_RETURN_REWARD}P 적립`, 'success');
+            console.log('[C-Safe][chain] step2a → HelmetReturn confirm, PaymentReceipt open. finalRideSummary:', finalRideSummary);
             setIsHelmetReturnOpen(false);
             setSelectedHelmetStation(null);
             setIsPaymentReceiptOpen(true);
           }}
           onSkip={() => {
+            console.log('[C-Safe][chain] step2b → HelmetReturn skip, PaymentReceipt open. finalRideSummary:', finalRideSummary);
             setIsHelmetReturnOpen(false);
             setSelectedHelmetStation(null);
             setIsPaymentReceiptOpen(true);
           }}
           onClose={() => {
             // backdrop/X 클릭 = 건너뛰기와 동일 처리 (결제 흐름은 계속 진행)
+            console.log('[C-Safe][chain] step2c → HelmetReturn close, PaymentReceipt open. finalRideSummary:', finalRideSummary);
             setIsHelmetReturnOpen(false);
             setSelectedHelmetStation(null);
             setIsPaymentReceiptOpen(true);
