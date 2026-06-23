@@ -84,32 +84,59 @@ const MapContainer = ({
             landmark.desc.toLowerCase().includes(trimmed)
         );
 
-        // 2. 카카오 로컬 키워드 검색 폴백
+        // 2. 카카오 키워드 + 주소 동시 검색 (POI + 도로명/지번 주소)
         if (window.kakao?.maps?.services) {
-            const places = new window.kakao.maps.services.Places();
-            places.keywordSearch(trimmed, (kakaoResults, status) => {
-                if (status === window.kakao.maps.services.Status.OK) {
-                    const formattedKakao = kakaoResults
-                        .filter(item => !LANDMARKS.some(l => 
-                            l.title.includes(item.place_name) || item.place_name.includes(l.title)
-                        ))
-                        .map(item => ({
-                            id: `kakao-${item.id}`,
-                            title: item.place_name,
-                            desc: item.road_address_name || item.address_name,
-                            lat: Number(item.y),
-                            lng: Number(item.x),
-                            type: 'kakao_place',
-                            badge: '📍 일반 장소',
-                            safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
-                        }));
-                    setSearchResults([...matchedLandmarks, ...formattedKakao]);
-                } else {
-                    setSearchResults(matchedLandmarks);
-                }
-            }, {
+            const placeOptions = {
                 location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
                 radius: 10000
+            };
+
+            const keywordSearch = new Promise((resolve) => {
+                const places = new window.kakao.maps.services.Places();
+                places.keywordSearch(trimmed, (data, status) => {
+                    resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+                }, placeOptions);
+            });
+
+            const addressSearch = new Promise((resolve) => {
+                const geocoder = new window.kakao.maps.services.Geocoder();
+                geocoder.addressSearch(searchQuery.trim(), (data, status) => {
+                    resolve(status === window.kakao.maps.services.Status.OK ? data : []);
+                });
+            });
+
+            Promise.all([keywordSearch, addressSearch]).then(([places, addresses]) => {
+                const formattedPlaces = places
+                    .filter(item => !LANDMARKS.some(l =>
+                        l.title.includes(item.place_name) || item.place_name.includes(l.title)
+                    ))
+                    .map(item => ({
+                        id: `kakao-${item.id}`,
+                        title: item.place_name,
+                        desc: item.road_address_name || item.address_name,
+                        lat: Number(item.y),
+                        lng: Number(item.x),
+                        type: 'kakao_place',
+                        badge: '📍 일반 장소',
+                        safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                    }));
+
+                const formattedAddresses = addresses.map((item, idx) => {
+                    const roadName = item.road_address?.address_name;
+                    const lotName = item.address?.address_name || item.address_name;
+                    return {
+                        id: `kakao-addr-${idx}-${item.x}-${item.y}`,
+                        title: roadName || lotName,
+                        desc: roadName ? lotName : '지번 주소',
+                        lat: Number(item.y),
+                        lng: Number(item.x),
+                        type: 'kakao_address',
+                        badge: '🏠 주소',
+                        safetyTip: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                    };
+                });
+
+                setSearchResults([...matchedLandmarks, ...formattedAddresses, ...formattedPlaces]);
             });
         } else {
             setSearchResults(matchedLandmarks);
