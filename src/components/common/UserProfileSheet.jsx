@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2 } from 'lucide-react';
+import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2, Trash2 } from 'lucide-react';
 import BeginnerMissionCard from './BeginnerMissionCard';
 
 // Radar Chart (Spider Web) component using SVG
@@ -132,7 +132,7 @@ const badges = [
     { icon: '⚡', name: '스피드킹', color: 'from-purple-500/10 to-purple-900/10', border: 'border-purple-500/40', text: 'text-purple-400' },
 ];
 
-const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, profileImage, onAdminOpen, onEditProfile, onMissionReward }) => {
+const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, profileImage, onAdminOpen, onEditProfile, onMissionReward, onDeleteAccount }) => {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'missions'
 
@@ -300,7 +300,7 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
 
                                 {/* === Section 5: Admin Entry === */}
                                 <div className="pt-2 border-t border-white/5 mt-4">
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             const pwd = prompt("관리자 비밀번호를 입력하세요:");
                                             if (pwd === "admin1234") {
@@ -314,6 +314,21 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                         <Settings size={12} /> B2G ADMIN CONSOLE
                                     </button>
                                 </div>
+
+                                {/* === Section 6: Account Deletion === */}
+                                {onDeleteAccount && (
+                                    <div className="pt-2">
+                                        <button
+                                            onClick={onDeleteAccount}
+                                            className="w-full bg-red-500/5 hover:bg-red-500/10 text-red-400/80 py-3 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-2 border border-red-500/15"
+                                        >
+                                            <Trash2 size={12} /> 회원 탈퇴 / 데이터 삭제
+                                        </button>
+                                        <p className="text-[9px] text-gray-600 text-center mt-1.5 leading-relaxed">
+                                            의견을 보내주시면 다음 업데이트에 반영됩니다
+                                        </p>
+                                    </div>
+                                )}
 
                             </div>
                                 )}

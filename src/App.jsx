@@ -47,6 +47,7 @@ import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
 import ProfileEditModal from './components/common/ProfileEditModal';
+import AccountDeletionModal from './components/common/AccountDeletionModal';
 import AISafetyCoach from './components/common/AISafetyCoach';
 import { useNearMissEngine } from './hooks/useNearMissEngine';
 import { useBeginnerMissions } from './hooks/useBeginnerMissions';
@@ -96,6 +97,7 @@ function App() {
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
+  const [isAccountDeletionOpen, setIsAccountDeletionOpen] = useState(false);
   const [isWalletSheetOpen, setIsWalletSheetOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
@@ -1302,10 +1304,18 @@ function App() {
           onMissionReward={(missionId, points) => {
             toast(`🏆 미션 완료! +${points.toLocaleString()}P 적립`, 'success');
           }}
+          onDeleteAccount={() => {
+            setIsProfileSheetOpen(false);
+            setIsAccountDeletionOpen(true);
+          }}
         />
         <ProfileEditModal
           isOpen={isProfileEditOpen}
           onClose={() => setIsProfileEditOpen(false)}
+        />
+        <AccountDeletionModal
+          isOpen={isAccountDeletionOpen}
+          onClose={() => setIsAccountDeletionOpen(false)}
         />
         <RewardWalletSheet
           isOpen={isWalletSheetOpen}
