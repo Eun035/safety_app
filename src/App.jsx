@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Shield, ShieldCheck, Cloud, AlertTriangle, Moon,
+  Shield, ShieldCheck, Cloud, AlertTriangle,
   Layers, Play, Star, Zap, TrendingUp, Download,
   Sliders, Wallet, X, LocateFixed, Share2,
   Settings, Users
@@ -22,7 +22,6 @@ import ParkingVerification from './components/common/ParkingVerification';
 import PersonalInsights from './components/common/PersonalInsights';
 import RideSettings from './components/common/RideSettings';
 import QRScanner from './components/common/QRScanner';
-import VibeRouteSelector from './components/map/VibeRouteSelector';
 import RideSummaryModal from './components/common/RideSummaryModal';
 import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
@@ -278,14 +277,6 @@ function App() {
   }, [location, isRiding, speak, enterZone, exitZone, sampleZoneSpeed, t]);
 
   const [showEcoBadge, setShowEcoBadge] = useState(false);
-  const [isVibeRouteOpen, setIsVibeRouteOpen] = useState(false);
-  const [currentVibeRoute, setCurrentVibeRoute] = useState({
-    id: 'sunset',
-    title: 'Riverside Chill',
-    subTitle: '노을 맛집 (Sunset View)',
-    preference: 'eco',
-    drivingMode: 'CHILL'
-  });
 
 
   const [parkingGeofenceModal, setParkingGeofenceModal] = useState({ isOpen: false, success: false });
@@ -643,14 +634,6 @@ function App() {
   }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id, t]);
 
 
-  // Vibe & Preference 기반 동적 TTS 안내 함수
-  const announceVibeStart = (vibe) => {
-    const prefName = t(vibe?.preference || 'eco');
-    const vibeName = t(vibe?.id || 'sunset');
-    const modeName = t(vibe?.drivingMode || 'CHILL');
-
-    speak(t('tts_vibe_start', { vibeName, prefName, modeName }));
-  };
 
   const handleQRScanSuccess = (decodedText) => {
     setIsQRScannerOpen(false);
@@ -672,7 +655,7 @@ function App() {
 
       startRide();
       startTracking(); // 실제 GPS 트래킹 시작
-      announceVibeStart(currentVibeRoute);
+      speak(t('tts_ride_start', { defaultValue: '주행을 시작합니다. 안전 운행하세요!' }));
       return;
     }
 
@@ -1186,16 +1169,7 @@ function App() {
         </main>
 
         <footer className={`bg-cyber-panel border-t border-white/5 pb-[env(safe-area-inset-bottom)] z-[40] transition-all duration-300 ${navStep === 'idle' && !isRiding ? 'opacity-100 max-h-32' : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'}`}>
-          <div className="max-w-xl mx-auto grid grid-cols-5 items-center">
-            {/* VIBE */}
-            <button
-              onClick={() => setIsVibeRouteOpen(true)}
-              className="flex flex-col items-center justify-center gap-1 py-3 text-[#FF8C94] outline-none border-none group active:scale-95 transition-all"
-            >
-              <Moon size={24} className="fill-[#FF8C94]/20 animate-pulse drop-shadow-[0_0_8px_rgba(255,140,148,0.5)] shrink-0" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-[#FF8C94]/90">VIBE</span>
-            </button>
-
+          <div className="max-w-xl mx-auto grid grid-cols-4 items-center">
             {/* Activity */}
             <button
               onClick={() => setIsShadowSheetOpen(true)}
@@ -1336,17 +1310,6 @@ function App() {
           onClose={() => setIsQRScannerOpen(false)}
           onScanSuccess={handleQRScanSuccess}
         />
-        <VibeRouteSelector
-          isOpen={isVibeRouteOpen}
-          onClose={() => setIsVibeRouteOpen(false)}
-          onSelectRoute={(vibe) => {
-            setCurrentVibeRoute(vibe);
-            setIsVibeRouteOpen(false);
-          }}
-          routeOrigin={routeOrigin}
-          routeDestination={routeDestination}
-        />
-
         <PaymentReceiptModal
           isOpen={isPaymentReceiptOpen}
           onClose={() => setIsPaymentReceiptOpen(false)}
@@ -1394,7 +1357,7 @@ function App() {
             helmetOnRef.current = false;
           }}
           metrics={finalRideSummary}
-          vibeName={currentVibeRoute ? `${currentVibeRoute.title} (${currentVibeRoute.subTitle.split(' ')[0]})` : "Safety Route"}
+          vibeName="Safety Route"
           suddenBrakeCount={finalRideSummary?.suddenBrakeCount || suddenBrakeCount}
           userId={user?.id}
           helmetOn={helmetOnRef.current}
@@ -1589,7 +1552,7 @@ function App() {
             setIsEarphoneGateOpen(false);
             startRide();
             startTracking(); // 실제 GPS 트래킹 시작
-            announceVibeStart(currentVibeRoute);
+            speak(t('tts_ride_start', { defaultValue: '주행을 시작합니다. 안전 운행하세요!' }));
 
             // 🎯 라이더 행동 모니터링 — 사용자 제스처(onConfirm) 안에서 권한 요청
             //   iOS 13+는 명시적 제스처 콜백 안에서만 requestPermission 허용
