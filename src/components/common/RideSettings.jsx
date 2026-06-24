@@ -1,4 +1,4 @@
-import { X, Sliders, Moon, Zap, Shield, Filter, Bike } from 'lucide-react';
+import { X, Sliders, Moon, Zap, Shield, Filter, Bike, FileText } from 'lucide-react';
 
 const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
     
@@ -85,6 +85,25 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                             className={`w-14 h-8 rounded-full transition-all relative ${config.isNightMode ? 'bg-purple-600 shadow-[0_4px_12px_rgba(147,51,234,0.3)]' : 'bg-gray-700'}`}
                         >
                             <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${config.isNightMode ? 'left-7' : 'left-1'}`}></div>
+                        </button>
+                    </section>
+
+                    {/* Ride Summary Toggle — 주행 종료 후 요약 화면 노출 여부 */}
+                    <section className="flex items-center justify-between p-6 bg-gray-800/40 rounded-2xl border border-gray-700/50">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${config.showRideSummary !== false ? 'bg-cyber-cyan/80 text-black shadow-[0_0_10px_rgba(64,255,220,0.4)]' : 'bg-gray-700 text-gray-400'}`}>
+                                <FileText size={20} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-white">Ride Summary</p>
+                                <p className="text-[10px] text-gray-500 font-bold">주행 종료 후 요약 카드 노출</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setConfig({ ...config, showRideSummary: config.showRideSummary === false })}
+                            className={`w-14 h-8 rounded-full transition-all relative ${config.showRideSummary !== false ? 'bg-cyber-cyan shadow-[0_4px_12px_rgba(64,255,220,0.3)]' : 'bg-gray-700'}`}
+                        >
+                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all shadow-sm ${config.showRideSummary !== false ? 'left-7' : 'left-1'}`}></div>
                         </button>
                     </section>
 

@@ -305,12 +305,14 @@ function App() {
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
-  const [rideConfig, setRideConfig] = useState({
+  // 사용자 선호도 영속화 — 토글들이 새로고침 후에도 유지되도록 localStorage 백킹
+  const [rideConfig, setRideConfig] = useLocalStorage('csafe_ride_config', {
     brandFilters: [],
     isNightMode: true, // Always default to Dark Mode for premium feel
     isVoiceEnabled: true,
     speedLimit: 20,
-    isBicycleMode: false
+    isBicycleMode: false,
+    showRideSummary: true // 주행 종료 후 요약 카드 노출 (기본 ON, 사용자가 끌 수 있음)
   });
 
   // 실시간 안정성 지수 (0~100): 과속/급제동에 비례해 감점
@@ -1357,9 +1359,16 @@ function App() {
           isOpen={isStationRewardOpen}
           onClose={() => setIsStationRewardOpen(false)}
           onNext={() => {
-            console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary open');
             setIsStationRewardOpen(false);
-            setIsRideSummaryOpen(true);
+            // 사용자가 RideSettings에서 Ride Summary를 꺼두면 마지막 모달 스킵
+            if (rideConfig.showRideSummary === false) {
+              console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary skipped (user opt-out)');
+              helmetOnRef.current = false; // 다음 주행 위해 초기화
+              toast('🛴 안전하게 도착했어요!', 'success');
+            } else {
+              console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary open');
+              setIsRideSummaryOpen(true);
+            }
           }}
           points={100}
         />
