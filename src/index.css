@@ -40,6 +40,10 @@ html, body {
   height: 100%;
   background-color: #0a1118;
   overflow-x: hidden;
+  /* pull-to-refresh 차단 — 사용자가 페이지 위로 당겨도 reload 일어나지 않음.
+     앱이 처음 화면(헬멧 영상)으로 돌아가는 사고 방지. */
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: contain;
 }
 
 #root {
