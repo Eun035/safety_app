@@ -745,20 +745,14 @@ function App() {
       if (isLegalPark) {
         speak(t('tts_parking_legal'));
       } else {
-        // 비합법 주차: 페널티 모달 표시 + 보상 차단
+        // 비합법 주차(또는 GPS 미허용으로 위치 판정 실패): 페널티 모달만 표시,
+        // 보상은 차단하되 결제/요약 체인은 그대로 진행 (사용자가 라이딩 마무리 못하는 사고 방지)
         speak(t('tts_parking_illegal'));
         setParkingGeofenceModal({ isOpen: true, success: false });
-        await endRideSession(user?.id, {
-          isLegalPark: false,
-          helmetOn: helmetOnRef.current,
-          destinationText: routeDestination?.title || routeDestination?.name || null,
-          helmetPickupStationId: selectedHelmetStation?.id || null
-        }); // 주행 기록은 저장하되 +100P 보상 제외
-        return; // 결제 모달 진입 차단
       }
 
       const summary = await endRideSession(user?.id, {
-        isLegalPark: true,
+        isLegalPark,
         helmetOn: helmetOnRef.current,
         destinationText: routeDestination?.title || routeDestination?.name || null,
         helmetPickupStationId: selectedHelmetStation?.id || null
