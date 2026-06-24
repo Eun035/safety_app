@@ -50,21 +50,19 @@ html, body {
   width: 100%;
 }
 
-/* Custom scrollbar for mobile feel */
-::-webkit-scrollbar {
-  width: 6px;
+/* 전역 스크롤바 숨김 — 모달/패널이 열릴 때마다 오른쪽에 회색 바가 떴다
+   사라지는 시각적 노이즈 제거. 스크롤 기능 자체는 그대로 유지됨. */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-/* Hide scrollbar utility */
+/* hide-scrollbar 유틸리티는 호환성 유지용으로 그대로 둠 (기존 컴포넌트 영향 없음) */
 .hide-scrollbar {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
