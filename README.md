@@ -352,6 +352,71 @@ PWA는 OS 레벨 앱 삭제 이벤트가 없으므로 '계정 탈퇴'를 표준 
 
 ---
 
+### [2026-06-24] UX 폴리시 + 진입 흐름 단순화
+
+`d50fcec` 이후 추가된 8개 커밋. 사용자 체감 이슈(스플래시 단절 / 검색 UI 어색함 / 쓸데없는 모드 / 실수 reload) 위주의 미세 조정.
+
+#### 🅰️ PWA SW update auto-reload 완전 제거 (`37d6416`)
+- 직전 `7725852`는 첫 SW 설치만 reload 스킵, update는 reload 유지 → 새 빌드 잦은 운영 단계에서 매 진입마다 [스플래시 → 언어선택 잠깐 → 스플래시 다시] 단절 발생
+- 변경: `controllerchange` 핸들러 + `window.location.reload()` 완전 삭제
+- 새 코드는 다음 자연스러운 진입(앱 재시작/사용자 새로고침)에서 `skipWaiting + clientsClaim`으로 자동 적용
+
+#### 🅱️ 검색 마이크 input 박스 안쪽으로 통합 (`6d182dd`)
+- 출발지·목적지 input + mic 버튼이 flex sibling이라 시각적으로 분리돼 보이던 문제
+- input 감싸는 `relative flex-1` 컨테이너 + mic `absolute right-0` → 표준 검색창 UX (검색 아이콘이 input 안에 들어간 형태)
+- placeholder의 🎤 이모지 제거 (실제 아이콘과 중복 회피)
+
+#### 🅲 VibeRouteSelector 제거 (`e6c0702`)
+사용자 체감 차이 없는 기능 정리.
+- Vibe(Riverside Chill / Quiet Street / Street Runner) 선택은 TTS 멘트와 ShareCard 캐릭션에만 영향, 실제 경로·안전 스코어·보상 모두 무관
+- `src/components/map/VibeRouteSelector.jsx` 파일 삭제 (263줄)
+- App.jsx에서 import / state(`currentVibeRoute`, `isVibeRouteOpen`) / `announceVibeStart` 함수 / footer VIBE 탭 / 모달 렌더 / RideSummaryModal `vibeName` 동적값 모두 정리
+- `tts_vibe_start` 가변 안내 → `tts_ride_start` ("주행을 시작합니다") + defaultValue fallback
+- 관리자(B2G) Vibe Designer / Vibe Score 등 분석 지표는 사용자용 Vibe와 무관하므로 유지
+
+#### 🅳 Pull-to-refresh 차단 (`dae9091`)
+- 증상: 사용자가 앱 만지다가 페이지를 위로 당기면 모바일 브라우저 새로고침 트리거 → 페이지 reload → 헬멧 영상부터 다시
+- `index.css`의 `html, body`에 `overscroll-behavior-y: contain` + `overscroll-behavior-x: contain` 추가
+- 모든 스크롤 제스처가 부모 frame으로 전파되지 않게 차단
+
+#### 🅴 전역 스크롤바 숨김 (`be9734d`)
+- 증상: 어떤 모달이든 콘텐츠가 viewport보다 길어지면 오른쪽에 회색 6px 바가 잠깐 떴다 사라지는 시각적 노이즈
+- 이전 CSS: `::-webkit-scrollbar { width: 6px; }` + `thumb #cbd5e1` 으로 모든 scrollable에 회색 바 표시
+- 변경: `* { scrollbar-width: none }` + `*::-webkit-scrollbar { display: none }` 로 전역 숨김
+- 스크롤 기능 자체는 그대로, 시각적 노이즈만 제거
+- `hide-scrollbar` 유틸리티는 기존 컴포넌트 호환성 위해 유지
+
+#### 🅵 Ride Control 진입점을 footer VIBE 탭으로 이전 (`2da1698`)
+직전에 제거된 VIBE 탭 자리를 재활용하되 동작은 Ride Control(주행 환경 설정)로 변경.
+- 좌측 floating 패널의 RideSettings 진입 버튼(Sliders 아이콘) 제거
+- footer `grid-cols-4 → grid-cols-5` + VIBE 탭 부활 (Moon 아이콘, 핑크 톤, animate-pulse)
+- `setIsRideSettingsOpen(true)`로 진입
+- `Moon` 복구 / `Sliders` 제거 (import 정리)
+
+#### 🅶 RideSettings sheet 디자인 통일 (`34bfccf`)
+다른 footer 시트(RewardWallet 등)와 동일한 슬라이드업 bottom sheet 패턴으로 재단장.
+- 중앙 모달 → framer-motion `AnimatePresence` + spring 슬라이드업
+- 상단 drag handle (탭하면 닫힘) + backdrop 클릭
+- Header: 작은 Sliders 아이콘 + `RIDE CONTROL` italic + 핑크 부제
+- 4개 섹션 카드 (Ride Mode / Night Vision / Ride Summary / Brand Filtering)
+- 액센트 컬러 핑크(`#FF8C94`) — VIBE 탭 진입점과 시각적 연속성 확보
+- 하단 CTA: 핑크 그라데이션 + 글로우, 조건부 라벨 (`Apply & Next` / `Apply & Close`)
+
+#### 🅷 RideSettings 콘텐츠 축소 (`b92d5b1`)
+- 작은 폰(iPhone SE 등)에서 Apply 버튼이 fold 아래로 밀려나는 문제
+- 전 섹션 패딩 `p-5 → p-4`, spacing `space-y-5 → space-y-3`
+- Ride Mode 버튼 높이 `h-20 → h-16`, 텍스트 `text-xs → text-[11px]`
+- Brand 버튼 `px-4 py-2 text-[10px] → px-2.5 py-1 text-[9px]`
+- Apply CTA `h-14 text-lg → h-12 text-base`
+- 결과: 한 화면에 전체 시트가 스크롤 없이 들어옴
+
+#### 운영 메모
+- 누적 변경량: +185 / −386 (대부분 VibeRouteSelector 263줄 + Sliders 진입 버튼 삭제)
+- README의 production URL: `safety-app-fourth.vercel.app` (그대로 유지)
+- Footer 구조 최종: VIBE / Activity / Wallet / Saved / Profile (5탭, VIBE는 이제 Ride Control 진입)
+
+---
+
 ### [2026-05-29] UI 중복 정리 + 데이터 영속화 보강 + Dev 편의성
 
 오늘 6개 커밋. "중복되거나 복잡한 아이콘·기능 정리" 사용자 요청에 따라 5개 영역(Pick 1·2·4·5·6)을 순차 정리하고 dev 환경 QA 편의성도 보강.
