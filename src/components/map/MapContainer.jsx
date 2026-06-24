@@ -884,7 +884,7 @@ const MapContainer = ({
                                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_origin' ? 'border-cyber-cyan bg-cyber-cyan/20' : 'border-white/10 bg-white/10'}`}>
                                     <div className={`w-3 h-3 rounded-full ${routeOrigin ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-gray-600 animate-pulse'}`} />
                                     {navStep === 'select_origin' ? (
-                                        <>
+                                        <div className="relative flex-1">
                                             <input
                                                 type="text"
                                                 value={searchQuery}
@@ -894,25 +894,25 @@ const MapContainer = ({
                                                     setIsSearchFocused(true);
                                                 }}
                                                 onFocus={() => setIsSearchFocused(true)}
-                                                placeholder="출발지 입력 또는 음성검색 🎤"
-                                                className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
+                                                placeholder="출발지 입력 또는 음성검색"
+                                                className="w-full bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5 pr-8"
                                             />
                                             {voiceSupported && !searchQuery && (
                                                 <button
                                                     type="button"
                                                     onClick={startVoice}
                                                     disabled={isVoiceListening}
-                                                    className={`p-1.5 rounded-full transition shrink-0 ${
+                                                    className={`absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full transition ${
                                                         isVoiceListening
-                                                            ? 'text-cyber-cyan bg-cyber-cyan/15 animate-pulse shadow-[0_0_12px_rgba(64,255,220,0.5)]'
-                                                            : 'text-gray-400 hover:text-cyber-cyan hover:bg-white/10'
+                                                            ? 'text-cyber-cyan bg-cyber-cyan/15 animate-pulse shadow-[0_0_8px_rgba(64,255,220,0.6)]'
+                                                            : 'text-cyber-cyan/70 hover:text-cyber-cyan hover:bg-white/10'
                                                     }`}
                                                     aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 출발지 검색'}
                                                 >
-                                                    <Mic size={16} />
+                                                    <Mic size={14} />
                                                 </button>
                                             )}
-                                        </>
+                                        </div>
                                     ) : (
                                         <span className={`text-xs font-black ${routeOrigin ? 'text-white' : 'text-gray-400'}`}>
                                             {routeOrigin ? routeOrigin.title : '출발지 선택 중...'}
@@ -924,7 +924,7 @@ const MapContainer = ({
                                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${navStep === 'select_destination' ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/10'}`}>
                                     <div className={`w-3 h-3 rounded-full ${routeDestination ? 'bg-orange-500 shadow-neon-orange' : 'bg-gray-600 animate-pulse'}`} />
                                     {navStep === 'select_destination' ? (
-                                        <>
+                                        <div className="relative flex-1">
                                             <input
                                                 type="text"
                                                 value={searchQuery}
@@ -934,25 +934,25 @@ const MapContainer = ({
                                                     setIsSearchFocused(true);
                                                 }}
                                                 onFocus={() => setIsSearchFocused(true)}
-                                                placeholder="목적지 입력 또는 음성검색 🎤"
-                                                className="flex-1 bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5"
+                                                placeholder="목적지 입력 또는 음성검색"
+                                                className="w-full bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5 pr-8"
                                             />
                                             {voiceSupported && !searchQuery && (
                                                 <button
                                                     type="button"
                                                     onClick={startVoice}
                                                     disabled={isVoiceListening}
-                                                    className={`p-1.5 rounded-full transition shrink-0 ${
+                                                    className={`absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full transition ${
                                                         isVoiceListening
-                                                            ? 'text-orange-400 bg-orange-500/20 animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.5)]'
-                                                            : 'text-gray-400 hover:text-orange-400 hover:bg-white/10'
+                                                            ? 'text-orange-400 bg-orange-500/20 animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.6)]'
+                                                            : 'text-orange-400/70 hover:text-orange-400 hover:bg-white/10'
                                                     }`}
                                                     aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 목적지 검색'}
                                                 >
-                                                    <Mic size={16} />
+                                                    <Mic size={14} />
                                                 </button>
                                             )}
-                                        </>
+                                        </div>
                                     ) : (
                                         <span className={`text-xs font-black ${routeDestination ? 'text-white' : 'text-gray-400'}`}>
                                             {routeDestination ? routeDestination.title : '목적지 선택 중...'}
