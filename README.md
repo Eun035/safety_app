@@ -2,7 +2,7 @@
 
 > **"초보 라이더의 습관을 바꾸고, 도시의 안전을 데이터로 설계한다."**
 >
-> 🌐 **Production**: https://safety-app-seven.vercel.app/
+> 🌐 **Production**: https://safety-app-fourth.vercel.app/
 
 ---
 
@@ -240,6 +240,117 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 ---
 
 ## 📜 개발 이력 (Changelog)
+
+### [2026-06-22 ~ 2026-06-24] 다단 안정화 + 신규 기능 + 운영 정상화
+
+3일간 누적 27개 커밋. 코드 정리 → 신규 기능 → 인프라(Vercel/Supabase) 정상화 → 음성/검색 강화 → 주행 종료 흐름 안정화 순으로 진행.
+
+#### 🅰️ 코드 정리·중복 제거 (commit `506c2c5`)
+- `useAutoCheckout()` App.jsx에서 2회 호출되던 버그 제거
+- `useUserStore` / `pendingSyncQueue` 동적 import → 정적 import 전환 (`INEFFECTIVE_DYNAMIC_IMPORT` 경고 2건 해소)
+- 미사용 파일 11개 삭제: 컴포넌트 4(CouponBox, FeedbackReport, RideCameraModal, SOSButton) + 훅·서비스 2(useEdgeAI, ProfileControlService) + 루트 잡파일 5(fix.cjs, fix2.cjs, scratch_model.py, getVoices.code-search, build_log.txt)
+- 외부 스니펫(HelmetAuth, src/utils/supabase) 중복 생성 차단 — 기존 `HelmetDetectionCamera`/`supabaseClient` 단일화 유지
+- 빌드 CSS 142.68 → 138.96 KB로 감소
+
+#### 🅱️ ShareCard 매트 블랙 + #CCFF00 재단장 (commit `506c2c5`)
+인스타 스토리 1080×1920 카드를 시안 톤(`#40ffdc`)에서 네온 그린(`#CCFF00`) 톤으로 전면 교체.
+- 동적 타이틀: `"{routeLabel} {distance.toFixed(1)}km 비행 완료 ⚡"`
+- 3행 모노스페이스 지표: DURATION (MM:SS) / AVG SPEED (km/h) / SAFETY SCORE (%)
+- 안전 스코어 = `max(60, 100 - suddenBrakeCount × 5)` (UI 전용 계산)
+- `helmetOn=true` 시 `⛑️ SAFE RIDER` 배지 + 네온 글로우
+- SVG 네온 경로 + 그리드 패턴 배경
+- 라이브러리는 기존 `html-to-image` 그대로 (html2canvas와 동등 + 이미 설치됨)
+
+#### 🅲 Wake Lock + Page Visibility (commit `506c2c5`)
+- `src/hooks/usePageVisibility.js` 신규 — `document.visibilityState` 구독
+- `src/hooks/useWakeLock.js` 신규 — 라이딩 중 화면 절전 차단, 백그라운드 복귀 시 자동 재획득
+- App.jsx: `useWakeLock(isRiding)` 호출 추가
+- 미지원 브라우저(일부 iOS WebView)는 silent no-op
+
+#### 🅳 안전 퀴즈 보이스 개선 (commit `fad8d70`)
+기존 L2 default가 `interrupt: false`라 문제 낭독 중 답 선택 시 정답 발화가 silent return되던 버그 해소.
+- `QUIZ` 프리셋 추가: `rate: 0.85, pitch: 0.95, volume: 1.0, interrupt: true` (차분·또렷)
+- `QUIZ_FEEDBACK` 프리셋 추가: `rate: 1.0, pitch: 1.05, interrupt: true` (즉답)
+- 답 선택 시 진행 중인 문제 낭독 즉시 끊고 정답/오답 발화 → 1.5초 후 다음 문제
+
+#### 🅴 PWA 아이콘 + Vercel/Supabase 인프라 정상화 (commits `bd3bca7`, infra ops)
+- `manifest.icons` SVG → `pwa-icon-512.png` (`any` + `maskable` 2종)으로 교체
+- Vercel **Root Directory** `c-pm-safety` → 비움 (옛 폴더 구조 잔재 제거)
+- Vercel Environment Variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_KAKAO_API_KEY`, `VITE_KAKAO_REST_API_KEY`
+- Vercel Deployment Protection Disabled — `manifest.webmanifest 401` 해소
+- Supabase 마이그레이션 적용: profiles RLS INSERT 정책, 누락 컬럼(age, profile_image, mileage, referral_code, referred_by_code), rides 확장(top_speed, sudden_brake_count, ride_rsr, helmet_on_pct, co2_saved_kg, is_legal_park, to_loc_text, helmet_pickup_station_id), ride_paths/safety_grid_scores 테이블 + RLS, update_safety_scores RPC
+- 해결된 런타임 에러 9건: placeholder URL / profiles 400 / manifest 401 / rides 400 / ride_paths 403 / RPC 403 / 지도 로딩 실패 등
+
+#### 🅵 주소 검색·음성 인식 강화 (commits `6f17161`, `8105dd2`, `9a52884`, `247b899`, `c5a4b4d`)
+- MapSearchBar / MapContainer / RideStartScreen 3곳에 `Geocoder.addressSearch` 병행 호출 (`Places.keywordSearch`만으로는 "쌍용대로 32" 같은 도로명 주소 매칭 안 됨)
+- `useSpeechRecognition` 훅 신규 (webkitSpeechRecognition 래퍼, i18n 언어 → ko-KR/en-US/ja-JP/zh-CN 자동 매핑)
+- 마이크 버튼 4곳 추가: MapSearchBar, MapContainer 출발지·목적지, RideStartScreen 목적지
+- 음성 인식 권한 다이얼로그 강제 노출(`getUserMedia`) 시도 → 펄스만 돌고 결과 안 나오던 회귀 발생 → Permissions API로 'denied'만 사전 차단하는 방식으로 롤백
+- `maxAlternatives: 5`로 확률순 5개 후보 받아서 Kakao 멀티 쿼리로 병렬 검색 → "월봉청솔1차아파트" 류 부정확 발음 보완
+- RideStartScreen의 mockSearch(6개 하드코딩) → 실제 Kakao Places + Geocoder 교체, `calculateDistance`로 ETA 추정
+
+#### 🅶 온보딩 UX 개선 (commits `a26acdf`, `97f36c3`, `245099a`, `69799fe`)
+- DisclaimerModal에 뒤로가기 버튼 추가 (잘못된 언어 선택 시 LanguageSelector로 복귀)
+- LanguageSelectorScreen 2-step 확인 흐름 (탭 → Confirm) + Cancel 옵션
+- 작은 화면(iPhone SE 등)에서 모달 콘텐츠 잘림 해소
+  - 스크롤 도입 시도 → "드래그 바 오작동" 사용자 피드백으로 폐기
+  - 대신 `sm:` 변형으로 작은 폰에서 패딩·폰트·여백 축소 (반응형 압축)
+- 터치 버튼 크기 확대 (iOS HIG 44px+ 기준)
+- DisclaimerModal `onBack` 핸들러 + `setHasSelectedLanguage(false)` 연결
+
+#### 🅷 회원 탈퇴 + 의견 수집 흐름 (commit `59e69d6`)
+PWA는 OS 레벨 앱 삭제 이벤트가 없으므로 '계정 탈퇴'를 표준 대체 흐름으로 구현.
+- `src/components/common/AccountDeletionModal.jsx` 신규 — 2단계(Survey → 최종 확인)
+- 별점 1~5 (선택) + 9개 이슈 태그 멀티 선택 + 자유 코멘트 500자
+- phase19 `feedbacks` 테이블에 적재, `account_deletion` 태그 자동 부착
+- 제출 후 `supabase.auth.signOut` → `c_safe_/csafe_` prefix localStorage 정리 → 1.5초 후 `window.location.reload`
+- UserProfileSheet 하단에 빨강 '회원 탈퇴 / 데이터 삭제' 진입 버튼 추가
+
+#### 🅸 PWA SW + 라우트 선택 UX (commits `7725852`, `6635bcf`)
+- `main.jsx`의 SW `controllerchange` 핸들러가 첫 설치 시에도 `window.location.reload()` 호출하여 온보딩 도중 단절 발생 → `hadControllerOnLoad` 추적으로 첫 설치엔 reload 스킵, 실제 UPDATE에서만 reload
+- 라우트 선택 모드(`select_origin`/`select_destination`)에서 떠 있는 MapSearchBar 숨김 — 가이드 패널 입력(마이크 포함)이 단일 검색 인터페이스로 단순화
+
+#### 🅹 주행 종료 모달 체인 안정화 (commits `fada328`, `94e3ce6`, `305db33`)
+주행 종료 → 헬멧 반납 → 결제 → 보상 → RideSummary 흐름이 다양한 케이스에서 끊기던 문제 다단 해결.
+
+**문제 1: PaymentReceiptModal `!metrics` null 가드로 체인 끊김** (`fada328`)
+- autoCheckout이 먼저 발동하여 isRiding=false → 사용자 수동 주차 완료 시 endRideSession이 null 반환 → `finalRideSummary` 미설정 → PaymentReceiptModal이 `if (!metrics) return null`로 렌더 안 됨 → 다음 단계 트리거 불가
+- 수정: `!metrics` 체크 제거, `safeMetrics` 폴백 객체 사용
+- App.jsx: endRideSession null 시 `totalDistance`/`suddenBrakeCount` 잔여 state로 폴백 `finalRideSummary` 구성
+
+**문제 2: GPS 미허용 시 비합법 주차 분기 조기 return** (`94e3ce6`)
+- 사용자가 GPS 권한 거부 → `userLat/userLng` 의미 있는 값 없음 → `minDistance = Infinity` → `isLegalPark = false`
+- 비합법 주차 분기에서 `return;`으로 함수 종료 → 헬멧 반납 시트 자체가 안 열림
+- 수정: 비합법 주차 분기에서 `return;` 제거, 페널티 모달은 유지하되 체인은 계속 진행 (보상만 차단)
+
+**문제 3: production drop_console로 진단 로그 전부 제거됨** (`6281d76`)
+- `vite.config.js`의 `terserOptions.drop_console: true`가 모든 `console.*`을 제거 → 사용자 측 console 진단 자체가 불가능
+- 수정: `pure_funcs: ['console.log', 'console.debug']`로 변경 → `console.warn`/`error`/`info`는 production에 유지
+- App.jsx 모달 체인 진단 로그를 `console.log` → `console.warn`으로 격상
+
+**문제 4: Vercel CDN edge 캐시 stale** (operational)
+- 빌드는 됐는데 외부에서 fetch 시 옛 번들 응답 (`Age: 56589`, `X-Vercel-Cache: HIT`)
+- Redeploy로 캐시 강제 무효화 → 새 번들 해시 서빙
+
+**기능 추가: Ride Summary on/off 토글** (`305db33`)
+- RideSettings에 Night Vision 아래 새 토글 섹션 추가
+- 라벨 'Ride Summary' / 설명 '주행 종료 후 요약 카드 노출', 기본 ON
+- `useLocalStorage('csafe_ride_config', ...)`로 모든 rideConfig 영속화 (새로고침 후에도 토글 상태 유지)
+- StationReward.onNext에서 `showRideSummary` 체크: false면 모달 스킵 + "🛴 안전하게 도착했어요!" 토스트
+
+#### 신규 파일 (8개)
+- `src/hooks/usePageVisibility.js`
+- `src/hooks/useWakeLock.js`
+- `src/hooks/useSpeechRecognition.js`
+- `src/components/common/AccountDeletionModal.jsx`
+- `SESSION_2026-06-22.md` (별도 세션 노트)
+
+#### 운영 메모
+- 사용 중 production URL: `safety-app-fourth.vercel.app` (`safety-app-git-main-eunyoung-s-projects.vercel.app` 자동 branch alias도 동일 코드)
+- `safety-app-vercel.app` Third Party 도메인은 사용 안 함 (DNS 미등록)
+- 옛 production URL `safety-app-seven.vercel.app`은 다른 프로젝트와 충돌 가능, 사용 중단
+
+---
 
 ### [2026-05-29] UI 중복 정리 + 데이터 영속화 보강 + Dev 편의성
 
