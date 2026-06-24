@@ -107,7 +107,8 @@ export default defineConfig({
     sourcemap: false,
     terserOptions: {
       compress: {
-        drop_console: true,
+        // console.log 만 제거하고 warn/error/info는 유지 (production 진단용)
+        pure_funcs: ['console.log', 'console.debug'],
         drop_debugger: true,
         keep_classnames: true,
         keep_fnames: true,
