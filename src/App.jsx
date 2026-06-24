@@ -1,9 +1,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Shield, ShieldCheck, Cloud, AlertTriangle,
+  Shield, ShieldCheck, Cloud, AlertTriangle, Moon,
   Layers, Play, Star, Zap, TrendingUp, Download,
-  Sliders, Wallet, X, LocateFixed, Share2,
+  Wallet, X, LocateFixed, Share2,
   Settings, Users
 } from 'lucide-react';
 
@@ -967,14 +967,6 @@ function App() {
                 <Download size={16} />
               </button>
               <button
-                onClick={() => setIsRideSettingsOpen(true)}
-                className="w-10 h-10 bg-[#1C1C1E]/80 backdrop-blur-md rounded-xl border border-gray-600/50 flex items-center justify-center text-white shadow-lg"
-                title="주행 환경 설정 (속도/야간/자전거 모드/브랜드)"
-              >
-                <Sliders size={18} />
-              </button>
-
-              <button
                 onClick={() => setShowStressLayer(prev => !prev)}
                 className={`w-10 h-10 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${showStressLayer ? 'bg-orange-500/30 text-orange-400 border-orange-400/50 shadow-neon-orange' : 'bg-gray-900/80 text-white border-white/10'}`}
                 title="보행자 스트레스 존 표시"
@@ -1169,7 +1161,17 @@ function App() {
         </main>
 
         <footer className={`bg-cyber-panel border-t border-white/5 pb-[env(safe-area-inset-bottom)] z-[40] transition-all duration-300 ${navStep === 'idle' && !isRiding ? 'opacity-100 max-h-32' : 'opacity-0 max-h-0 overflow-hidden pointer-events-none'}`}>
-          <div className="max-w-xl mx-auto grid grid-cols-4 items-center">
+          <div className="max-w-xl mx-auto grid grid-cols-5 items-center">
+            {/* VIBE — Ride Control 진입 */}
+            <button
+              onClick={() => setIsRideSettingsOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 py-3 text-[#FF8C94] outline-none border-none group active:scale-95 transition-all"
+              title="주행 환경 설정 (속도/야간/자전거 모드/Ride Summary 등)"
+            >
+              <Moon size={24} className="fill-[#FF8C94]/20 animate-pulse drop-shadow-[0_0_8px_rgba(255,140,148,0.5)] shrink-0" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-[#FF8C94]/90">VIBE</span>
+            </button>
+
             {/* Activity */}
             <button
               onClick={() => setIsShadowSheetOpen(true)}
