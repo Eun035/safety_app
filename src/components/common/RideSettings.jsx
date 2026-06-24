@@ -59,43 +59,43 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-5 scrollbar-hide">
+                        <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-3 scrollbar-hide">
 
                             {/* === Section 1: Ride Mode === */}
-                            <section className="bg-gradient-to-br from-[#1a160d] to-[#0a0c0f] p-5 rounded-[2rem] border border-white/5 shadow-xl">
-                                <p className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-1.5" style={{ color: ACCENT }}>
+                            <section className="bg-gradient-to-br from-[#1a160d] to-[#0a0c0f] p-4 rounded-[1.5rem] border border-white/5 shadow-xl">
+                                <p className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{ color: ACCENT }}>
                                     <Zap size={12} /> Ride Mode · 속도 제한
                                 </p>
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
                                         onClick={() => setConfig({ ...config, speedLimit: 15, isBicycleMode: false })}
-                                        className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 15 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
+                                        className={`h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all border ${config.speedLimit === 15 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                                     >
-                                        <Shield size={18} />
-                                        <span className="text-xs font-black uppercase italic">15 km/h</span>
+                                        <Shield size={16} />
+                                        <span className="text-[11px] font-black uppercase italic">15 km/h</span>
                                         <span className="text-[8px] font-bold opacity-60">전동스쿠터</span>
                                     </button>
                                     <button
                                         onClick={() => setConfig({ ...config, speedLimit: 25, isBicycleMode: true })}
-                                        className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit === 25 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
+                                        className={`h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all border ${config.speedLimit === 25 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                                     >
-                                        <Zap size={18} />
-                                        <span className="text-xs font-black uppercase italic">25 km/h</span>
+                                        <Zap size={16} />
+                                        <span className="text-[11px] font-black uppercase italic">25 km/h</span>
                                         <span className="text-[8px] font-bold opacity-60">전동자전거</span>
                                     </button>
                                     <button
                                         onClick={() => setConfig({ ...config, speedLimit: 999, isBicycleMode: true })}
-                                        className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${config.speedLimit >= 999 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
+                                        className={`h-16 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all border ${config.speedLimit >= 999 ? 'bg-cyber-cyan text-black border-cyber-cyan shadow-neon-cyan' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                                     >
-                                        <Bike size={18} />
-                                        <span className="text-xs font-black uppercase italic">PRO</span>
+                                        <Bike size={16} />
+                                        <span className="text-[11px] font-black uppercase italic">PRO</span>
                                         <span className="text-[8px] font-bold opacity-60">제한 해제</span>
                                     </button>
                                 </div>
                             </section>
 
                             {/* === Section 2: Night Vision Toggle === */}
-                            <section className="flex items-center justify-between p-5 bg-gray-800/40 rounded-2xl border border-gray-700/50">
+                            <section className="flex items-center justify-between p-4 bg-gray-800/40 rounded-2xl border border-gray-700/50">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${config.isNightMode ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(147,51,234,0.5)]' : 'bg-gray-700 text-gray-400'}`}>
                                         <Moon size={20} />
@@ -114,7 +114,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                             </section>
 
                             {/* === Section 3: Ride Summary Toggle === */}
-                            <section className="flex items-center justify-between p-5 bg-gray-800/40 rounded-2xl border border-gray-700/50">
+                            <section className="flex items-center justify-between p-4 bg-gray-800/40 rounded-2xl border border-gray-700/50">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${config.showRideSummary !== false ? 'bg-cyber-cyan/80 text-black shadow-[0_0_10px_rgba(64,255,220,0.4)]' : 'bg-gray-700 text-gray-400'}`}>
                                         <FileText size={20} />
@@ -133,16 +133,16 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                             </section>
 
                             {/* === Section 4: Brand Filtering === */}
-                            <section className="bg-gray-800/40 p-5 rounded-2xl border border-gray-700/50">
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <section className="bg-gray-800/40 p-4 rounded-2xl border border-gray-700/50">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                                     <Filter size={12} /> Active Brands · 표시할 브랜드
                                 </p>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5">
                                     {brands.map(brand => (
                                         <button
                                             key={brand}
                                             onClick={() => toggleBrand(brand)}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${config.brandFilters?.includes(brand) ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/50' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
+                                            className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all border ${config.brandFilters?.includes(brand) ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/50' : 'bg-gray-800/60 text-gray-500 border-gray-700'}`}
                                         >
                                             {brand}
                                         </button>
@@ -153,7 +153,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                             {/* CTA — onNext가 있으면 라이딩 흐름 다음 단계, 아니면 그냥 닫기 */}
                             <button
                                 onClick={onNext || onClose}
-                                className="w-full h-14 rounded-2xl font-black text-lg uppercase tracking-widest active:scale-95 transition-all"
+                                className="w-full h-12 rounded-2xl font-black text-base uppercase tracking-widest active:scale-95 transition-all"
                                 style={{
                                     background: ACCENT,
                                     color: '#0a0c0f',
