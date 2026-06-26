@@ -98,13 +98,15 @@ src/
 | `hazards` | 커뮤니티 신고 위험 구역 (실시간 Realtime 구독) |
 | `rides` | 주행 세션 기록. ✨ 2026-05-27 컬럼 확장: `top_speed`, `sudden_brake_count`, `duration_minutes`, `ride_rsr`, `helmet_on_pct`, `co2_saved_kg`, `is_legal_park` + 이상치 CHECK 제약 5종 + 인덱스 2종. ✨ 2026-05-29 추가 확장: `to_loc_text` (목적지 텍스트), `helmet_pickup_station_id` (시작 거점), `helmet_return_station_id` (반납 거점) + partial index 3종 |
 | `ride_paths` | 세션별 GPS 경로 좌표 배열 |
-| `near_miss_events` | 아차사고 이벤트 (GPS + 맥락 데이터) |
+| `near_miss_events` | 아차사고 이벤트 (GPS + 맥락 데이터). ✨ 2026-06-26 확장: `geog GEOGRAPHY(POINT,4326)` generated 컬럼 + 컬럼 GIST 인덱스 (미터 단위 거리 쿼리 자연 사용) |
 | `zone_events` | ✨ NEW (2026-05-27): 위험구역 진출입 이벤트 + 사전계산 `rsr_value`. RSR(Risk Suppression Rate)의 서버 SoT |
 | MATERIALIZED VIEW `rides_daily` | ✨ NEW (2026-05-27): 일별 사전 집계 (ride_count/distance/avg_top_speed/avg_rsr/avg_helmet_pct 등). AdminDashboard 30일 KPI 쿼리 가속 |
 | RPC `get_nearby_hazards` | PostGIS 공간 쿼리 (반경 위험 구역 탐색) |
 | RPC `update_safety_scores` | 격자 단위 안전 점수 집계 |
 | RPC `increment_user_stats` | 원자적 포인트 + 거리 누적 |
-| RPC `get_near_miss_clusters` | 위험 클러스터 분석 (Admin 지도 히트맵용) |
+| RPC `get_near_miss_clusters` | 위험 클러스터 분석. ✨ 2026-06-26 시그니처 확장: `bbox(sw_lat,sw_lng,ne_lat,ne_lng)` + `since_days` + `grid_decimals` + `min_count` 인자 추가. 뷰포트 페치 + 줌 어댑티브 그리드(3≈110m, 2≈1.1km) + k-익명성 가드. SECURITY DEFINER |
+| RPC `insert_near_miss_batch` | ✨ NEW (2026-06-26): JSON 배열 배치 인서트. `user_id`는 `auth.uid()`로 서버측 강제 주입(스푸핑 차단), lat/lng 범위 검증. SECURITY INVOKER + RLS |
+| RPC `get_near_miss_heatmap_geojson` | ✨ NEW (2026-06-26): 동일 파라미터로 표준 GeoJSON FeatureCollection 출력 (외부 leaflet/mapbox · 어드민 Plotly density_mapbox 등 직접 소비) |
 | RPC `get_rsr_by_zone` | ✨ NEW (2026-05-27): zone_id별 평균 RSR 집계 (도시 단위 정책 효과) |
 | RPC `get_hazard_policy_effect` | ✨ NEW (2026-05-27): hazard 지정 ±30일 near_miss 카운트 + 감소율(%) — B2G 정책 입증 |
 | RPC `refresh_rides_daily` | ✨ NEW (2026-05-27): rides_daily 머티뷰 갱신 (pg_cron 03:00 UTC 자동 + AdminDashboard 로드 시 수동) |
@@ -240,6 +242,101 @@ $$\text{RSI} = 0.4 \times H + 0.2 \times S + 0.2 \times B + 0.2 \times R$$
 ---
 
 ## 📜 개발 이력 (Changelog)
+
+### [2026-06-26] P4 — 아차사고 히트맵 파이프라인 (Insight Layer)
+
+수집된 `near_miss_events`를 사용자에게 시각적으로 되돌려주는 첫 사이클. "수집 → 통찰" 단계 전환의 시발점. 백엔드 RPC 3종 + 신규 훅 1개 + MapContainer 통합 + 운영(원격 저장소 연결) 까지 한 패스로 완료. 푸시 후 GitHub→Vercel 자동 배포 트리거. 커밋 `d701821`.
+
+#### 🅰️ Supabase 마이그레이션 — GEOGRAPHY 전환 + RPC 3종 ([`supabase_p4_nearmiss_geography_heatmap.sql`](supabase/migrations/supabase_p4_nearmiss_geography_heatmap.sql))
+
+기존 `lat`/`lng` 컬럼 + 표현식 GIST 인덱스 구조로는 "반경 N미터" 같은 거리 쿼리에서 SRID 변환이 필요하고 인덱스 적중률도 낮았음. 사용자 결정으로 **GEOGRAPHY(POINT,4326)** 로 전환.
+
+- `near_miss_events` 에 `geog GEOGRAPHY(POINT,4326)` **generated STORED 컬럼** 추가 — 기존 lat/lng 그대로 두고 자동 백필, 클라이언트 [`useNearMissEngine.js`](src/hooks/useNearMissEngine.js) 변경 0건
+- 표현식 GIST(`idx_near_miss_location`) → 컬럼 GIST(`idx_near_miss_geog`)로 교체
+- **`insert_near_miss_batch(events jsonb)`** 신규 — 1초당 1건 수집 → 1분 batch / 주행종료 시 일괄 전송 패턴 지원. `auth.uid()` 강제 주입으로 user_id 스푸핑 차단, lat/lng 범위 검증, SECURITY INVOKER (RLS 그대로 적용)
+- **`get_near_miss_clusters`** 시그니처 확장 (기존 `radius_meters` 단일 인자 → bbox + `since_days` + `grid_decimals` + `min_count`). `ST_MakeEnvelope(...)::geography` + `ST_Intersects` 로 뷰포트 페치. `grid_decimals=3≈110m / 2≈1.1km`. SECURITY DEFINER로 RLS 우회하되 `min_count≥2`가 k-익명성 가드
+- **`get_near_miss_heatmap_geojson`** 신규 — 동일 파라미터를 받아 표준 GeoJSON `FeatureCollection` 출력. 외부 leaflet/mapbox + 어드민 Plotly `density_mapbox` 가 그대로 소비 가능
+
+#### 🅱️ 시드 데이터 — 두정/산단/단국대 50건 ([`seed_p4_near_miss_mock.sql`](supabase/seed_p4_near_miss_mock.sql))
+
+운영 환경 `near_miss_events` 카운트 5건뿐 → 클러스터링 임계값(`HAVING COUNT(*) >= 2`)을 만족 못 해 히트맵이 비어 보이는 문제. 시각화 검증용 mock 50건 주입.
+
+- 핫스팟 3개 가우시안 산포: 두정역(20) / 천안제3산업단지(18) / 단국대 천안캠퍼스(12)
+- `nearby_hazard_id = 'SEED_P4_MOCK'` 마커로 **멱등성** + **일괄 삭제** 보장 (`DELETE WHERE nearby_hazard_id='SEED_P4_MOCK'` 한 줄로 완전 제거)
+- `user_id = NULL` (auth.users FK 위반 방지). RLS는 본인 데이터만 노출하지만 `get_near_miss_clusters`는 SECURITY DEFINER로 시드도 집계
+- 현실값: 속도 10~34km/h, 헬멧 70%, 스트레스존 40%, 기상위험 30%, 최근 30일 균등 산포
+
+#### 🅲 신규 훅 — `useHazardHeatmap` ([`src/hooks/useHazardHeatmap.js`](src/hooks/useHazardHeatmap.js))
+
+- 뷰포트 변화 → 300ms 디바운스 → RPC 호출. 4자리 반올림 bbox 키로 미세 panning 재페치 차단
+- `abortRef` 토큰으로 늦게 도착한 응답 폐기 (race condition 가드)
+- Supabase `postgres_changes` INSERT 구독 → 캐시 무효화 + 즉시 재페치 (실시간 invalidation)
+- `enabled=false` 시 페치 자체 스킵 + clusters 초기화 (토글 OFF 비용 0)
+- 권한/네트워크 실패는 `console.warn` + 빈 배열 (앱 중단 X)
+- 반환: `{ clusters, loading, error, lastUpdated }`
+
+#### 🅳 MapContainer 통합 — 줌-어댑티브 그리드 + HSL 강도 매핑 ([`MapContainer.jsx`](src/components/map/MapContainer.jsx))
+
+- 초기 bounds 부트스트랩 useEffect 추가 — 사용자 드래그/줌 전이라도 1회 자동 페치
+- 줌 레벨별 그리드 설정 (Kakao level 기준):
+
+  | level | 의미 | grid_decimals | Circle 반경 | min_count |
+  |---|---|---|---|---|
+  | 1~4 | Street | 3 (≈110m) | 60m | 1 |
+  | 5~7 | District | 2 (≈1.1km) | 220m | 1 |
+  | 8+ | City/Region | 2 | 400m | 2 (k-익명성) |
+
+- 위험 밀도 → 시각 강도 5채널 동시 매핑 (`event_count` 5건↑이면 풀 강도):
+  - **hue** 45°(amber) → 0°(red) — `hsl()` 보간으로 색상 자체가 진해짐
+  - **lightness** 58% → 32% — 어두워질수록 위협감
+  - **fillOpacity** 0.35 → 0.80
+  - **strokeOpacity** 0.50 → 0.90
+  - **strokeWeight** 1px → 3px (멀리서도 핫스팟 식별)
+- `{safetyGridOverlay}` 다음 줄에 `{hazardHeatmapOverlay}` 삽입 — 기존 안전 격자(녹색)와 위험 핫스팟(빨강) 동시 표시
+
+#### 🅴 App.jsx — 컨트롤바 토글 + props
+
+- 우측 컨트롤바: 보행자 스트레스 존 토글(주황 Users) 아래에 **빨강 `AlertTriangle` 토글** 추가. ON 시 `bg-red-500/30 + shadow-[0_0_10px_rgba(239,68,68,0.6)]`로 핵심 액션과 시각 연속성
+- `showHazardHeatmap` 상태 + MapContainer prop 전달 (기존 `showStressLayer` 패턴 미러)
+
+#### 🅵 운영 — 원격 저장소 연결 (이 PC 로컬 → GitHub `Eun035/safety_app`)
+
+이 작업 디렉터리(`c:/Users/ComHolic/safety_app`)는 **git 저장소가 아니었음**. 원격 [Eun035/safety_app](https://github.com/Eun035/safety_app) main에는 이미 5개 커밋(2026-06-24 UX 폴리시까지)이 있어 첫 push가 `non-fast-forward` 거부됨.
+
+안전 머지 경로(force push 금지):
+1. 로컬 변경을 `backup-local-p4` 브랜치로 보존
+2. `git reset --hard origin/main` — 로컬을 원격으로 맞춤
+3. P4 신규 3개 파일(`useHazardHeatmap.js`, sql 2개) `git checkout backup-local-p4 -- <path>` 로 복원
+4. `App.jsx` / `MapContainer.jsx` 편집은 원격 버전 위에 surgical Edit으로 재적용 (앵커 모두 동일 라인 확인 후 진행)
+5. P4 전용 단일 커밋 (`d701821`) — **+605 / -0** (삭제 0, 원격 작업 손실 없음)
+
+#### 🔴 운영 체크리스트 — Supabase Dashboard SQL Editor에서 마이그레이션 1건 실행 필요
+
+```
+supabase/migrations/supabase_p4_nearmiss_geography_heatmap.sql
+```
+
+검증 쿼리:
+```sql
+-- 1) GEOGRAPHY 컬럼 자동 백필 확인
+SELECT COUNT(*) AS total, COUNT(geog) AS with_geog FROM public.near_miss_events;
+
+-- 2) 클러스터 RPC 동작 확인 (천안 전체 bbox, k=1 데모용)
+SELECT * FROM public.get_near_miss_clusters(36.80, 127.10, 36.90, 127.20, 30, 3, 1);
+
+-- 3) GeoJSON 형태로 동일 호출
+SELECT public.get_near_miss_heatmap_geojson(36.80, 127.10, 36.90, 127.20, 30, 3, 1);
+```
+
+(선택) `supabase/seed_p4_near_miss_mock.sql`는 prod에 실데이터가 충분히 쌓이기 전까지만 임시 사용. 정리는 `DELETE FROM near_miss_events WHERE nearby_hazard_id='SEED_P4_MOCK';`
+
+#### 🚧 미해결 후속
+
+- **데이터 품질 관리(노이즈 필터링)** — `useAutoCheckout`의 정지/주행 구분 규칙(예: "3km/h 5분 이상 → 종료")이 실제 가동 중인지 점검 필요. 미가동 시 히트맵에 신호등 정차 등 위양성 노이즈 유입 가능
+- **상황 태깅 보강** — `trips.weather`만 있고 도로 타입(보도/차도/공원) 컬럼 없음. 도로 타입 + 날씨 결합 저장 시 B2G·보험사용 고급 데이터로 가치 상승
+- **명시적 데이터 분석 동의 화면** — 온보딩에 "당신의 데이터로 안전 리포트를 만듭니다" 명확 고지 UI 필요 (현재 RLS + RPC 비식별화는 백엔드만 보장)
+
+---
 
 ### [2026-06-22 ~ 2026-06-24] 다단 안정화 + 신규 기능 + 운영 정상화
 
@@ -872,4 +969,4 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ---
 
 *C-Safe Security Protocol V3.0 — AI-Powered Urban Mobility Safety Platform*  
-*Protected by Advanced Agentic Coding | Last updated: 2026-05-25*
+*Protected by Advanced Agentic Coding | Last updated: 2026-06-26*
