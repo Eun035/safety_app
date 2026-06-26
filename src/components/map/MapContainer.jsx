@@ -9,6 +9,7 @@ import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import usePMParkingData from '../../hooks/usePMParkingData';
 import stationData from '../../data/station_data.json';
 import { useRideSession } from '../../hooks/useRideSession';
+import { useHazardHeatmap } from '../../hooks/useHazardHeatmap';
 import { supabase } from '../../lib/supabaseClient';
 import { toast } from '../../hooks/useToast';
 import { SafeRouteService } from '../../services/SafeRouteService';
@@ -22,6 +23,7 @@ const MapContainer = ({
     tagoPms = [],
     showStressLayer, // 🌋 추가
     stressZones = [], // 🌋 App.jsx STRESS_ZONES 단일 소스 (region 필드 포함)
+    showHazardHeatmap, // 🔴 P4 — 아차사고 위험 히트맵 토글
     selectedLocation,
     setSelectedLocation,
     onStationClick,
@@ -384,6 +386,61 @@ const MapContainer = ({
         }, 150);
     }, []);
 
+    // 🔴 P4 — 맵이 처음 마운트될 때 사용자가 드래그/줌 하기 전이라도
+    //    bounds 가 비어있지 않도록 1회 초기화
+    useEffect(() => {
+        if (map && !mapBounds) updateBoundsDebounced(map);
+    }, [map, mapBounds, updateBoundsDebounced]);
+
+    // 🔴 P4 — 줌 레벨별 그리드 해상도 & 원 반경 (히트맵 가독성 유지)
+    //   level ≤ 4 (street):   3 decimals ≈ 110m 그리드 / 60m 반경 / minCount 1
+    //   level 5~7 (district): 2 decimals ≈ 1.1km 그리드 / 220m 반경 / minCount 1
+    //   level ≥ 8 (city):     2 decimals 그리드 / 400m 반경 / minCount 2 (k-익명성)
+    const hazardGridConfig = useMemo(() => {
+        if (currentLevel <= 4) return { gridDecimals: 3, radius: 60,  minCount: 1 };
+        if (currentLevel <= 7) return { gridDecimals: 2, radius: 220, minCount: 1 };
+        return                       { gridDecimals: 2, radius: 400, minCount: 2 };
+    }, [currentLevel]);
+
+    const { clusters: hazardClusters } = useHazardHeatmap({
+        mapBounds,
+        enabled: !!showHazardHeatmap,
+        sinceDays: 30,
+        gridDecimals: hazardGridConfig.gridDecimals,
+        minCount: hazardGridConfig.minCount
+    });
+
+    // 🔴 P4 — 위험 밀도 → 시각 강도 매핑
+    //   intensity (0~1) 는 event_count 5건↑ 일 때 풀강도.
+    //   색상: hue 45(amber) → 0(red), 채도 90%, 밝기 58%→32% (높을수록 진함)
+    //   투명도/테두리 굵기도 함께 강화 → 멀리서도 핫스팟 즉시 식별
+    const hazardHeatmapOverlay = useMemo(() => {
+        if (!showHazardHeatmap || !hazardClusters?.length) return null;
+        return hazardClusters.map((c, i) => {
+            const intensity   = Math.min(c.event_count / 5, 1);
+            const hue         = Math.round(45 - intensity * 45);
+            const fillLight   = Math.round(58 - intensity * 26);
+            const strokeLight = Math.max(20, fillLight - 18);
+            const fillColor   = `hsl(${hue}, 90%, ${fillLight}%)`;
+            const strokeColor = `hsl(${hue}, 95%, ${strokeLight}%)`;
+            const fillOpacity   = 0.35 + intensity * 0.45;
+            const strokeOpacity = 0.50 + intensity * 0.40;
+            const strokeWeight  = 1   + Math.round(intensity * 2);
+            return (
+                <Circle
+                    key={`hazard-${c.cluster_lat.toFixed(4)}-${c.cluster_lng.toFixed(4)}-${i}`}
+                    center={{ lat: c.cluster_lat, lng: c.cluster_lng }}
+                    radius={hazardGridConfig.radius}
+                    strokeWeight={strokeWeight}
+                    strokeColor={strokeColor}
+                    strokeOpacity={strokeOpacity}
+                    fillColor={fillColor}
+                    fillOpacity={fillOpacity}
+                />
+            );
+        });
+    }, [showHazardHeatmap, hazardClusters, hazardGridConfig.radius]);
+
     const memoizedParkingMarkers = useMemo(() => {
         // 지도가 너무 멀리 있을 때는 클러스터러가 처리하도록 마커 렌더링을 제한하거나
         // 화면에 보이는 마커만 필터링하여 렌더링 부하를 줄임
@@ -622,6 +679,7 @@ const MapContainer = ({
 
                     {ridingPath}
                     {safetyGridOverlay}
+                    {hazardHeatmapOverlay}
 
                     {/* 출발지 → 목적지 안내 루트 (Polyline) — 주행 중에도 표시 유지 */}
                     {safeRouteInfo?.routePath && (

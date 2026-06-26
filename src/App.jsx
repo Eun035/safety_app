@@ -90,6 +90,7 @@ function App() {
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false); // New: FAB Menu State
   const [showStressLayer, setShowStressLayer] = useState(false);
+  const [showHazardHeatmap, setShowHazardHeatmap] = useState(false);
   const [isParkingOpen, setIsParkingOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isShadowSheetOpen, setIsShadowSheetOpen] = useState(false);
@@ -974,6 +975,14 @@ function App() {
                 <Users size={18} />
               </button>
 
+              <button
+                onClick={() => setShowHazardHeatmap(prev => !prev)}
+                className={`w-10 h-10 backdrop-blur-md rounded-xl border flex items-center justify-center transition-all ${showHazardHeatmap ? 'bg-red-500/30 text-red-400 border-red-400/50 shadow-[0_0_10px_rgba(239,68,68,0.6)]' : 'bg-gray-900/80 text-white border-white/10'}`}
+                title="아차사고 위험 히트맵"
+              >
+                <AlertTriangle size={18} />
+              </button>
+
             </div>
           )}
 
@@ -1063,6 +1072,7 @@ function App() {
               tagoPms={tagoPms}
               showStressLayer={showStressLayer}
               stressZones={STRESS_ZONES}
+              showHazardHeatmap={showHazardHeatmap}
               selectedLocation={selectedLocation}
               setSelectedLocation={setSelectedLocation}
               panToLocation={panToLocation}
