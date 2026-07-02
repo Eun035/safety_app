@@ -325,7 +325,8 @@ const resources = {
             "eg_check1": "이어폰을 착용하지 않은 상태이며,",
             "eg_check2": "외부 소리를 들을 수 있는 환경입니다.",
             "eg_cancel": "취소",
-            "eg_start": "주행 시작"
+            "eg_start": "주행 시작",
+            "end_ride_verify": "주행 종료 및 주차 인증"
         }
     },
     ja: {
@@ -680,7 +681,8 @@ const resources = {
             "eg_check1": "イヤホンを着用しておらず、",
             "eg_check2": "外部の音が聞こえる環境です。",
             "eg_cancel": "キャンセル",
-            "eg_start": "走行開始"
+            "eg_start": "走行開始",
+            "end_ride_verify": "走行終了と駐車認証"
         }
     },
     "zh-CN": {
@@ -1035,7 +1037,8 @@ const resources = {
             "eg_check1": "我未佩戴耳机，",
             "eg_check2": "处于能听到外部声音的环境。",
             "eg_cancel": "取消",
-            "eg_start": "开始骑行"
+            "eg_start": "开始骑行",
+            "end_ride_verify": "结束骑行并停车认证"
         }
     },
     en: {
@@ -1390,7 +1393,8 @@ const resources = {
             "eg_check1": "I'm not wearing earphones and",
             "eg_check2": "can hear external sounds.",
             "eg_cancel": "Cancel",
-            "eg_start": "Start Ride"
+            "eg_start": "Start Ride",
+            "end_ride_verify": "End Ride & Verify Parking"
         }
     }
 };

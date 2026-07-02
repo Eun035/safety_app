@@ -938,7 +938,7 @@ function App() {
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div>
-                  <span>주행 종료 및 주차 인증</span>
+                  <span>{t('end_ride_verify')}</span>
                 </div>
               )}
             </button>
