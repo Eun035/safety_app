@@ -129,7 +129,7 @@ const HelmetStationSelector = ({
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-1.5 mb-0.5">
                                                         <p className="text-sm font-black text-white tracking-tight truncate">
-                                                            {station.name}
+                                                            {t(station.name, { defaultValue: station.name })}
                                                         </p>
                                                         <span
                                                             className={`text-[8px] font-black px-1.5 py-0.5 rounded-full leading-none border ${
@@ -155,7 +155,7 @@ const HelmetStationSelector = ({
                                                         </span>
                                                         <span className="flex items-center gap-1 text-gray-500">
                                                             <Clock size={10} />
-                                                            {station.hours}
+                                                            {t(station.hours, { defaultValue: station.hours })}
                                                         </span>
                                                         <span className="text-gray-500">
                                                             🪖 {station.helmetCount}

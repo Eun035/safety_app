@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
     X, ShieldCheck, UserCheck, AlertTriangle,
     Loader2, SkipForward, ScanLine, Sparkles
@@ -33,6 +34,7 @@ const PHASE = {
 };
 
 const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
+    const { t } = useTranslation();
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const scanIntervalRef = useRef(null);
@@ -155,7 +157,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                     <button
                         onClick={handleClose}
                         className="w-10 h-10 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/10 active:scale-95 transition"
-                        aria-label="닫기"
+                        aria-label={t('close')}
                     >
                         <X size={20} />
                     </button>
@@ -206,8 +208,8 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                             {phase === PHASE.DENIED && (
                                 <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center px-6 text-center">
                                     <AlertTriangle size={36} className="text-red-400 mb-3" />
-                                    <p className="text-sm font-black text-white mb-1">카메라 권한 거부됨</p>
-                                    <p className="text-[11px] text-white/60 leading-relaxed">기기 설정에서 권한을 허용하거나<br/>일반 주행으로 진입하세요.</p>
+                                    <p className="text-sm font-black text-white mb-1">{t('hdc_denied_title')}</p>
+                                    <p className="text-[11px] text-white/60 leading-relaxed">{t('hdc_denied_desc1')}<br/>{t('hdc_denied_desc2')}</p>
                                 </div>
                             )}
                             {/* 스캔 라인 */}
@@ -227,7 +229,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                                 <div className="absolute inset-x-0 bottom-6 flex justify-center pointer-events-none">
                                     <div className="px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 text-[10px] font-black tracking-wider uppercase text-white/80 font-mono">
                                         <ScanLine size={11} className="inline mr-1.5 -mt-0.5" />
-                                        헬멧 + 얼굴을 중앙에
+                                        {t('hdc_guide')}
                                     </div>
                                 </div>
                             )}
@@ -264,18 +266,18 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                         <div className="space-y-3 mb-5">
                             <DualTrack
                                 icon={<ShieldCheck size={16} />}
-                                label="Vision AI · 헬멧 감지"
+                                label={`Vision AI · ${t('hdc_helmet_detect')}`}
                                 progress={helmetProgress}
                                 done={helmetProgress >= 100}
                                 color={ACCENT}
                             />
                             <DualTrack
                                 icon={<UserCheck size={16} />}
-                                label="Face Match · 본인 확인"
+                                label={`Face Match · ${t('hdc_face_verify')}`}
                                 progress={faceProgress}
                                 done={faceProgress >= 100}
                                 color={BLUE}
-                                hint="면허 도용 방지"
+                                hint={t('hdc_hint_license')}
                             />
                         </div>
                     )}
@@ -287,7 +289,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                             className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
                             style={{ background: ACCENT, color: '#0a0a0a', boxShadow: `0 0 30px ${ACCENT}55` }}
                         >
-                            <Sparkles size={16} /> 인증 시작
+                            <Sparkles size={16} /> {t('hdc_start')}
                         </button>
                     )}
 
@@ -296,7 +298,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                             disabled
                             className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm bg-white/5 border border-white/10 text-white/50 flex items-center justify-center gap-2"
                         >
-                            <Loader2 size={16} className="animate-spin" /> 인증 진행 중...
+                            <Loader2 size={16} className="animate-spin" /> {t('hdc_scanning')}
                         </button>
                     )}
 
@@ -313,7 +315,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                             onClick={handleSkip}
                             className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white/70 font-black text-xs uppercase tracking-widest hover:bg-white/10 active:scale-95 transition flex items-center justify-center gap-2"
                         >
-                            <SkipForward size={14} /> 크레딧 적립 없이 일반 주행
+                            <SkipForward size={14} /> {t('hdc_skip_denied')}
                         </button>
                     )}
 
@@ -323,7 +325,7 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
                             onClick={handleSkip}
                             className="w-full mt-2.5 py-2.5 text-[10px] uppercase tracking-widest text-white/40 hover:text-white/70 font-bold flex items-center justify-center gap-1.5 font-mono transition"
                         >
-                            <SkipForward size={12} /> 헬멧 없이 일반 주행
+                            <SkipForward size={12} /> {t('hdc_skip_normal')}
                         </button>
                     )}
                 </div>
@@ -359,7 +361,9 @@ const DualTrack = ({ icon, label, progress, done, color, hint }) => (
 );
 
 // ─── 성공 패널 ──────────────────────────────────────────────────────────
-const SuccessPanel = ({ onStart, accent }) => (
+const SuccessPanel = ({ onStart, accent }) => {
+  const { t } = useTranslation();
+  return (
     <div>
         <div
             className="rounded-2xl p-4 mb-3 flex items-center gap-3"
@@ -369,8 +373,8 @@ const SuccessPanel = ({ onStart, accent }) => (
                 <Sparkles size={20} style={{ color: accent }} />
             </div>
             <div className="flex-1">
-                <div className="text-[11px] font-black tracking-wider uppercase font-mono" style={{ color: accent }}>본인 확인 완료</div>
-                <div className="text-xs font-bold text-white mt-0.5">안전 크레딧 <span style={{ color: accent }}>+50P</span> 적립 ⚡</div>
+                <div className="text-[11px] font-black tracking-wider uppercase font-mono" style={{ color: accent }}>{t('hdc_verified')}</div>
+                <div className="text-xs font-bold text-white mt-0.5">{t('hdc_credit_pre')} <span style={{ color: accent }}>+50P</span> {t('hdc_credit_post')}</div>
             </div>
         </div>
         <button
@@ -378,18 +382,21 @@ const SuccessPanel = ({ onStart, accent }) => (
             className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
             style={{ background: accent, color: '#0a0a0a', boxShadow: `0 0 32px ${accent}66` }}
         >
-            🚀 주행 시작
+            {t('hdc_start_ride')}
         </button>
     </div>
-);
+  );
+};
 
 // ─── 실패 패널 ──────────────────────────────────────────────────────────
-const FailedPanel = ({ onRetry, onSkip }) => (
+const FailedPanel = ({ onRetry, onSkip }) => {
+  const { t } = useTranslation();
+  return (
     <div>
         <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-3 flex items-start gap-3">
             <AlertTriangle size={18} className="text-red-400 shrink-0 mt-0.5" />
             <div className="text-[11px] text-red-200 font-bold leading-relaxed">
-                헬멧 미착용 또는 본인 확인 실패. 다시 인증하거나 크레딧 없이 일반 주행할 수 있습니다.
+                {t('hdc_fail_desc')}
             </div>
         </div>
         <div className="flex gap-2">
@@ -398,17 +405,18 @@ const FailedPanel = ({ onRetry, onSkip }) => (
                 className="flex-1 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/70 font-black text-[11px] uppercase tracking-widest hover:bg-white/10 active:scale-95 transition"
             >
                 <SkipForward size={12} className="inline mr-1.5 -mt-0.5" />
-                일반 주행
+                {t('hdc_normal_ride')}
             </button>
             <button
                 onClick={onRetry}
                 className="flex-[1.4] py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition"
                 style={{ background: ACCENT, color: '#0a0a0a', boxShadow: `0 0 24px ${ACCENT}55` }}
             >
-                다시 인증
+                {t('hdc_retry')}
             </button>
         </div>
     </div>
-);
+  );
+};
 
 export default HelmetDetectionCamera;

@@ -294,7 +294,27 @@ const resources = {
             "rsm_ratio_story": "스토리 9:16",
             "rsm_ratio_feed": "피드 4:5",
             "rsm_ratio_square": "정사각 1:1",
-            "rsm_generating": "카드 생성 중..."
+            "rsm_generating": "카드 생성 중...",
+
+            // HelmetDetectionCamera (헬멧+본인 인증)
+            "hdc_denied_title": "카메라 권한 거부됨",
+            "hdc_denied_desc1": "기기 설정에서 권한을 허용하거나",
+            "hdc_denied_desc2": "일반 주행으로 진입하세요.",
+            "hdc_guide": "헬멧 + 얼굴을 중앙에",
+            "hdc_helmet_detect": "헬멧 감지",
+            "hdc_face_verify": "본인 확인",
+            "hdc_hint_license": "면허 도용 방지",
+            "hdc_start": "인증 시작",
+            "hdc_scanning": "인증 진행 중...",
+            "hdc_skip_denied": "크레딧 적립 없이 일반 주행",
+            "hdc_skip_normal": "헬멧 없이 일반 주행",
+            "hdc_verified": "본인 확인 완료",
+            "hdc_credit_pre": "안전 크레딧",
+            "hdc_credit_post": "적립 ⚡",
+            "hdc_start_ride": "🚀 주행 시작",
+            "hdc_fail_desc": "헬멧 미착용 또는 본인 확인 실패. 다시 인증하거나 크레딧 없이 일반 주행할 수 있습니다.",
+            "hdc_normal_ride": "일반 주행",
+            "hdc_retry": "다시 인증"
         }
     },
     ja: {
@@ -600,7 +620,45 @@ const resources = {
             "rsm_ratio_story": "ストーリー 9:16",
             "rsm_ratio_feed": "フィード 4:5",
             "rsm_ratio_square": "正方形 1:1",
-            "rsm_generating": "カード生成中..."
+            "rsm_generating": "カード生成中...",
+
+            // helmet_stations.json — 거점 이름 & 24시간 (한국어는 defaultValue)
+            "24시간": "24時間",
+            "단국대 정문 헬멧 스테이션": "檀国大正門ヘルメットステーション",
+            "공학관 PM 거점": "工学館PM拠点",
+            "단대 후문 안전 거점": "檀大裏門安全拠点",
+            "GS25 단대 정문점": "GS25 檀大正門店",
+            "CU 안서점": "CU 安西店",
+            "이마트24 단대후문점": "イーマート24 檀大裏門店",
+            "신부동 환승 거점": "新富洞乗換拠点",
+            "두정동 PM 허브": "斗井洞PMハブ",
+            "스타벅스 신부점": "スターバックス新富店",
+            "메가커피 두정점": "メガコーヒー斗井店",
+            "천안아산역 환승 거점": "天安牙山駅乗換拠点",
+            "순천향대 정문 PM 거점": "順天郷大正門PM拠点",
+            "아산시청 안전 거점": "牙山市役所安全拠点",
+            "GS25 온양온천역점": "GS25 温陽温泉駅店",
+            "CU 신정호점": "CU 新井湖店",
+
+            // HelmetDetectionCamera (ヘルメット+本人認証)
+            "hdc_denied_title": "カメラ権限が拒否されました",
+            "hdc_denied_desc1": "端末の設定で権限を許可するか",
+            "hdc_denied_desc2": "通常走行で進んでください。",
+            "hdc_guide": "ヘルメット＋顔を中央に",
+            "hdc_helmet_detect": "ヘルメット検知",
+            "hdc_face_verify": "本人確認",
+            "hdc_hint_license": "免許なりすまし防止",
+            "hdc_start": "認証開始",
+            "hdc_scanning": "認証中...",
+            "hdc_skip_denied": "クレジット付与なしで通常走行",
+            "hdc_skip_normal": "ヘルメットなしで通常走行",
+            "hdc_verified": "本人確認完了",
+            "hdc_credit_pre": "安全クレジット",
+            "hdc_credit_post": "付与 ⚡",
+            "hdc_start_ride": "🚀 走行開始",
+            "hdc_fail_desc": "ヘルメット未着用または本人確認失敗。再認証するか、クレジットなしで通常走行できます。",
+            "hdc_normal_ride": "通常走行",
+            "hdc_retry": "再認証"
         }
     },
     "zh-CN": {
@@ -906,7 +964,45 @@ const resources = {
             "rsm_ratio_story": "故事 9:16",
             "rsm_ratio_feed": "帖子 4:5",
             "rsm_ratio_square": "正方形 1:1",
-            "rsm_generating": "生成卡片中..."
+            "rsm_generating": "生成卡片中...",
+
+            // helmet_stations.json — 站点名称 & 24小时
+            "24시간": "24小时",
+            "단국대 정문 헬멧 스테이션": "檀国大正门头盔站",
+            "공학관 PM 거점": "工学馆PM站点",
+            "단대 후문 안전 거점": "檀大后门安全站点",
+            "GS25 단대 정문점": "GS25 檀大正门店",
+            "CU 안서점": "CU 安西店",
+            "이마트24 단대후문점": "易买得24 檀大后门店",
+            "신부동 환승 거점": "新富洞换乘站点",
+            "두정동 PM 허브": "斗井洞PM枢纽",
+            "스타벅스 신부점": "星巴克新富店",
+            "메가커피 두정점": "Mega Coffee 斗井店",
+            "천안아산역 환승 거점": "天安牙山站换乘站点",
+            "순천향대 정문 PM 거점": "顺天乡大正门PM站点",
+            "아산시청 안전 거점": "牙山市政厅安全站点",
+            "GS25 온양온천역점": "GS25 温阳温泉站店",
+            "CU 신정호점": "CU 新井湖店",
+
+            // HelmetDetectionCamera (头盔+本人认证)
+            "hdc_denied_title": "相机权限被拒绝",
+            "hdc_denied_desc1": "请在设备设置中允许权限",
+            "hdc_denied_desc2": "或以普通骑行进入。",
+            "hdc_guide": "将头盔+面部置于中央",
+            "hdc_helmet_detect": "头盔检测",
+            "hdc_face_verify": "本人确认",
+            "hdc_hint_license": "防止驾照冒用",
+            "hdc_start": "开始认证",
+            "hdc_scanning": "认证进行中...",
+            "hdc_skip_denied": "不累积积分，普通骑行",
+            "hdc_skip_normal": "不戴头盔，普通骑行",
+            "hdc_verified": "本人确认完成",
+            "hdc_credit_pre": "安全积分",
+            "hdc_credit_post": "已累积 ⚡",
+            "hdc_start_ride": "🚀 开始骑行",
+            "hdc_fail_desc": "未戴头盔或本人确认失败。可重新认证，或不累积积分进行普通骑行。",
+            "hdc_normal_ride": "普通骑行",
+            "hdc_retry": "重新认证"
         }
     },
     en: {
@@ -1212,7 +1308,45 @@ const resources = {
             "rsm_ratio_story": "Story 9:16",
             "rsm_ratio_feed": "Feed 4:5",
             "rsm_ratio_square": "Square 1:1",
-            "rsm_generating": "Generating card..."
+            "rsm_generating": "Generating card...",
+
+            // helmet_stations.json — station names & 24 hours
+            "24시간": "24 hours",
+            "단국대 정문 헬멧 스테이션": "Dankook Main Gate Helmet Station",
+            "공학관 PM 거점": "Engineering Bldg PM Hub",
+            "단대 후문 안전 거점": "Dankook Back Gate Safety Hub",
+            "GS25 단대 정문점": "GS25 Dankook Main Gate",
+            "CU 안서점": "CU Anseo",
+            "이마트24 단대후문점": "emart24 Dankook Back Gate",
+            "신부동 환승 거점": "Sinbu-dong Transfer Hub",
+            "두정동 PM 허브": "Dujeong-dong PM Hub",
+            "스타벅스 신부점": "Starbucks Sinbu",
+            "메가커피 두정점": "Mega Coffee Dujeong",
+            "천안아산역 환승 거점": "Cheonan-Asan Stn. Transfer Hub",
+            "순천향대 정문 PM 거점": "Soonchunhyang Main Gate PM Hub",
+            "아산시청 안전 거점": "Asan City Hall Safety Hub",
+            "GS25 온양온천역점": "GS25 Onyang Oncheon Stn.",
+            "CU 신정호점": "CU Sinjeongho",
+
+            // HelmetDetectionCamera
+            "hdc_denied_title": "Camera permission denied",
+            "hdc_denied_desc1": "Allow permission in device settings,",
+            "hdc_denied_desc2": "or continue with a normal ride.",
+            "hdc_guide": "Center your helmet + face",
+            "hdc_helmet_detect": "Helmet detection",
+            "hdc_face_verify": "Identity check",
+            "hdc_hint_license": "License fraud prevention",
+            "hdc_start": "Start verification",
+            "hdc_scanning": "Verifying...",
+            "hdc_skip_denied": "Normal ride without credit",
+            "hdc_skip_normal": "Ride without helmet",
+            "hdc_verified": "Identity verified",
+            "hdc_credit_pre": "Safety credit",
+            "hdc_credit_post": "earned ⚡",
+            "hdc_start_ride": "🚀 Start ride",
+            "hdc_fail_desc": "No helmet or identity check failed. Verify again or ride normally without credit.",
+            "hdc_normal_ride": "Normal ride",
+            "hdc_retry": "Retry"
         }
     }
 };

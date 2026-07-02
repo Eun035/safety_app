@@ -76,7 +76,7 @@ const HelmetReturnSheet = ({
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                            <p className="text-sm font-black text-white tracking-tight truncate">{station.name}</p>
+                            <p className="text-sm font-black text-white tracking-tight truncate">{t(station.name, { defaultValue: station.name })}</p>
                             <span
                                 className={`text-[8px] font-black px-1.5 py-0.5 rounded-full leading-none border ${
                                     isStation
