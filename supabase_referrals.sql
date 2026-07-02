@@ -45,7 +45,10 @@ CREATE POLICY referrals_insert_any ON referrals FOR INSERT
 
 DROP POLICY IF EXISTS referrals_update_invitee ON referrals;
 CREATE POLICY referrals_update_invitee ON referrals FOR UPDATE
-    USING (invitee_user_id = auth.uid())
+    -- 본인이 이미 소유한 행 OR 아직 주인 없는(NULL) landing 행을 클레임 가능.
+    -- WITH CHECK가 invitee_user_id를 반드시 본인 uid로만 채우게 강제하므로,
+    -- 남의 landing 행을 가로채 다른 사람 id를 넣는 것은 차단된다.
+    USING (invitee_user_id = auth.uid() OR invitee_user_id IS NULL)
     WITH CHECK (invitee_user_id = auth.uid());
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -58,53 +61,89 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-    v_referral   referrals%ROWTYPE;
-    v_inviter_id UUID;
-    v_reward     INT := 500;
+    v_inviter_code TEXT;
+    v_inviter_id   UUID;
+    v_referral_id  BIGINT;
+    v_already      BOOLEAN;
+    v_reward       INT := 500;
 BEGIN
-    -- 1. 미보상 referral 조회 (1인 1회)
-    SELECT * INTO v_referral
-        FROM referrals
-        WHERE invitee_user_id = p_invitee_user_id
-          AND reward_granted = FALSE
-        LIMIT 1;
+    -- 1. 누가 이 invitee를 데려왔는지 = profiles.referred_by_code (신뢰 소스).
+    --    클라이언트가 referrals.invitee_user_id 링크에 실패해도 profiles 링크는 성공하므로
+    --    여기를 기준으로 삼는다.
+    SELECT referred_by_code INTO v_inviter_code
+        FROM profiles
+        WHERE id = p_invitee_user_id;
 
-    IF NOT FOUND THEN
-        RETURN jsonb_build_object('ok', false, 'reason', 'no_pending_referral');
+    IF v_inviter_code IS NULL OR v_inviter_code = '' THEN
+        RETURN jsonb_build_object('ok', false, 'reason', 'no_referrer');
     END IF;
 
     -- 2. inviter 사용자 ID 조회 (referral_code → profiles.id)
     SELECT id INTO v_inviter_id
         FROM profiles
-        WHERE referral_code = v_referral.inviter_code
+        WHERE referral_code = v_inviter_code
         LIMIT 1;
 
+    -- 3. 자기 추천 방지
+    IF v_inviter_id = p_invitee_user_id THEN
+        RETURN jsonb_build_object('ok', false, 'reason', 'self_referral_blocked');
+    END IF;
+
+    -- 4. referral 행 확보 (멱등성 앵커).
+    --    (a) 이미 invitee로 링크된 행이 있으면 그것,
+    --    (b) 없으면 같은 inviter_code의 미청구 landing 행을 이 invitee로 청구,
+    --    (c) 그래도 없으면 새로 INSERT (직접 링크 유입 등).
+    SELECT id INTO v_referral_id
+        FROM referrals
+        WHERE invitee_user_id = p_invitee_user_id
+        LIMIT 1;
+
+    IF v_referral_id IS NULL THEN
+        UPDATE referrals
+            SET invitee_user_id = p_invitee_user_id,
+                signed_up_at    = COALESCE(signed_up_at, now())
+            WHERE id = (
+                SELECT id FROM referrals
+                    WHERE inviter_code = v_inviter_code
+                      AND invitee_user_id IS NULL
+                    ORDER BY landed_at DESC
+                    LIMIT 1
+            )
+            RETURNING id INTO v_referral_id;
+    END IF;
+
+    IF v_referral_id IS NULL THEN
+        INSERT INTO referrals (inviter_code, invitee_user_id, signed_up_at)
+            VALUES (v_inviter_code, p_invitee_user_id, now())
+            RETURNING id INTO v_referral_id;
+    END IF;
+
+    -- 5. 멱등성 — 이미 보상 지급됐으면 재지급 금지
+    SELECT reward_granted INTO v_already FROM referrals WHERE id = v_referral_id;
+    IF v_already THEN
+        RETURN jsonb_build_object('ok', false, 'reason', 'already_rewarded');
+    END IF;
+
+    -- 6. 보상 지급
     IF v_inviter_id IS NULL THEN
-        -- inviter가 사라진 경우에도 invitee는 보상 받음, referral은 사라짐 처리
+        -- inviter가 사라진 경우: invitee만 보상
         UPDATE profiles SET points = COALESCE(points, 0) + v_reward
             WHERE id = p_invitee_user_id;
         UPDATE referrals
             SET reward_granted = TRUE,
-                first_ride_at = COALESCE(first_ride_at, now())
-            WHERE id = v_referral.id;
+                first_ride_at  = COALESCE(first_ride_at, now())
+            WHERE id = v_referral_id;
         RETURN jsonb_build_object('ok', true, 'invitee_reward', v_reward, 'inviter_reward', 0, 'inviter_missing', true);
     END IF;
 
-    -- 3. 자기 추천 방지 (방어막 — 클라이언트에서도 1차 차단되어 있음)
-    IF v_inviter_id = p_invitee_user_id THEN
-        UPDATE referrals SET reward_granted = TRUE WHERE id = v_referral.id;
-        RETURN jsonb_build_object('ok', false, 'reason', 'self_referral_blocked');
-    END IF;
-
-    -- 4. 양방향 +500P 적립
+    -- 양방향 +500P
     UPDATE profiles SET points = COALESCE(points, 0) + v_reward
         WHERE id IN (v_inviter_id, p_invitee_user_id);
 
-    -- 5. referral 마감
     UPDATE referrals
         SET reward_granted = TRUE,
-            first_ride_at = COALESCE(first_ride_at, now())
-        WHERE id = v_referral.id;
+            first_ride_at  = COALESCE(first_ride_at, now())
+        WHERE id = v_referral_id;
 
     RETURN jsonb_build_object(
         'ok', true,

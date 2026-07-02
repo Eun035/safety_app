@@ -62,13 +62,15 @@ export function buildReferralCode(userId) {
 
 /**
  * 추천 코드 → 외부 진입 URL.
- * Task 6에서 /r/:code 라우팅이 추가되며 진입 시 환영·시연 모드로 안내.
+ * `/r/:code` 경로 방식은 Vercel SPA rewrite에 의존하는데 현재 배포 환경에서
+ * 해당 rewrite가 적용되지 않아 404가 난다. 그래서 서버 라우팅에 의존하지 않는
+ * 루트 + `?ref=CODE` 쿼리 방식을 사용한다. captureReferralFromUrl이 `?ref`도
+ * 동일하게 파싱하므로 진입 시 환영·시연 모드 동작은 그대로다.
  * UTM 파라미터는 광고가 아닌 자가 분석용.
  */
 export function buildReferralUrl(code) {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://c-pm-safety.vercel.app';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://safety-app-git-main-eunyoung-s-projects.vercel.app';
     return `${origin}/?ref=${code}&utm_source=instagram&utm_medium=ride_card&utm_campaign=user_share`;
-
 }
 
 /**
