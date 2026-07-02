@@ -454,7 +454,18 @@ const resources = {
             "si_clean": "✓ 클린",
             "si_brake_count": "⚡{{n}}회",
             "si_replay_empty": "첫 주행 후 실제 3D 경로 리플레이가 표시됩니다",
-            "si_real_route": "실제 경로"
+            "si_real_route": "실제 경로",
+
+            // RewardWalletSheet (리워드 월렛)
+            "rw_convert_done": "지역화폐 전환 완료! 천안사랑카드 앱에서 확인하세요.",
+            "rw_subtitle": "나의 자산 및 혜택 관리",
+            "rw_coupons_title": "천안사랑카드 적립 및 쿠폰",
+            "rw_empty": "적립된 내역이 없습니다",
+            "rw_empty_hint": "라이딩을 통해 포인트를 모아보세요!",
+            "rw_convert": "지역화폐로 전환하기",
+            "rw_converted": "전환 완료",
+            "rw_invite_title": "친구 초대하고 5,000P 받기",
+            "rw_invite_desc": "초대한 친구가 첫 주행 완료 시 지급"
         }
     },
     ja: {
@@ -940,7 +951,18 @@ const resources = {
             "si_clean": "✓ クリーン",
             "si_brake_count": "⚡{{n}}回",
             "si_replay_empty": "初回走行後に実際の3D経路リプレイが表示されます",
-            "si_real_route": "実際の経路"
+            "si_real_route": "実際の経路",
+
+            // RewardWalletSheet (リワードウォレット)
+            "rw_convert_done": "地域通貨への交換完了！天安サランカードアプリでご確認ください。",
+            "rw_subtitle": "自分の資産・特典管理",
+            "rw_coupons_title": "天安サランカード積立・クーポン",
+            "rw_empty": "積立履歴がありません",
+            "rw_empty_hint": "ライドでポイントを貯めましょう！",
+            "rw_convert": "地域通貨に交換する",
+            "rw_converted": "交換完了",
+            "rw_invite_title": "友達を招待して5,000P獲得",
+            "rw_invite_desc": "招待した友達が初回ライド完了時に付与"
         }
     },
     "zh-CN": {
@@ -1426,7 +1448,18 @@ const resources = {
             "si_clean": "✓ 清洁",
             "si_brake_count": "⚡{{n}}次",
             "si_replay_empty": "首次骑行后将显示实际3D路线回放",
-            "si_real_route": "实际路线"
+            "si_real_route": "实际路线",
+
+            // RewardWalletSheet (奖励钱包)
+            "rw_convert_done": "已兑换为地区货币！请在天安爱心卡App中查看。",
+            "rw_subtitle": "我的资产及优惠管理",
+            "rw_coupons_title": "天安爱心卡积分及优惠券",
+            "rw_empty": "暂无积分记录",
+            "rw_empty_hint": "通过骑行来积累积分吧！",
+            "rw_convert": "兑换为地区货币",
+            "rw_converted": "已兑换",
+            "rw_invite_title": "邀请好友得5,000P",
+            "rw_invite_desc": "被邀请好友完成首次骑行时发放"
         }
     },
     en: {
@@ -1912,7 +1945,18 @@ const resources = {
             "si_clean": "✓ Clean",
             "si_brake_count": "⚡{{n}}",
             "si_replay_empty": "Real 3D route replay appears after your first ride",
-            "si_real_route": "Actual Route"
+            "si_real_route": "Actual Route",
+
+            // RewardWalletSheet
+            "rw_convert_done": "Converted to local currency! Check the Cheonan Love Card app.",
+            "rw_subtitle": "Manage your assets & benefits",
+            "rw_coupons_title": "Cheonan Love Card points & coupons",
+            "rw_empty": "No earnings yet",
+            "rw_empty_hint": "Earn points by riding!",
+            "rw_convert": "Convert to local currency",
+            "rw_converted": "Converted",
+            "rw_invite_title": "Invite a friend, get 5,000P",
+            "rw_invite_desc": "Paid when your invited friend finishes their first ride"
         }
     }
 };

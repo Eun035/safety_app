@@ -13,7 +13,7 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
             c.id === id ? { ...c, status: 'used' } : c
         );
         setCoupons(updatedCoupons);
-        toast('문서화폐 전환 완료! 천안사랑카드 앱에서 확인하세요.', 'success');
+        toast(t('rw_convert_done'), 'success');
     };
 
     return (
@@ -52,7 +52,7 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
                                     </h2>
                                 </div>
                                 <p className="text-[10px] font-bold text-amber-500 tracking-wider uppercase">
-                                    나의 자산 및 혜택 관리
+                                    {t('rw_subtitle')}
                                 </p>
                             </div>
 
@@ -83,14 +83,14 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
                                 {/* === Section 2: Coupon/Activity List === */}
                                 <div>
                                     <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest mb-4 px-1 flex items-center gap-2">
-                                        <Ticket size={13} className="text-amber-500" /> 천안사랑카드 적립 및 쿠폰
+                                        <Ticket size={13} className="text-amber-500" /> {t('rw_coupons_title')}
                                     </p>
 
                                     <div className="space-y-3">
                                         {coupons.length === 0 ? (
                                             <div className="text-center py-12 bg-white/3 rounded-[2rem] border border-white/5">
-                                                <p className="text-sm font-bold text-gray-500">적립된 내역이 없습니다</p>
-                                                <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-wide">라이딩을 통해 포인트를 모아보세요!</p>
+                                                <p className="text-sm font-bold text-gray-500">{t('rw_empty')}</p>
+                                                <p className="text-[10px] text-gray-600 mt-2 uppercase tracking-wide">{t('rw_empty_hint')}</p>
                                             </div>
                                         ) : (
                                             coupons.map((coupon, idx) => {
@@ -129,11 +129,11 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
                                                                 className="w-full py-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-black text-[11px] tracking-[0.1em] rounded-xl border border-amber-500/30 transition-all flex items-center justify-center gap-2 group"
                                                             >
                                                                 <ArrowRightLeft size={14} className="transition-transform group-hover:rotate-180" />
-                                                                지역화폐로 전환하기
+                                                                {t('rw_convert')}
                                                             </button>
                                                         ) : (
                                                             <div className="w-full py-3 bg-gray-900/50 text-gray-600 font-black text-[11px] rounded-xl flex items-center justify-center gap-2 border border-white/5 uppercase">
-                                                                <CheckCircle size={14} /> 전환 완료
+                                                                <CheckCircle size={14} /> {t('rw_converted')}
                                                             </div>
                                                         )}
                                                     </motion.div>
@@ -149,8 +149,8 @@ const RewardWalletSheet = ({ isOpen, onClose, userPoints, coupons, setCoupons })
                                         <Gift size={20} className="text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-[11px] font-black text-white">친구 초대하고 5,000P 받기</p>
-                                        <p className="text-[9px] text-white/60 mt-0.5 uppercase tracking-widest">초대한 친구가 첫 주행 완료 시 지급</p>
+                                        <p className="text-[11px] font-black text-white">{t('rw_invite_title')}</p>
+                                        <p className="text-[9px] text-white/60 mt-0.5 uppercase tracking-widest">{t('rw_invite_desc')}</p>
                                     </div>
                                 </div>
 
