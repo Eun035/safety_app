@@ -285,7 +285,16 @@ const resources = {
             "mc_dest_confirm_voice": "목적지가 설정되었습니다. 경로를 확인하고 주행을 시작하세요.",
             "mc_dest_confirm_toast": "✨ 목적지가 설정되었습니다. 안전 경로가 생성됩니다.",
             "mc_location_voice": "{{title}} 지역입니다. {{desc}}. {{tip}}",
-            "mc_parking_capacity": "주차가능 대수: {{n}}"
+            "mc_parking_capacity": "주차가능 대수: {{n}}",
+
+            // RideSummaryModal (라이딩 요약)
+            "rsm_share_text": "{{km}}km 비행 완료 ⚡ C-Safe와 함께 안전 라이딩.",
+            "rsm_saved_toast": "📸 카드 저장 완료! 인스타에 직접 업로드하세요.",
+            "rsm_share_fail": "⚠️ 공유 카드 생성 실패. 다시 시도해 주세요.",
+            "rsm_ratio_story": "스토리 9:16",
+            "rsm_ratio_feed": "피드 4:5",
+            "rsm_ratio_square": "정사각 1:1",
+            "rsm_generating": "카드 생성 중..."
         }
     },
     ja: {
@@ -582,7 +591,16 @@ const resources = {
             "mc_dest_confirm_voice": "目的地が設定されました。ルートを確認して走行を開始してください。",
             "mc_dest_confirm_toast": "✨ 目的地が設定されました。安全ルートが生成されます。",
             "mc_location_voice": "{{title}}エリアです。{{desc}}。{{tip}}",
-            "mc_parking_capacity": "駐車可能台数：{{n}}"
+            "mc_parking_capacity": "駐車可能台数：{{n}}",
+
+            // RideSummaryModal (走行サマリー)
+            "rsm_share_text": "{{km}}km 完走 ⚡ C-Safeと安全ライド。",
+            "rsm_saved_toast": "📸 カード保存完了！Instagramに直接アップロードしてください。",
+            "rsm_share_fail": "⚠️ 共有カードの生成に失敗しました。もう一度お試しください。",
+            "rsm_ratio_story": "ストーリー 9:16",
+            "rsm_ratio_feed": "フィード 4:5",
+            "rsm_ratio_square": "正方形 1:1",
+            "rsm_generating": "カード生成中..."
         }
     },
     "zh-CN": {
@@ -879,7 +897,16 @@ const resources = {
             "mc_dest_confirm_voice": "目的地已设置。请确认路线并开始骑行。",
             "mc_dest_confirm_toast": "✨ 目的地已设置。正在生成安全路线。",
             "mc_location_voice": "这里是{{title}}区域。{{desc}}。{{tip}}",
-            "mc_parking_capacity": "可停车数：{{n}}"
+            "mc_parking_capacity": "可停车数：{{n}}",
+
+            // RideSummaryModal (骑行摘要)
+            "rsm_share_text": "{{km}}km 骑行完成 ⚡ 与C-Safe一起安全骑行。",
+            "rsm_saved_toast": "📸 卡片已保存！请直接上传到Instagram。",
+            "rsm_share_fail": "⚠️ 分享卡片生成失败。请重试。",
+            "rsm_ratio_story": "故事 9:16",
+            "rsm_ratio_feed": "帖子 4:5",
+            "rsm_ratio_square": "正方形 1:1",
+            "rsm_generating": "生成卡片中..."
         }
     },
     en: {
@@ -1176,7 +1203,16 @@ const resources = {
             "mc_dest_confirm_voice": "Destination set. Review the route and start your ride.",
             "mc_dest_confirm_toast": "✨ Destination set. A safe route will be generated.",
             "mc_location_voice": "This is {{title}}. {{desc}}. {{tip}}",
-            "mc_parking_capacity": "Available spaces: {{n}}"
+            "mc_parking_capacity": "Available spaces: {{n}}",
+
+            // RideSummaryModal
+            "rsm_share_text": "{{km}}km ride complete ⚡ Safe riding with C-Safe.",
+            "rsm_saved_toast": "📸 Card saved! Upload it to Instagram.",
+            "rsm_share_fail": "⚠️ Failed to create share card. Please try again.",
+            "rsm_ratio_story": "Story 9:16",
+            "rsm_ratio_feed": "Feed 4:5",
+            "rsm_ratio_square": "Square 1:1",
+            "rsm_generating": "Generating card..."
         }
     }
 };

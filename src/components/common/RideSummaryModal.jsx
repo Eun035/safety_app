@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, MoreHorizontal, Leaf, Zap, Share2, Play } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import TargetedAdBanner from './TargetedAdBanner';
@@ -7,7 +8,7 @@ import ShareCard from './ShareCard';
 import { buildReferralCode, buildReferralUrl, generateQrDataUrl } from '../../utils/referral';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId, helmetOn = false }) => {
-
+    const { t } = useTranslation();
 
     const [currentTime, setCurrentTime] = useState("");
     const [isSharing, setIsSharing] = useState(false);
@@ -55,7 +56,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             const file = new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' });
 
             // 3) Web Share Level 2 (파일 공유) 지원 시 → 인스타·카톡 직통
-            const shareText = `${Number(metrics?.distance ?? 2.4).toFixed(1)}km 비행 완료 ⚡ C-Safe와 함께 안전 라이딩.`;
+            const shareText = t('rsm_share_text', { km: Number(metrics?.distance ?? 2.4).toFixed(1) });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -81,10 +82,10 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             if (navigator.clipboard) {
                 await navigator.clipboard.writeText(shareText);
             }
-            toast('📸 카드 저장 완료! 인스타에 직접 업로드하세요.', 'success');
+            toast(t('rsm_saved_toast'), 'success');
         } catch (error) {
             console.error('공유 실패:', error);
-            toast('⚠️ 공유 카드 생성 실패. 다시 시도해 주세요.', 'error');
+            toast(t('rsm_share_fail'), 'error');
         } finally {
             setIsSharing(false);
         }
@@ -218,9 +219,9 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                     {/* 비율 선택 chip — 인스타 스토리·피드·정사각 */}
                     <div className="flex gap-2 mt-2 mb-3">
                         {[
-                            { id: 'story',  label: '스토리 9:16' },
-                            { id: 'feed',   label: '피드 4:5'   },
-                            { id: 'square', label: '정사각 1:1' }
+                            { id: 'story',  label: t('rsm_ratio_story') },
+                            { id: 'feed',   label: t('rsm_ratio_feed')  },
+                            { id: 'square', label: t('rsm_ratio_square') }
                         ].map(opt => (
                             <button
                                 key={opt.id}
@@ -244,7 +245,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                         className="w-full h-14 bg-gradient-to-r from-cyber-cyan to-purple-500 rounded-2xl flex items-center justify-center gap-2 font-black text-black shadow-lg shadow-cyber-cyan/20 active:scale-95 transition-transform mt-2 disabled:opacity-60"
                     >
                         <Share2 size={18} className="text-black" />
-                        {isSharing ? '카드 생성 중...' : 'Share to Instagram'}
+                        {isSharing ? t('rsm_generating') : 'Share to Instagram'}
                     </button>
 
                     {/* 🖼️ 오프스크린 공유 카드 (캡처 전용, 화면에 보이지 않음) */}
