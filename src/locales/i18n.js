@@ -356,7 +356,17 @@ const resources = {
             "pgf_fail_sub1": "반경 10m 이내에",
             "pgf_fail_sub2": "지정 주차장이 없습니다.",
             "pgf_success_desc": "올바른 구역에 완료되었습니다.\n안전한 천안시를 만들어주셔서 감사합니다.",
-            "pgf_fail_desc": "현재 위치에 주차 시\n견인 조치 및 페널티가 부과될 수 있습니다."
+            "pgf_fail_desc": "현재 위치에 주차 시\n견인 조치 및 페널티가 부과될 수 있습니다.",
+
+            // StationRewardModal (주차·반납 완료 보상)
+            "srm_title": "주차 및 반납 완료",
+            "srm_subtitle": "성공적으로 기기를 반납하셨습니다.",
+            "srm_card_link": "천안사랑카드 연계",
+            "srm_eco_mileage": "에코 마일리지 적립",
+            "srm_partner_benefit": "제휴 상점 혜택",
+            "srm_coupon": "{{partner}} 10% 쿠폰",
+            "srm_download": "다운로드",
+            "srm_claim": "포인트 수령 및 요약 확인"
         }
     },
     ja: {
@@ -743,7 +753,18 @@ const resources = {
             "pgf_fail_sub1": "半径10m以内に",
             "pgf_fail_sub2": "指定駐車場がありません。",
             "pgf_success_desc": "正しいエリアに完了しました。\n安全な天安市づくりにご協力ありがとうございます。",
-            "pgf_fail_desc": "現在地に駐車すると\n牽引措置やペナルティが科される場合があります。"
+            "pgf_fail_desc": "現在地に駐車すると\n牽引措置やペナルティが科される場合があります。",
+
+            // StationRewardModal (駐車・返却完了)
+            "srm_title": "駐車・返却完了",
+            "srm_subtitle": "機器を無事に返却しました。",
+            "srm_card_link": "天安サランカード連携",
+            "srm_eco_mileage": "エコマイレージ付与",
+            "srm_partner_benefit": "提携店舗特典",
+            "srm_coupon": "{{partner}} 10%クーポン",
+            "srm_download": "ダウンロード",
+            "srm_claim": "ポイント受取・サマリー確認",
+            "단국대 앞 하이카페": "檀国大前ハイカフェ"
         }
     },
     "zh-CN": {
@@ -1130,7 +1151,18 @@ const resources = {
             "pgf_fail_sub1": "半径10m内",
             "pgf_fail_sub2": "没有指定停车场。",
             "pgf_success_desc": "已在正确区域完成。\n感谢您共建安全的天安市。",
-            "pgf_fail_desc": "在当前位置停车时\n可能被拖走并处以罚款。"
+            "pgf_fail_desc": "在当前位置停车时\n可能被拖走并处以罚款。",
+
+            // StationRewardModal (停车与归还完成)
+            "srm_title": "停车与归还完成",
+            "srm_subtitle": "已成功归还设备。",
+            "srm_card_link": "天安爱心卡联动",
+            "srm_eco_mileage": "累积环保里程",
+            "srm_partner_benefit": "合作商店优惠",
+            "srm_coupon": "{{partner}} 10%优惠券",
+            "srm_download": "下载",
+            "srm_claim": "领取积分并查看摘要",
+            "단국대 앞 하이카페": "檀国大门前Hi Cafe"
         }
     },
     en: {
@@ -1517,7 +1549,18 @@ const resources = {
             "pgf_fail_sub1": "No designated parking",
             "pgf_fail_sub2": "within a 10m radius.",
             "pgf_success_desc": "Completed in the correct zone.\nThank you for keeping Cheonan safe.",
-            "pgf_fail_desc": "Parking here may result in\ntowing and penalties."
+            "pgf_fail_desc": "Parking here may result in\ntowing and penalties.",
+
+            // StationRewardModal
+            "srm_title": "Parking & Return Complete",
+            "srm_subtitle": "You've successfully returned the device.",
+            "srm_card_link": "Cheonan Love Card linked",
+            "srm_eco_mileage": "Eco mileage earned",
+            "srm_partner_benefit": "Partner store benefit",
+            "srm_coupon": "{{partner}} 10% coupon",
+            "srm_download": "Download",
+            "srm_claim": "Claim Points & View Summary",
+            "단국대 앞 하이카페": "Hi Cafe (Dankook Gate)"
         }
     }
 };
