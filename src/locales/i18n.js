@@ -224,7 +224,31 @@ const resources = {
             "hss_out_range": "반경 {{r}}m 내 거점 없음 — 가까운 {{n}}곳",
             "hss_no_coords": "목적지 좌표가 없어 거점을 표시할 수 없습니다.",
             "hss_skip": "건너뛰기 (헬멧 지참)",
-            "hss_skip_hint": "이미 헬멧이 있다면 다음 단계로 진행하세요"
+            "hss_skip_hint": "이미 헬멧이 있다면 다음 단계로 진행하세요",
+
+            // HelmetReturnSheet (헬멧 반납)
+            "hrs_subtitle": "반납 인증 시 +{{p}}P 추가 적립",
+            "hrs_selected_label": "시작 시 선택한 거점",
+            "hrs_other_hint": "다른 거점에 반납하셨다면 건너뛰기 후 다음에 인증할 수 있습니다.",
+            "hrs_nearby_label": "주행 종료 위치 근처 거점",
+            "hrs_no_nearby": "근처 헬멧 거점 정보가 없습니다.",
+            "hrs_skip": "건너뛰기 (반납 인증 안 함)",
+            "hrs_skip_hint": "건너뛸 경우 +{{p}}P 추가 적립은 발생하지 않습니다",
+            "hrs_from_end": "종료 위치에서 {{d}}",
+            "hrs_my_pick": "내가 선택",
+
+            // PaymentReceiptModal (전자 영수증)
+            "pr_title": "전자 영수증",
+            "pr_ride_time": "운행 시간 ({{min}}분)",
+            "pr_won": "원",
+            "pr_base_fare": "기본 요금",
+            "pr_discount": "리워드/포인트 할인",
+            "pr_final": "최종 결제 금액",
+            "pr_test_notice": "위 금액 정보는 포트원(PortOne) 결제 연동 테스트용입니다.",
+            "pr_pay_card": "카드 결제하기",
+            "pr_pay_points": "포인트로 전액 결제",
+            "pr_pay_later": "나중에 결제",
+            "pr_paid": "💳 결제 완료 — {{amount}}원"
         }
     },
     ja: {
@@ -460,7 +484,31 @@ const resources = {
             "hss_out_range": "半径{{r}}m内に拠点なし — 近い{{n}}件",
             "hss_no_coords": "目的地の座標がないため拠点を表示できません。",
             "hss_skip": "スキップ（ヘルメット持参）",
-            "hss_skip_hint": "すでにヘルメットをお持ちなら次のステップへ"
+            "hss_skip_hint": "すでにヘルメットをお持ちなら次のステップへ",
+
+            // HelmetReturnSheet (ヘルメット返却)
+            "hrs_subtitle": "返却認証で +{{p}}P 追加付与",
+            "hrs_selected_label": "開始時に選択した拠点",
+            "hrs_other_hint": "別の拠点に返却した場合は、スキップ後に改めて認証できます。",
+            "hrs_nearby_label": "走行終了地点の近くの拠点",
+            "hrs_no_nearby": "近くのヘルメット拠点情報がありません。",
+            "hrs_skip": "スキップ（返却認証しない）",
+            "hrs_skip_hint": "スキップすると +{{p}}P の追加付与は発生しません",
+            "hrs_from_end": "終了地点から {{d}}",
+            "hrs_my_pick": "自分が選択",
+
+            // PaymentReceiptModal (電子レシート)
+            "pr_title": "電子レシート",
+            "pr_ride_time": "走行時間（{{min}}分）",
+            "pr_won": "ウォン",
+            "pr_base_fare": "基本料金",
+            "pr_discount": "リワード/ポイント割引",
+            "pr_final": "最終決済金額",
+            "pr_test_notice": "上記の金額はPortOne決済連携のテスト用です。",
+            "pr_pay_card": "カードで決済",
+            "pr_pay_points": "ポイントで全額決済",
+            "pr_pay_later": "後で決済",
+            "pr_paid": "💳 決済完了 — {{amount}}ウォン"
         }
     },
     "zh-CN": {
@@ -696,7 +744,31 @@ const resources = {
             "hss_out_range": "半径{{r}}m内无站点 — 最近的{{n}}处",
             "hss_no_coords": "没有目的地坐标，无法显示站点。",
             "hss_skip": "跳过（自带头盔）",
-            "hss_skip_hint": "如果已有头盔，请进入下一步"
+            "hss_skip_hint": "如果已有头盔，请进入下一步",
+
+            // HelmetReturnSheet (头盔归还)
+            "hrs_subtitle": "完成归还认证 +{{p}}P 额外累积",
+            "hrs_selected_label": "出发时选择的站点",
+            "hrs_other_hint": "如果归还到其他站点，可跳过后稍后再认证。",
+            "hrs_nearby_label": "骑行结束位置附近的站点",
+            "hrs_no_nearby": "附近没有头盔站点信息。",
+            "hrs_skip": "跳过（不进行归还认证）",
+            "hrs_skip_hint": "跳过将不会获得 +{{p}}P 额外积分",
+            "hrs_from_end": "距结束位置 {{d}}",
+            "hrs_my_pick": "我的选择",
+
+            // PaymentReceiptModal (电子收据)
+            "pr_title": "电子收据",
+            "pr_ride_time": "骑行时间（{{min}}分钟）",
+            "pr_won": "韩元",
+            "pr_base_fare": "基本费用",
+            "pr_discount": "奖励/积分折扣",
+            "pr_final": "最终支付金额",
+            "pr_test_notice": "以上金额为PortOne支付对接测试用途。",
+            "pr_pay_card": "刷卡支付",
+            "pr_pay_points": "用积分全额支付",
+            "pr_pay_later": "稍后支付",
+            "pr_paid": "💳 支付完成 — {{amount}}韩元"
         }
     },
     en: {
@@ -932,7 +1004,31 @@ const resources = {
             "hss_out_range": "None within {{r}}m — nearest {{n}}",
             "hss_no_coords": "No destination coordinates — cannot show stations.",
             "hss_skip": "Skip (bring your own helmet)",
-            "hss_skip_hint": "If you already have a helmet, proceed to the next step"
+            "hss_skip_hint": "If you already have a helmet, proceed to the next step",
+
+            // HelmetReturnSheet
+            "hrs_subtitle": "+{{p}}P bonus on return verification",
+            "hrs_selected_label": "Station you selected at start",
+            "hrs_other_hint": "If you returned it elsewhere, skip and verify later.",
+            "hrs_nearby_label": "Stations near your end location",
+            "hrs_no_nearby": "No nearby helmet stations found.",
+            "hrs_skip": "Skip (don't verify return)",
+            "hrs_skip_hint": "Skipping means no +{{p}}P bonus",
+            "hrs_from_end": "{{d}} from end",
+            "hrs_my_pick": "My pick",
+
+            // PaymentReceiptModal
+            "pr_title": "Receipt",
+            "pr_ride_time": "Ride time ({{min}} min)",
+            "pr_won": "KRW",
+            "pr_base_fare": "Base fare",
+            "pr_discount": "Reward/Point discount",
+            "pr_final": "Total payment",
+            "pr_test_notice": "Amounts are for PortOne payment-integration testing.",
+            "pr_pay_card": "Pay by Card",
+            "pr_pay_points": "Pay fully with points",
+            "pr_pay_later": "Pay later",
+            "pr_paid": "💳 Paid — {{amount}} KRW"
         }
     }
 };

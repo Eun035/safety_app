@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { X, ShieldCheck, Store, MapPin, Award } from 'lucide-react';
 import { calculateDistance } from '../../utils/distance';
 import helmetStationsData from '../../data/helmet_stations.json';
@@ -31,6 +32,7 @@ const HelmetReturnSheet = ({
     endLng,
     rewardPoints = 100
 }) => {
+    const { t } = useTranslation();
     // 종료 위치 기준 가까운 거점 3개 (selectedStation이 없을 때만 사용)
     const nearbyStations = useMemo(() => {
         if (selectedStation) return [];
@@ -90,7 +92,7 @@ const HelmetReturnSheet = ({
                             {distanceM != null && (
                                 <span className="flex items-center gap-1 text-cyber-cyan">
                                     <MapPin size={10} />
-                                    종료 위치에서 {distanceM < 1000 ? `${distanceM}m` : `${(distanceM / 1000).toFixed(1)}km`}
+                                    {t('hrs_from_end', { d: distanceM < 1000 ? `${distanceM}m` : `${(distanceM / 1000).toFixed(1)}km` })}
                                 </span>
                             )}
                         </div>
@@ -98,7 +100,7 @@ const HelmetReturnSheet = ({
                     {isPrimary && (
                         <div className="flex flex-col items-end shrink-0 gap-1">
                             <span className="text-[8px] font-black text-cyber-cyan bg-cyber-cyan/20 px-1.5 py-0.5 rounded-full uppercase tracking-wider border border-cyber-cyan/30">
-                                내가 선택
+                                {t('hrs_my_pick')}
                             </span>
                             <span className="text-xs font-black text-amber-400">+{rewardPoints}P</span>
                         </div>
@@ -149,14 +151,14 @@ const HelmetReturnSheet = ({
                                         Helmet Return
                                     </h2>
                                     <p className="text-[10px] font-bold text-amber-400 tracking-wider uppercase mt-1.5">
-                                        반납 인증 시 +{rewardPoints}P 추가 적립
+                                        {t('hrs_subtitle', { p: rewardPoints })}
                                     </p>
                                 </div>
                             </div>
                             <button
                                 onClick={onClose}
                                 className="p-2 text-gray-500 hover:text-white transition-colors"
-                                aria-label="닫기"
+                                aria-label={t('close')}
                             >
                                 <X size={20} />
                             </button>
@@ -167,24 +169,24 @@ const HelmetReturnSheet = ({
                             {selectedStation ? (
                                 <>
                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1 mb-1">
-                                        시작 시 선택한 거점
+                                        {t('hrs_selected_label')}
                                     </p>
                                     {renderStationCard(selectedStation, selectedDistance, true)}
                                     <p className="text-[10px] text-gray-600 px-1 mt-2">
-                                        다른 거점에 반납하셨다면 건너뛰기 후 다음에 인증할 수 있습니다.
+                                        {t('hrs_other_hint')}
                                     </p>
                                 </>
                             ) : nearbyStations.length > 0 ? (
                                 <>
                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1 mb-1">
-                                        주행 종료 위치 근처 거점
+                                        {t('hrs_nearby_label')}
                                     </p>
                                     {nearbyStations.map(s => renderStationCard(s, s.distanceM, false))}
                                 </>
                             ) : (
                                 <div className="text-center py-8">
                                     <p className="text-xs text-gray-500">
-                                        근처 헬멧 거점 정보가 없습니다.
+                                        {t('hrs_no_nearby')}
                                     </p>
                                 </div>
                             )}
@@ -196,10 +198,10 @@ const HelmetReturnSheet = ({
                                 onClick={() => (onSkip ? onSkip() : onClose?.())}
                                 className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-white/5 hover:bg-white/10 active:bg-white/20 text-gray-300 border border-white/10 transition-all"
                             >
-                                건너뛰기 (반납 인증 안 함)
+                                {t('hrs_skip')}
                             </button>
                             <p className="text-[10px] text-gray-600 text-center mt-2">
-                                건너뛸 경우 +{rewardPoints}P 추가 적립은 발생하지 않습니다
+                                {t('hrs_skip_hint', { p: rewardPoints })}
                             </p>
                         </div>
                     </motion.div>

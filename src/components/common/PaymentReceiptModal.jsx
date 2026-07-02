@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CreditCard, CheckCircle, Smartphone, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
 
 const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPaymentComplete }) => {
+    const { t } = useTranslation();
     const [isPaying, setIsPaying] = useState(false);
 
     if (!isOpen) return null;
@@ -23,7 +25,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
         // 포트원(KG이니시스 등) 결제창 호출을 모킹 (2초 지연)
         setTimeout(() => {
             setIsPaying(false);
-            toast(`💳 결제 완료 — ${finalAmount.toLocaleString()}원`, 'success');
+            toast(t('pr_paid', { amount: finalAmount.toLocaleString() }), 'success');
             if (onPaymentComplete) onPaymentComplete();
         }, 2000);
     };
@@ -40,7 +42,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                             <CreditCard size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-white tracking-tight">전자 영수증</h2>
+                            <h2 className="text-xl font-black text-white tracking-tight">{t('pr_title')}</h2>
                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{safeMetrics.date}</p>
                         </div>
                     </div>
@@ -50,17 +52,17 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                 <div className="p-6 pb-2 border-b border-dashed border-white/10">
                     <div className="space-y-4 font-bold text-sm">
                         <div className="flex justify-between text-gray-400">
-                            <span>운행 시간 ({safeMetrics.time}분)</span>
-                            <span className="text-white">{timeFare.toLocaleString()} 원</span>
+                            <span>{t('pr_ride_time', { min: safeMetrics.time })}</span>
+                            <span className="text-white">{timeFare.toLocaleString()} {t('pr_won')}</span>
                         </div>
                         <div className="flex justify-between text-gray-400">
-                            <span>기본 요금</span>
-                            <span className="text-white">{baseFare.toLocaleString()} 원</span>
+                            <span>{t('pr_base_fare')}</span>
+                            <span className="text-white">{baseFare.toLocaleString()} {t('pr_won')}</span>
                         </div>
                         {pointsUsed > 0 && (
                             <div className="flex justify-between text-cyber-green">
-                                <span className="flex items-center gap-1"><CheckCircle size={14} /> 리워드/포인트 할인</span>
-                                <span>- {pointsUsed.toLocaleString()} 원</span>
+                                <span className="flex items-center gap-1"><CheckCircle size={14} /> {t('pr_discount')}</span>
+                                <span>- {pointsUsed.toLocaleString()} {t('pr_won')}</span>
                             </div>
                         )}
                     </div>
@@ -69,15 +71,15 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                 {/* Final Total */}
                 <div className="p-6 bg-[#0a0c0f]">
                     <div className="flex justify-between items-end mb-6">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">최종 결제 금액</span>
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('pr_final')}</span>
                         <div className="text-right">
                             <span className="text-3xl font-black italic tracking-tighter text-cyber-cyan">{finalAmount.toLocaleString()}</span>
-                            <span className="text-sm font-bold text-cyber-cyan ml-1 bg-cyber-cyan/10 px-1 rounded">원</span>
+                            <span className="text-sm font-bold text-cyber-cyan ml-1 bg-cyber-cyan/10 px-1 rounded">{t('pr_won')}</span>
                         </div>
                     </div>
 
                     <p className="text-[9px] text-gray-500 font-medium mb-4 flex items-center gap-1">
-                        <ShieldCheck size={12} className="text-gray-400" /> 위 금액 정보는 포트원(PortOne) 결제 연동 테스트용입니다.
+                        <ShieldCheck size={12} className="text-gray-400" /> {t('pr_test_notice')}
                     </p>
 
                     <button
@@ -90,7 +92,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                         ) : (
                             <>
                                 <Smartphone size={20} />
-                                {finalAmount > 0 ? '카드 결제하기' : '포인트로 전액 결제'}
+                                {finalAmount > 0 ? t('pr_pay_card') : t('pr_pay_points')}
                             </>
                         )}
                     </button>
@@ -100,7 +102,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, metrics, pointsUsed = 0, onPayme
                         disabled={isPaying}
                         className="w-full mt-4 text-[11px] font-bold text-gray-500 hover:text-white uppercase tracking-widest transition-colors"
                     >
-                        나중에 결제
+                        {t('pr_pay_later')}
                     </button>
                 </div>
             </div>
