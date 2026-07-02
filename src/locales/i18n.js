@@ -426,7 +426,27 @@ const resources = {
             "mp_matched": "🔍 {{title}} を検索しました！",
             "mp_region_switched": "🏙️ {{name}}に切り替えました",
             "mp_clear_search": "検索をクリア",
-            "mp_voice_search": "音声で検索"
+            "mp_voice_search": "音声で検索",
+
+            // 랜드마크 (landmarks.js) — 제목·배지 (한국어는 defaultValue로 처리)
+            "천안시청": "天安市役所",
+            "천안서북소방서": "天安西北消防署",
+            "천안동남소방서": "天安東南消防署",
+            "단국대학교 천안캠퍼스": "檀国大学校 天安キャンパス",
+            "상명대학교 천안캠퍼스": "祥明大学校 天安キャンパス",
+            "백석대학교": "白石大学校",
+            "천안역 (동부광장)": "天安駅（東部広場）",
+            "두정역": "斗井駅",
+            "천안종합버스터미널": "天安総合バスターミナル",
+            "아산시청": "牙山市役所",
+            "천안아산역 (KTX)": "天安牙山駅（KTX）",
+            "순천향대학교": "順天郷大学校",
+            "온양온천역": "温陽温泉駅",
+            "아산소방서": "牙山消防署",
+            "🏢 시청 우선": "🏢 市役所優先",
+            "🚒 소방서 우선": "🚒 消防署優先",
+            "🏫 대학교": "🏫 大学",
+            "🚉 교통거점": "🚉 交通拠点"
         }
     },
     "zh-CN": {
@@ -635,7 +655,27 @@ const resources = {
             "mp_matched": "🔍 已匹配{{title}}！",
             "mp_region_switched": "🏙️ 已切换到{{name}}",
             "mp_clear_search": "清除搜索",
-            "mp_voice_search": "语音搜索"
+            "mp_voice_search": "语音搜索",
+
+            // 랜드마크 (landmarks.js) — 제목·배지
+            "천안시청": "天安市政厅",
+            "천안서북소방서": "天安西北消防局",
+            "천안동남소방서": "天安东南消防局",
+            "단국대학교 천안캠퍼스": "檀国大学 天安校区",
+            "상명대학교 천안캠퍼스": "祥明大学 天安校区",
+            "백석대학교": "白石大学",
+            "천안역 (동부광장)": "天安站（东部广场）",
+            "두정역": "斗井站",
+            "천안종합버스터미널": "天安综合客运站",
+            "아산시청": "牙山市政厅",
+            "천안아산역 (KTX)": "天安牙山站（KTX）",
+            "순천향대학교": "顺天乡大学",
+            "온양온천역": "温阳温泉站",
+            "아산소방서": "牙山消防局",
+            "🏢 시청 우선": "🏢 市政厅优先",
+            "🚒 소방서 우선": "🚒 消防局优先",
+            "🏫 대학교": "🏫 大学",
+            "🚉 교통거점": "🚉 交通枢纽"
         }
     },
     en: {
@@ -844,7 +884,27 @@ const resources = {
             "mp_matched": "🔍 Matched {{title}}!",
             "mp_region_switched": "🏙️ Switched to {{name}}",
             "mp_clear_search": "Clear search",
-            "mp_voice_search": "Search by voice"
+            "mp_voice_search": "Search by voice",
+
+            // Landmarks (landmarks.js) — titles & badges
+            "천안시청": "Cheonan City Hall",
+            "천안서북소방서": "Cheonan Seobuk Fire Station",
+            "천안동남소방서": "Cheonan Dongnam Fire Station",
+            "단국대학교 천안캠퍼스": "Dankook Univ. Cheonan Campus",
+            "상명대학교 천안캠퍼스": "Sangmyung Univ. Cheonan Campus",
+            "백석대학교": "Baekseok University",
+            "천안역 (동부광장)": "Cheonan Stn. (East Plaza)",
+            "두정역": "Dujeong Station",
+            "천안종합버스터미널": "Cheonan Bus Terminal",
+            "아산시청": "Asan City Hall",
+            "천안아산역 (KTX)": "Cheonan-Asan Stn. (KTX)",
+            "순천향대학교": "Soonchunhyang University",
+            "온양온천역": "Onyang Oncheon Station",
+            "아산소방서": "Asan Fire Station",
+            "🏢 시청 우선": "🏢 City Hall",
+            "🚒 소방서 우선": "🚒 Fire Station",
+            "🏫 대학교": "🏫 University",
+            "🚉 교통거점": "🚉 Transit Hub"
         }
     }
 };
