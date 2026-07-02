@@ -205,7 +205,19 @@ const resources = {
             "share_kakao_alert": "메시지가 복사되었습니다!\n카카오톡을 열어 붙여넣기 해주세요 💬",
             "share_instagram_alert": "메시지가 복사되었습니다!\n인스타그램 DM을 열어 붙여넣기 해주세요 📸",
             "share_native_title": "C-Safe 출발 알림",
-            "share_message_template": "나 지금 C-Safe 켜고 출발함! {{eta}}분 뒤 ({{time}}) 도착 예정이야 🛴\n목적지: {{dest}}\n위치 확인: {{url}}"
+            "share_message_template": "나 지금 C-Safe 켜고 출발함! {{eta}}분 뒤 ({{time}}) 도착 예정이야 🛴\n목적지: {{dest}}\n위치 확인: {{url}}",
+
+            // MapSearchBar (지도 검색) — 프리셋 칩·배지는 literal-key 방식(t(item.badge))
+            "🏢 천안시청": "🏢 천안시청",
+            "🚒 소방서": "🚒 소방서",
+            "🏫 대학교": "🏫 대학교",
+            "🚉 역/터미널": "🚉 역/터미널",
+            "🏠 주소": "🏠 주소",
+            "📍 일반 장소": "📍 일반 장소",
+            "mp_matched": "🔍 {{title}} 매칭 완료!",
+            "mp_region_switched": "🏙️ {{name}} 지역으로 전환",
+            "mp_clear_search": "검색어 지우기",
+            "mp_voice_search": "음성으로 검색"
         }
     },
     ja: {
@@ -402,7 +414,19 @@ const resources = {
             "share_kakao_alert": "メッセージをコピーしました！\nカカオトークを開いて貼り付けてください 💬",
             "share_instagram_alert": "メッセージをコピーしました！\nInstagramのDMを開いて貼り付けてください 📸",
             "share_native_title": "C-Safe 出発通知",
-            "share_message_template": "今C-Safeをオンにして出発します！{{eta}}分後（{{time}}）に到着予定 🛴\n目的地: {{dest}}\n位置確認: {{url}}"
+            "share_message_template": "今C-Safeをオンにして出発します！{{eta}}分後（{{time}}）に到着予定 🛴\n目的地: {{dest}}\n位置確認: {{url}}",
+
+            // MapSearchBar (地図検索)
+            "🏢 천안시청": "🏢 天安市役所",
+            "🚒 소방서": "🚒 消防署",
+            "🏫 대학교": "🏫 大学",
+            "🚉 역/터미널": "🚉 駅/ターミナル",
+            "🏠 주소": "🏠 住所",
+            "📍 일반 장소": "📍 一般スポット",
+            "mp_matched": "🔍 {{title}} を検索しました！",
+            "mp_region_switched": "🏙️ {{name}}に切り替えました",
+            "mp_clear_search": "検索をクリア",
+            "mp_voice_search": "音声で検索"
         }
     },
     "zh-CN": {
@@ -599,7 +623,19 @@ const resources = {
             "share_kakao_alert": "消息已复制！\n请打开KakaoTalk粘贴 💬",
             "share_instagram_alert": "消息已复制！\n请打开Instagram私信粘贴 📸",
             "share_native_title": "C-Safe 出发通知",
-            "share_message_template": "我现在开启C-Safe出发啦！预计{{eta}}分钟后（{{time}}）到达 🛴\n目的地: {{dest}}\n位置确认: {{url}}"
+            "share_message_template": "我现在开启C-Safe出发啦！预计{{eta}}分钟后（{{time}}）到达 🛴\n目的地: {{dest}}\n位置确认: {{url}}",
+
+            // MapSearchBar (地图搜索)
+            "🏢 천안시청": "🏢 天安市政厅",
+            "🚒 소방서": "🚒 消防局",
+            "🏫 대학교": "🏫 大学",
+            "🚉 역/터미널": "🚉 车站/客运站",
+            "🏠 주소": "🏠 地址",
+            "📍 일반 장소": "📍 普通地点",
+            "mp_matched": "🔍 已匹配{{title}}！",
+            "mp_region_switched": "🏙️ 已切换到{{name}}",
+            "mp_clear_search": "清除搜索",
+            "mp_voice_search": "语音搜索"
         }
     },
     en: {
@@ -796,7 +832,19 @@ const resources = {
             "share_kakao_alert": "Message copied!\nOpen KakaoTalk and paste it 💬",
             "share_instagram_alert": "Message copied!\nOpen Instagram DM and paste it 📸",
             "share_native_title": "C-Safe Departure Alert",
-            "share_message_template": "I'm heading out with C-Safe on! Arriving in {{eta}} min ({{time}}) 🛴\nDestination: {{dest}}\nTrack me: {{url}}"
+            "share_message_template": "I'm heading out with C-Safe on! Arriving in {{eta}} min ({{time}}) 🛴\nDestination: {{dest}}\nTrack me: {{url}}",
+
+            // MapSearchBar
+            "🏢 천안시청": "🏢 City Hall",
+            "🚒 소방서": "🚒 Fire Station",
+            "🏫 대학교": "🏫 University",
+            "🚉 역/터미널": "🚉 Station/Terminal",
+            "🏠 주소": "🏠 Address",
+            "📍 일반 장소": "📍 Place",
+            "mp_matched": "🔍 Matched {{title}}!",
+            "mp_region_switched": "🏙️ Switched to {{name}}",
+            "mp_clear_search": "Clear search",
+            "mp_voice_search": "Search by voice"
         }
     }
 };

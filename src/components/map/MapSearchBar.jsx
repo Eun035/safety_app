@@ -37,15 +37,15 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
         },
         onError: (errCode) => {
             if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
-                toast('🎤 마이크 권한이 차단됨 — 주소창 자물쇠 → 마이크 → 허용으로 변경 후 재시도', 'error');
+                toast(t('rss_toast_mic_blocked'), 'error');
             } else if (errCode === 'no-device') {
-                toast('🎤 사용 가능한 마이크를 찾지 못했어요.', 'error');
+                toast(t('rss_toast_mic_nodevice'), 'error');
             } else if (errCode === 'no-speech') {
-                toast('🎤 음성이 감지되지 않았어요.', 'info');
+                toast(t('rss_toast_mic_nospeech'), 'info');
             } else if (errCode === 'unsupported') {
-                toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+                toast(t('rss_toast_mic_unsupported'), 'error');
             } else if (errCode === 'insecure-context') {
-                toast('🎤 보안 컨텍스트(HTTPS)에서만 동작합니다.', 'error');
+                toast(t('rss_toast_mic_insecure'), 'error');
             }
         }
     });
@@ -135,7 +135,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                             formattedAddresses.push({
                                 id: `kakao-addr-${coordKey}`,
                                 title: roadName || lotName,
-                                desc: roadName ? lotName : '지번 주소',
+                                desc: roadName ? lotName : t('rss_addr_lot'),
                                 lat, lng,
                                 type: 'kakao_address',
                                 badge: '🏠 주소',
@@ -176,7 +176,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
         if (speak) {
             speak(t('tts_destination_search', { title: t(item.title) }));
         }
-        toast(`🔍 ${item.title} 매칭 완료!`, 'success');
+        toast(t('mp_matched', { title: t(item.title, { defaultValue: item.title }) }), 'success');
     };
 
     const handlePresetClick = (presetQuery) => {
@@ -231,7 +231,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                                         e.stopPropagation();
                                         setRegion(r.id);
                                         setIsRegionMenuOpen(false);
-                                        toast(`🏙️ ${r.name} 지역으로 전환`, 'success');
+                                        toast(t('mp_region_switched', { name: r.name }), 'success');
                                     }}
                                     className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-cyber-cyan/15 transition ${
                                         r.id === currentRegion ? 'text-cyber-cyan bg-cyber-cyan/10' : 'text-gray-300'
@@ -252,7 +252,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                             setResults([]);
                         }}
                         className="absolute right-4 text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition"
-                        aria-label="검색어 지우기"
+                        aria-label={t('mp_clear_search')}
                     >
                         <X size={20} />
                     </button>
@@ -265,7 +265,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                                 ? 'text-cyber-cyan bg-cyber-cyan/15 animate-pulse shadow-[0_0_12px_rgba(64,255,220,0.5)]'
                                 : 'text-gray-400 hover:text-cyber-cyan hover:bg-white/10'
                         }`}
-                        aria-label={isListening ? '음성 인식 중' : '음성으로 검색'}
+                        aria-label={isListening ? t('rss_voice_listening') : t('mp_voice_search')}
                     >
                         <Mic size={20} />
                     </button>
