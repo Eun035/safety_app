@@ -314,7 +314,18 @@ const resources = {
             "hdc_start_ride": "🚀 주행 시작",
             "hdc_fail_desc": "헬멧 미착용 또는 본인 확인 실패. 다시 인증하거나 크레딧 없이 일반 주행할 수 있습니다.",
             "hdc_normal_ride": "일반 주행",
-            "hdc_retry": "다시 인증"
+            "hdc_retry": "다시 인증",
+
+            // EarphoneConfirmGate (이어폰 미착용 확인)
+            "eg_title": "이어폰을 빼주세요",
+            "eg_desc1": "주행 중 이어폰 착용은 자동차 경적·주변 차량 접근음 등",
+            "eg_desc2": "외부 위험 신호를 차단해 사고 위험을 높입니다.",
+            "eg_speaker": "안전 안내는 외부 스피커·진동으로 전달됩니다.",
+            "eg_liability": "이어폰·헤드폰 착용 상태로 시작 시 사고 책임은 본인에게 있습니다.",
+            "eg_check1": "이어폰을 착용하지 않은 상태이며,",
+            "eg_check2": "외부 소리를 들을 수 있는 환경입니다.",
+            "eg_cancel": "취소",
+            "eg_start": "주행 시작"
         }
     },
     ja: {
@@ -658,7 +669,18 @@ const resources = {
             "hdc_start_ride": "🚀 走行開始",
             "hdc_fail_desc": "ヘルメット未着用または本人確認失敗。再認証するか、クレジットなしで通常走行できます。",
             "hdc_normal_ride": "通常走行",
-            "hdc_retry": "再認証"
+            "hdc_retry": "再認証",
+
+            // EarphoneConfirmGate (イヤホン未着用確認)
+            "eg_title": "イヤホンを外してください",
+            "eg_desc1": "走行中のイヤホン着用は、車のクラクションや周囲の車両接近音など",
+            "eg_desc2": "外部の危険信号を遮断し、事故リスクを高めます。",
+            "eg_speaker": "安全案内は外部スピーカー・振動で伝えられます。",
+            "eg_liability": "イヤホン・ヘッドホン着用のまま開始した場合、事故の責任はご本人にあります。",
+            "eg_check1": "イヤホンを着用しておらず、",
+            "eg_check2": "外部の音が聞こえる環境です。",
+            "eg_cancel": "キャンセル",
+            "eg_start": "走行開始"
         }
     },
     "zh-CN": {
@@ -1002,7 +1024,18 @@ const resources = {
             "hdc_start_ride": "🚀 开始骑行",
             "hdc_fail_desc": "未戴头盔或本人确认失败。可重新认证，或不累积积分进行普通骑行。",
             "hdc_normal_ride": "普通骑行",
-            "hdc_retry": "重新认证"
+            "hdc_retry": "重新认证",
+
+            // EarphoneConfirmGate (确认未戴耳机)
+            "eg_title": "请摘下耳机",
+            "eg_desc1": "骑行中佩戴耳机会屏蔽汽车喇叭、周围车辆接近声等",
+            "eg_desc2": "外部危险信号，增加事故风险。",
+            "eg_speaker": "安全提示通过外部扬声器·震动传达。",
+            "eg_liability": "佩戴耳机/头戴耳机开始骑行时，事故责任由本人承担。",
+            "eg_check1": "我未佩戴耳机，",
+            "eg_check2": "处于能听到外部声音的环境。",
+            "eg_cancel": "取消",
+            "eg_start": "开始骑行"
         }
     },
     en: {
@@ -1346,7 +1379,18 @@ const resources = {
             "hdc_start_ride": "🚀 Start ride",
             "hdc_fail_desc": "No helmet or identity check failed. Verify again or ride normally without credit.",
             "hdc_normal_ride": "Normal ride",
-            "hdc_retry": "Retry"
+            "hdc_retry": "Retry",
+
+            // EarphoneConfirmGate
+            "eg_title": "Please remove your earphones",
+            "eg_desc1": "Wearing earphones while riding blocks car horns, approaching vehicles, and",
+            "eg_desc2": "other external danger signals, raising accident risk.",
+            "eg_speaker": "Safety alerts are delivered via external speaker & vibration.",
+            "eg_liability": "If you start while wearing earphones/headphones, accident liability is yours.",
+            "eg_check1": "I'm not wearing earphones and",
+            "eg_check2": "can hear external sounds.",
+            "eg_cancel": "Cancel",
+            "eg_start": "Start Ride"
         }
     }
 };
