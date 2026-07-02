@@ -169,7 +169,7 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                     MY PROFILE
                                 </h2>
                                 <p className="text-[9px] font-bold text-cyber-cyan tracking-wider uppercase mt-1">
-                                    나의 안전 정체성 & 리워드
+                                    {t('pf_subtitle')}
                                 </p>
                             </div>
 
@@ -180,8 +180,8 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 <div className="sticky top-0 z-10 bg-[#0a0c0f]/95 backdrop-blur-xl px-4 pb-2 pt-0">
                                     <div className="flex gap-1 bg-white/5 rounded-xl p-1">
                                         {[
-                                            { id: 'profile', label: '프로필', icon: '👤' },
-                                            { id: 'missions', label: '미션', icon: '🏆' },
+                                            { id: 'profile', label: t('pf_tab_profile'), icon: '👤' },
+                                            { id: 'missions', label: t('pf_tab_missions'), icon: '🏆' },
                                         ].map(tab => (
                                             <button
                                                 key={tab.id}
@@ -205,28 +205,28 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 {/* === Section 1: Safety Identity === */}
                                 <div className="bg-gradient-to-br from-[#12161b] to-black p-3 rounded-[1.5rem] border border-white/5 shadow-xl">
                                     <div className="flex items-center gap-3">
-                                        <HexAvatar name={userName || '사용자 K'} src={profileImage} />
+                                        <HexAvatar name={userName || t('pf_default_name')} src={profileImage} />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-0.5">Safety Identity</p>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-base font-black text-white truncate">{userName || '사용자 K'}</p>
+                                                <p className="text-base font-black text-white truncate">{userName || t('pf_default_name')}</p>
                                                 <button onClick={onEditProfile} className="text-gray-500 hover:text-cyber-cyan transition-colors active:scale-90" title="Edit Profile">
                                                     <Edit2 size={12} />
                                                 </button>
                                             </div>
                                             <div className="flex items-center gap-1 mt-1 w-full">
-                                                <span className="text-[8px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1 py-0.5 rounded-full whitespace-nowrap">상위 5%</span>
+                                                <span className="text-[8px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1 py-0.5 rounded-full whitespace-nowrap">{t('pf_top_pct')}</span>
                                                 <span className="text-[8px] font-bold text-purple-300 bg-purple-500/10 border border-purple-500/30 px-1 py-0.5 rounded-full whitespace-nowrap">🏅 Gold Rider</span>
                                             </div>
                                         </div>
                                         {/* Radar chart */}
                                         <div className="shrink-0">
-                                            <RadarChart data={radarData} />
+                                            <RadarChart data={radarData.map(d => ({ ...d, label: t(d.label, { defaultValue: d.label }) }))} />
                                         </div>
                                     </div>
                                     {/* Score bar */}
                                     <div className="mt-2 flex items-center gap-3">
-                                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest shrink-0">안전점수</span>
+                                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest shrink-0">{t('pf_safety_score')}</span>
                                         <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
                                             <motion.div
                                                 className="h-full bg-gradient-to-r from-cyber-cyan to-purple-400 rounded-full"
@@ -242,21 +242,21 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 {/* === Section 2: Insurance Ad === */}
                                 <div className="bg-gradient-to-br from-[#0d131a] to-[#0a0c0f] p-3 rounded-[1.5rem] border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.05)]">
                                     <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                                        <Shield size={10} className="text-blue-400" /> 보험 가입 안내
+                                        <Shield size={10} className="text-blue-400" /> {t('pf_insurance_label')}
                                     </p>
                                     <div className="mb-2.5">
-                                        <h3 className="text-sm font-black text-white tracking-tight">천안시민 전용 안전 보험</h3>
-                                        <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">라이딩 중 사고 발생 시 보장 내역을 확인하고<br />무료로 혜택을 누리세요.</p>
+                                        <h3 className="text-sm font-black text-white tracking-tight">{t('pf_insurance_title')}</h3>
+                                        <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{t('pf_insurance_desc1')}<br />{t('pf_insurance_desc2')}</p>
                                     </div>
                                     <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-black text-[10px] shadow-[0_0_15px_rgba(37,99,235,0.3)] active:scale-95 transition-all uppercase tracking-[0.1em] flex items-center justify-center gap-2">
-                                        무료 보험 확인하기
+                                        {t('pf_insurance_btn')}
                                     </button>
                                 </div>
 
                                 {/* === Section 3: Crew Leaderboard === */}
                                 <div className="bg-gradient-to-br from-[#12161b] to-black p-3 rounded-[1.5rem] border border-white/5">
                                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                        <TrendingUp size={10} className="text-purple-400" /> 크루 랭킹
+                                        <TrendingUp size={10} className="text-purple-400" /> {t('pf_crew_ranking')}
                                     </p>
                                     <div className="space-y-1.5">
                                         {leaderboard.map((item) => (
@@ -270,7 +270,7 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                                 <span className={`text-[10px] font-black w-5 text-center ${item.rank === 1 ? 'text-amber-400' : item.rank === 2 ? 'text-gray-300' : item.rank === 3 ? 'text-amber-600' : 'text-gray-600'}`}>
                                                     {item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `#${item.rank}`}
                                                 </span>
-                                                <span className={`flex-1 text-[10px] font-bold ${item.highlight ? 'text-white' : 'text-gray-400'}`}>{item.name}</span>
+                                                <span className={`flex-1 text-[10px] font-bold ${item.highlight ? 'text-white' : 'text-gray-400'}`}>{t(item.name, { defaultValue: item.name })}</span>
                                                 <span className={`text-[11px] font-black ${item.highlight ? 'text-cyber-cyan drop-shadow-[0_0_6px_rgba(64,255,220,0.8)]' : 'text-gray-500'}`}>{item.score}</span>
                                             </div>
                                         ))}
@@ -280,7 +280,7 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 {/* === Section 4: Achievement Badges === */}
                                 <div className="pt-0.5">
                                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 px-1 flex items-center gap-1.5">
-                                        <Zap size={10} className="text-amber-400" /> 업적 배지
+                                        <Zap size={10} className="text-amber-400" /> {t('pf_badges')}
                                     </p>
                                     <div className="grid grid-cols-4 gap-2 pb-1">
                                         {badges.map((badge, i) => (
@@ -292,7 +292,7 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                                 className={`w-full bg-gradient-to-br ${badge.color} border ${badge.border} rounded-xl p-2 flex flex-col items-center justify-center gap-1 shadow-lg`}
                                             >
                                                 <span className="text-lg">{badge.icon}</span>
-                                                <span className={`text-[8px] font-black ${badge.text} text-center leading-tight uppercase tracking-tighter w-full truncate`}>{badge.name}</span>
+                                                <span className={`text-[8px] font-black ${badge.text} text-center leading-tight uppercase tracking-tighter w-full truncate`}>{t(badge.name, { defaultValue: badge.name })}</span>
                                             </motion.div>
                                         ))}
                                     </div>
@@ -302,11 +302,11 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                 <div className="pt-2 border-t border-white/5 mt-4">
                                     <button
                                         onClick={() => {
-                                            const pwd = prompt("관리자 비밀번호를 입력하세요:");
+                                            const pwd = prompt(t('pf_admin_prompt'));
                                             if (pwd === "admin1234") {
                                                 onAdminOpen();
                                             } else if (pwd !== null) {
-                                                alert("비밀번호가 올바르지 않습니다.");
+                                                alert(t('pf_admin_wrong'));
                                             }
                                         }}
                                         className="w-full bg-white/5 hover:bg-white/10 text-gray-500 py-3 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-2 border border-white/5"
@@ -322,10 +322,10 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userS
                                             onClick={onDeleteAccount}
                                             className="w-full bg-red-500/5 hover:bg-red-500/10 text-red-400/80 py-3 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-2 border border-red-500/15"
                                         >
-                                            <Trash2 size={12} /> 회원 탈퇴 / 데이터 삭제
+                                            <Trash2 size={12} /> {t('pf_delete_account')}
                                         </button>
                                         <p className="text-[9px] text-gray-600 text-center mt-1.5 leading-relaxed">
-                                            의견을 보내주시면 다음 업데이트에 반영됩니다
+                                            {t('pf_delete_hint')}
                                         </p>
                                     </div>
                                 )}
