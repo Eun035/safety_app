@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Lock, ChevronRight, Trophy, Zap } from 'lucide-react';
 import { useBeginnerMissions } from '../../hooks/useBeginnerMissions';
 
@@ -25,6 +26,7 @@ const MissionProgressBar = ({ progress, goal, accentColor }) => {
  * MissionItem — 단일 미션 카드 행
  */
 const MissionItem = ({ mission, index }) => {
+    const { t } = useTranslation();
     const { id, title, description, icon, points, goal, unit, isStreak, accentColor, progress, completed, completedAt } = mission;
 
     return (
@@ -66,7 +68,7 @@ const MissionItem = ({ mission, index }) => {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                         <p className={`text-[11px] font-black tracking-tight leading-tight ${completed ? 'text-gray-400' : 'text-white'}`}>
-                            {title}
+                            {t(title, { defaultValue: title })}
                         </p>
                         {isStreak && (
                             <span className="text-[8px] font-black text-amber-400 bg-amber-400/10 border border-amber-400/30 px-1 py-0.5 rounded-full leading-none">
@@ -74,12 +76,12 @@ const MissionItem = ({ mission, index }) => {
                             </span>
                         )}
                     </div>
-                    <p className="text-[9px] text-gray-500 leading-tight mb-1">{description}</p>
+                    <p className="text-[9px] text-gray-500 leading-tight mb-1">{t(description, { defaultValue: description })}</p>
 
                     {/* 진행도 */}
                     <div className="flex items-center justify-between">
                         <span className="text-[9px] font-bold" style={{ color: completed ? '#6b7280' : accentColor }}>
-                            {completed ? `완료 ✓` : `${progress} / ${goal} ${unit}`}
+                            {completed ? t('bm_done') : `${progress} / ${goal} ${t(unit, { defaultValue: unit })}`}
                         </span>
                         <span className="text-[9px] font-black text-amber-400">+{points.toLocaleString()}P</span>
                     </div>
@@ -90,7 +92,7 @@ const MissionItem = ({ mission, index }) => {
 
                     {completed && completedAt && (
                         <p className="text-[8px] text-gray-600 mt-1">
-                            {new Date(completedAt).toLocaleDateString('ko-KR')} 달성
+                            {t('bm_achieved', { date: new Date(completedAt).toLocaleDateString() })}
                         </p>
                     )}
                 </div>
@@ -108,6 +110,7 @@ const MissionItem = ({ mission, index }) => {
  *   onReward(missionId, points) — 미션 완료 시 포인트 지급 콜백
  */
 const BeginnerMissionCard = ({ onReward }) => {
+    const { t } = useTranslation();
     const { missions, completedCount, totalPoints } = useBeginnerMissions({ onReward });
 
     const pending = missions.filter(m => !m.completed);
@@ -126,16 +129,16 @@ const BeginnerMissionCard = ({ onReward }) => {
                         </div>
                         <div>
                             <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest leading-none">
-                                초보자 미션
+                                {t('bm_title')}
                             </p>
                             <p className="text-[8px] text-gray-500 leading-none mt-0.5">
-                                완료 {completedCount}/{missions.length} · 획득 {totalPoints.toLocaleString()}P
+                                {t('bm_progress', { done: completedCount, total: missions.length, pts: totalPoints.toLocaleString() })}
                             </p>
                         </div>
                     </div>
                     <div className="flex flex-col items-end">
                         <span className="text-[11px] font-black text-amber-400">{overallPct}%</span>
-                        <span className="text-[8px] text-gray-600">목표 {totalGoalPoints.toLocaleString()}P</span>
+                        <span className="text-[8px] text-gray-600">{t('bm_goal', { pts: totalGoalPoints.toLocaleString() })}</span>
                     </div>
                 </div>
 
@@ -154,7 +157,7 @@ const BeginnerMissionCard = ({ onReward }) => {
             {pending.length > 0 && (
                 <div className="space-y-2">
                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                        <Zap size={8} className="text-amber-400" /> 진행 중
+                        <Zap size={8} className="text-amber-400" /> {t('bm_in_progress')}
                     </p>
                     {pending.map((m, i) => (
                         <MissionItem key={m.id} mission={m} index={i} />
@@ -166,7 +169,7 @@ const BeginnerMissionCard = ({ onReward }) => {
             {completed.length > 0 && (
                 <div className="space-y-2">
                     <p className="text-[8px] font-black text-gray-700 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                        <CheckCircle2 size={8} className="text-gray-600" /> 완료됨
+                        <CheckCircle2 size={8} className="text-gray-600" /> {t('bm_completed_section')}
                     </p>
                     {completed.map((m, i) => (
                         <MissionItem key={m.id} mission={m} index={i} />
@@ -182,8 +185,8 @@ const BeginnerMissionCard = ({ onReward }) => {
                     className="text-center py-4 bg-amber-500/10 rounded-2xl border border-amber-500/30"
                 >
                     <p className="text-2xl mb-1">🏆</p>
-                    <p className="text-xs font-black text-amber-400 uppercase tracking-wider">모든 미션 완료!</p>
-                    <p className="text-[9px] text-gray-500 mt-0.5">총 {totalPoints.toLocaleString()}P 획득</p>
+                    <p className="text-xs font-black text-amber-400 uppercase tracking-wider">{t('bm_all_done')}</p>
+                    <p className="text-[9px] text-gray-500 mt-0.5">{t('bm_total_earned', { pts: totalPoints.toLocaleString() })}</p>
                 </motion.div>
             )}
         </div>

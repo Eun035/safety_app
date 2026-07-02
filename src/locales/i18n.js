@@ -491,7 +491,18 @@ const resources = {
             "pf_admin_wrong": "비밀번호가 올바르지 않습니다.",
             "pf_delete_account": "회원 탈퇴 / 데이터 삭제",
             "pf_delete_hint": "의견을 보내주시면 다음 업데이트에 반영됩니다",
-            "pf_default_name": "사용자 K"
+            "pf_default_name": "사용자 K",
+
+            // BeginnerMissionCard (초보자 미션)
+            "bm_title": "초보자 미션",
+            "bm_progress": "완료 {{done}}/{{total}} · 획득 {{pts}}P",
+            "bm_goal": "목표 {{pts}}P",
+            "bm_in_progress": "진행 중",
+            "bm_completed_section": "완료됨",
+            "bm_done": "완료 ✓",
+            "bm_achieved": "{{date}} 달성",
+            "bm_all_done": "모든 미션 완료!",
+            "bm_total_earned": "총 {{pts}}P 획득"
         }
     },
     ja: {
@@ -1028,7 +1039,30 @@ const resources = {
             "에코라이더X": "エコライダーX",
             "사용자 K": "ユーザーK",
             "스피드세이버": "スピードセイバー",
-            "라이더99": "ライダー99"
+            "라이더99": "ライダー99",
+
+            // BeginnerMissionCard (初心者ミッション)
+            "bm_title": "初心者ミッション",
+            "bm_progress": "完了 {{done}}/{{total}} · 獲得 {{pts}}P",
+            "bm_goal": "目標 {{pts}}P",
+            "bm_in_progress": "進行中",
+            "bm_completed_section": "完了",
+            "bm_done": "完了 ✓",
+            "bm_achieved": "{{date}} 達成",
+            "bm_all_done": "全ミッション完了！",
+            "bm_total_earned": "計{{pts}}P獲得",
+            "첫 안전 주행 완료": "初の安全走行完了",
+            "헬멧 인증 3회 연속": "ヘルメット認証3回連続",
+            "급제동 없이 5km 주행": "急ブレーキなしで5km走行",
+            "7일 연속 주행": "7日連続走行",
+            "위험 구역 신고 1회": "危険区域の通報1回",
+            "첫 번째 주행을 완료하세요": "初回の走行を完了しましょう",
+            "연속으로 3회 헬멧을 인증하며 주행하세요": "連続3回ヘルメットを認証して走行しましょう",
+            "급제동 없이 5km를 안전하게 주행하세요": "急ブレーキなしで5kmを安全に走行しましょう",
+            "7일 연속으로 주행을 완료하세요": "7日連続で走行を完了しましょう",
+            "위험 구역을 한 번 신고하세요": "危険区域を一度通報しましょう",
+            "회": "回",
+            "일": "日"
         }
     },
     "zh-CN": {
@@ -1565,7 +1599,30 @@ const resources = {
             "에코라이더X": "环保骑手X",
             "사용자 K": "用户K",
             "스피드세이버": "速度卫士",
-            "라이더99": "骑手99"
+            "라이더99": "骑手99",
+
+            // BeginnerMissionCard (新手任务)
+            "bm_title": "新手任务",
+            "bm_progress": "完成 {{done}}/{{total}} · 获得 {{pts}}P",
+            "bm_goal": "目标 {{pts}}P",
+            "bm_in_progress": "进行中",
+            "bm_completed_section": "已完成",
+            "bm_done": "完成 ✓",
+            "bm_achieved": "{{date}} 达成",
+            "bm_all_done": "所有任务完成！",
+            "bm_total_earned": "共获得{{pts}}P",
+            "첫 안전 주행 완료": "完成首次安全骑行",
+            "헬멧 인증 3회 연속": "连续3次头盔认证",
+            "급제동 없이 5km 주행": "无急刹车骑行5km",
+            "7일 연속 주행": "连续7天骑行",
+            "위험 구역 신고 1회": "举报危险区域1次",
+            "첫 번째 주행을 완료하세요": "完成您的第一次骑行",
+            "연속으로 3회 헬멧을 인증하며 주행하세요": "连续3次认证头盔并骑行",
+            "급제동 없이 5km를 안전하게 주행하세요": "无急刹车安全骑行5km",
+            "7일 연속으로 주행을 완료하세요": "连续7天完成骑行",
+            "위험 구역을 한 번 신고하세요": "举报一次危险区域",
+            "회": "次",
+            "일": "天"
         }
     },
     en: {
@@ -2102,7 +2159,30 @@ const resources = {
             "에코라이더X": "EcoRider X",
             "사용자 K": "User K",
             "스피드세이버": "Speed Saver",
-            "라이더99": "Rider99"
+            "라이더99": "Rider99",
+
+            // BeginnerMissionCard
+            "bm_title": "Beginner Missions",
+            "bm_progress": "Done {{done}}/{{total}} · Earned {{pts}}P",
+            "bm_goal": "Goal {{pts}}P",
+            "bm_in_progress": "In Progress",
+            "bm_completed_section": "Completed",
+            "bm_done": "Done ✓",
+            "bm_achieved": "Achieved {{date}}",
+            "bm_all_done": "All missions complete!",
+            "bm_total_earned": "{{pts}}P earned total",
+            "첫 안전 주행 완료": "Complete your first safe ride",
+            "헬멧 인증 3회 연속": "3 helmet checks in a row",
+            "급제동 없이 5km 주행": "Ride 5km with no hard braking",
+            "7일 연속 주행": "Ride 7 days in a row",
+            "위험 구역 신고 1회": "Report a hazard zone once",
+            "첫 번째 주행을 완료하세요": "Complete your first ride",
+            "연속으로 3회 헬멧을 인증하며 주행하세요": "Verify your helmet 3 rides in a row",
+            "급제동 없이 5km를 안전하게 주행하세요": "Safely ride 5km with no hard braking",
+            "7일 연속으로 주행을 완료하세요": "Complete rides 7 days in a row",
+            "위험 구역을 한 번 신고하세요": "Report a hazard zone once",
+            "회": " ",
+            "일": "d"
         }
     }
 };
