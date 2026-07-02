@@ -5,16 +5,18 @@ import {
   ChevronRight, X, Search, Loader2, CheckCircle2,
   Send, MessageCircle, Instagram, Copy, ArrowRight, Mic
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { toast } from '../../hooks/useToast';
 import { calculateDistance } from '../../utils/distance';
 
 // ─── 인기 목적지 (빠른 선택) ─────────────────────────────────────────────
+// name = 한국어 기본값(외부 라우팅 폴백용), nameKey = i18n 키(화면 표시용)
 const QUICK_DESTINATIONS = [
-  { id: 'q1', name: '단국대학교 정문', emoji: '🎓', etaMin: 4, lat: 36.8331, lng: 127.1791 },
-  { id: 'q2', name: '천안터미널', emoji: '🚌', etaMin: 11, lat: 36.8152, lng: 127.1518 },
-  { id: 'q3', name: '신부동 먹자골목', emoji: '🍜', etaMin: 7, lat: 36.8093, lng: 127.1534 },
-  { id: 'q4', name: '천안역', emoji: '🚂', etaMin: 14, lat: 36.8097, lng: 127.1492 },
+  { id: 'q1', name: '단국대학교 정문', nameKey: 'rss_qd_dankook', emoji: '🎓', etaMin: 4, lat: 36.8331, lng: 127.1791 },
+  { id: 'q2', name: '천안터미널', nameKey: 'rss_qd_terminal', emoji: '🚌', etaMin: 11, lat: 36.8152, lng: 127.1518 },
+  { id: 'q3', name: '신부동 먹자골목', nameKey: 'rss_qd_sinbu', emoji: '🍜', etaMin: 7, lat: 36.8093, lng: 127.1534 },
+  { id: 'q4', name: '천안역', nameKey: 'rss_qd_station', emoji: '🚂', etaMin: 14, lat: 36.8097, lng: 127.1492 },
 ];
 
 // ─── 목적지 검색 결과 모킹 (Kakao API 연동 전 placeholder) ───────────────
@@ -42,14 +44,20 @@ function formatETA(etaMin) {
   return `${h}:${m}`;
 }
 
-// ─── 소셜 공유 메시지 생성 ────────────────────────────────────────────────
-function buildShareMessage(destinationName, etaMin) {
+// ─── 소셜 공유 메시지 생성 (i18n 템플릿 사용) ─────────────────────────────
+function buildShareMessage(t, destinationName, etaMin) {
   const arrivalTime = formatETA(etaMin);
-  return `나 지금 C-Safe 켜고 출발함! ${etaMin}분 뒤 (${arrivalTime}) 도착 예정이야 🛴\n목적지: ${destinationName}\n위치 확인: ${window.location.href}`;
+  return t('share_message_template', {
+    eta: etaMin,
+    time: arrivalTime,
+    dest: destinationName,
+    url: window.location.href,
+  });
 }
 
 // ─── 공유 플랫폼 팝업 ────────────────────────────────────────────────────
 const SharePopup = ({ message, onClose }) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
@@ -68,21 +76,21 @@ const SharePopup = ({ message, onClose }) => {
   const handleKakao = useCallback(() => {
     // 카카오링크 SDK가 없을 경우 클립보드 복사 + 알림
     handleCopy();
-    alert('메시지가 복사되었습니다!\n카카오톡을 열어 붙여넣기 해주세요 💬');
-  }, [handleCopy]);
+    alert(t('share_kakao_alert'));
+  }, [handleCopy, t]);
 
   const handleInstagram = useCallback(() => {
     handleCopy();
-    alert('메시지가 복사되었습니다!\n인스타그램 DM을 열어 붙여넣기 해주세요 📸');
-  }, [handleCopy]);
+    alert(t('share_instagram_alert'));
+  }, [handleCopy, t]);
 
   const handleNativeShare = useCallback(() => {
     if (navigator.share) {
-      navigator.share({ title: 'C-Safe 출발 알림', text: message }).catch(() => {});
+      navigator.share({ title: t('share_native_title'), text: message }).catch(() => {});
     } else {
       handleCopy();
     }
-  }, [message, handleCopy]);
+  }, [message, handleCopy, t]);
 
   return (
     <motion.div
@@ -113,8 +121,8 @@ const SharePopup = ({ message, onClose }) => {
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-[17px] font-black text-white tracking-tight">친구에게 알리기</h3>
-              <p className="text-[10px] text-gray-500 mt-0.5">도착 시간을 공유해 보세요</p>
+              <h3 className="text-[17px] font-black text-white tracking-tight">{t('share_notify_friend')}</h3>
+              <p className="text-[10px] text-gray-500 mt-0.5">{t('share_notify_sub')}</p>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
               <X size={14} />
@@ -123,7 +131,7 @@ const SharePopup = ({ message, onClose }) => {
 
           {/* 메시지 미리보기 */}
           <div className="bg-[#1a1d24] border border-white/10 rounded-2xl p-4 mb-5">
-            <p className="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-wider">전송될 메시지</p>
+            <p className="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-wider">{t('share_msg_to_send')}</p>
             <p className="text-[12px] text-gray-200 leading-relaxed whitespace-pre-line">{message}</p>
           </div>
 
@@ -137,7 +145,7 @@ const SharePopup = ({ message, onClose }) => {
               <div className="w-10 h-10 bg-[#FEE500] rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-[18px] font-black text-black leading-none">K</span>
               </div>
-              <span className="text-[10px] font-bold text-[#FEE500]">카카오톡</span>
+              <span className="text-[10px] font-bold text-[#FEE500]">{t('share_kakao')}</span>
             </button>
 
             {/* Instagram DM */}
@@ -159,7 +167,7 @@ const SharePopup = ({ message, onClose }) => {
               <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-lg">
                 <Send size={20} className="text-white" />
               </div>
-              <span className="text-[10px] font-bold text-gray-400">더보기</span>
+              <span className="text-[10px] font-bold text-gray-400">{t('share_more')}</span>
             </button>
           </div>
 
@@ -171,12 +179,12 @@ const SharePopup = ({ message, onClose }) => {
             {copied ? (
               <>
                 <CheckCircle2 size={16} className="text-green-400" />
-                <span className="text-[12px] font-bold text-green-400">복사 완료!</span>
+                <span className="text-[12px] font-bold text-green-400">{t('share_copied')}</span>
               </>
             ) : (
               <>
                 <Copy size={16} className="text-gray-400" />
-                <span className="text-[12px] font-bold text-gray-400">메시지 텍스트 복사</span>
+                <span className="text-[12px] font-bold text-gray-400">{t('share_copy_text')}</span>
               </>
             )}
           </button>
@@ -198,6 +206,7 @@ const RideStartScreen = ({
   routeDestination,
   setRouteDestination,
 }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -206,6 +215,9 @@ const RideStartScreen = ({
   const [etaPulse, setEtaPulse] = useState(false);
   // 음성 인식 후보(확률순). best는 query에 들어가고, 나머지는 병렬 검색용.
   const [voiceAlternatives, setVoiceAlternatives] = useState([]);
+
+  // 목적지 표시명: 정적 빠른목적지는 i18n 키로 번역, 동적(Kakao) 결과는 원문(한국어) 유지
+  const destName = useCallback((d) => (d?.nameKey ? t(d.nameKey) : (d?.name || '')), [t]);
 
   // 음성 검색 — best는 input에 표시, 나머지 후보는 voiceAlternatives에 저장하여 같이 검색
   const { start: startVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
@@ -217,15 +229,15 @@ const RideStartScreen = ({
     },
     onError: (errCode) => {
       if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
-        toast('🎤 마이크 권한이 차단됨 — 주소창 자물쇠 → 마이크 → 허용으로 변경 후 재시도', 'error');
+        toast(t('rss_toast_mic_blocked'), 'error');
       } else if (errCode === 'no-device') {
-        toast('🎤 사용 가능한 마이크를 찾지 못했어요.', 'error');
+        toast(t('rss_toast_mic_nodevice'), 'error');
       } else if (errCode === 'no-speech') {
-        toast('🎤 음성이 감지되지 않았어요.', 'info');
+        toast(t('rss_toast_mic_nospeech'), 'info');
       } else if (errCode === 'unsupported') {
-        toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+        toast(t('rss_toast_mic_unsupported'), 'error');
       } else if (errCode === 'insecure-context') {
-        toast('🎤 보안 컨텍스트(HTTPS)에서만 동작합니다.', 'error');
+        toast(t('rss_toast_mic_insecure'), 'error');
       }
     }
   });
@@ -326,7 +338,7 @@ const RideStartScreen = ({
               merged.push({
                 id: `kakao-addr-${coordKey}`,
                 name: roadName || lotName,
-                address: roadName ? lotName : '지번 주소',
+                address: roadName ? lotName : t('rss_addr_lot'),
                 etaMin: estimateEtaMin(lat, lng),
                 lat,
                 lng
@@ -352,7 +364,7 @@ const RideStartScreen = ({
       });
     }, 350);
     return () => clearTimeout(searchTimer.current);
-  }, [query, voiceAlternatives, userLat, userLng, estimateEtaMin]);
+  }, [query, voiceAlternatives, userLat, userLng, estimateEtaMin, t]);
 
   // ETA 결정 시 pulse 애니메이션
   const handleSelectDest = useCallback((dest) => {
@@ -365,7 +377,7 @@ const RideStartScreen = ({
   }, [setRouteDestination]);
 
   const shareMessage = selectedDest
-    ? buildShareMessage(selectedDest.name, selectedDest.etaMin)
+    ? buildShareMessage(t, destName(selectedDest), selectedDest.etaMin)
     : '';
 
   return (
@@ -425,9 +437,9 @@ const RideStartScreen = ({
                   >
                     <Navigation size={14} className="text-white" />
                   </div>
-                  <h2 className="text-[18px] font-black text-white tracking-tight">주행 시작</h2>
+                  <h2 className="text-[18px] font-black text-white tracking-tight">{t('rss_title')}</h2>
                 </div>
-                <p className="text-[11px] text-gray-500 pl-9">목적지를 설정하고 안전하게 출발하세요</p>
+                <p className="text-[11px] text-gray-500 pl-9">{t('rss_subtitle')}</p>
               </div>
 
               {/* ── 출발지 (현재 위치, 고정) ─────────────────────── */}
@@ -439,8 +451,8 @@ const RideStartScreen = ({
                   <MapPin size={15} className="text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">출발지</p>
-                  <p className="text-[13px] font-bold text-gray-300 truncate">현재 위치</p>
+                  <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">{t('rss_origin')}</p>
+                  <p className="text-[13px] font-bold text-gray-300 truncate">{t('rss_current_loc')}</p>
                   {(userLat && userLng) && (
                     <p className="text-[9px] text-gray-600 font-mono">
                       {userLat.toFixed(4)}, {userLng.toFixed(4)}
@@ -482,17 +494,17 @@ const RideStartScreen = ({
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">목적지</p>
+                    <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">{t('rss_destination')}</p>
                     <input
                       ref={inputRef}
                       type="text"
-                      value={query || (selectedDest ? selectedDest.name : '')}
+                      value={query || (selectedDest ? destName(selectedDest) : '')}
                       onChange={e => {
                         setQuery(e.target.value);
                         if (selectedDest) setSelectedDest(null);
                         setVoiceAlternatives([]);
                       }}
-                      placeholder="어디로 가시나요?"
+                      placeholder={t('rss_dest_placeholder')}
                       className="w-full bg-transparent text-[13px] font-bold text-white placeholder-gray-600 outline-none"
                     />
                   </div>
@@ -515,7 +527,7 @@ const RideStartScreen = ({
                             ? 'text-red-400 bg-red-500/20 animate-pulse shadow-[0_0_12px_rgba(248,113,113,0.5)]'
                             : 'text-gray-400 hover:text-red-400 hover:bg-white/10'
                         }`}
-                        aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 목적지 검색'}
+                        aria-label={isVoiceListening ? t('rss_voice_listening') : t('rss_voice_search')}
                       >
                         <Mic size={15} />
                       </button>
@@ -536,7 +548,7 @@ const RideStartScreen = ({
                       className="rounded-2xl overflow-hidden border"
                       style={{ background: '#0f1117', borderColor: 'rgba(255,255,255,0.08)' }}
                     >
-                      {searchResults.map((result, i) => (
+                      {searchResults.map((result) => (
                         <button
                           key={result.id}
                           onClick={() => handleSelectDest(result)}
@@ -546,12 +558,12 @@ const RideStartScreen = ({
                             <MapPin size={13} className="text-red-400" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[12px] font-bold text-white truncate">{result.name}</p>
+                            <p className="text-[12px] font-bold text-white truncate">{destName(result)}</p>
                             <p className="text-[9px] text-gray-600 truncate">{result.address}</p>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-[11px] font-black text-blue-400">{result.etaMin}분</p>
-                            <p className="text-[8px] text-gray-600">{formatETA(result.etaMin)} 도착</p>
+                            <p className="text-[11px] font-black text-blue-400">{result.etaMin}{t('rss_min')}</p>
+                            <p className="text-[8px] text-gray-600">{formatETA(result.etaMin)} {t('rss_arrive')}</p>
                           </div>
                         </button>
                       ))}
@@ -588,18 +600,18 @@ const RideStartScreen = ({
                       >
                         <Clock size={20} className="text-blue-400 mb-0.5" />
                         <span className="text-[16px] font-black text-white leading-none">{selectedDest.etaMin}</span>
-                        <span className="text-[7px] font-bold text-blue-400 uppercase tracking-wider">분</span>
+                        <span className="text-[7px] font-bold text-blue-400 uppercase tracking-wider">{t('rss_min')}</span>
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">예상 도착 시간</p>
+                        <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">{t('rss_eta_label')}</p>
                         <p className="text-[22px] font-black text-white tracking-tight leading-none mb-1">
-                          {selectedDest.etaMin}분 뒤 도착 예정
+                          {t('rss_eta_big', { n: selectedDest.etaMin })}
                         </p>
                         <p className="text-[11px] text-gray-400">
-                          <span className="font-bold text-gray-300">{formatETA(selectedDest.etaMin)}</span>에 도착
+                          <span className="font-bold text-gray-300">{t('rss_arrive_at', { time: formatETA(selectedDest.etaMin) })}</span>
                           <span className="mx-1.5 text-gray-700">·</span>
-                          <span className="truncate">{selectedDest.name}</span>
+                          <span className="truncate">{destName(selectedDest)}</span>
                         </p>
                       </div>
                     </div>
@@ -611,7 +623,7 @@ const RideStartScreen = ({
                     >
                       <div className="flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-[9px] font-bold text-green-400 uppercase tracking-wider">안전 경로 분석 중</span>
+                        <span className="text-[9px] font-bold text-green-400 uppercase tracking-wider">{t('rss_analyzing_route')}</span>
                       </div>
                       <div className="flex-1" />
                       <span className="text-[9px] text-gray-600">~{(selectedDest.etaMin * 0.25).toFixed(1)} km</span>
@@ -623,7 +635,7 @@ const RideStartScreen = ({
               {/* ── 빠른 목적지 (목적지 미선택 시) ────────────────── */}
               {!selectedDest && searchResults.length === 0 && (
                 <div>
-                  <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">자주 가는 곳</p>
+                  <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">{t('rss_frequent')}</p>
                   <div className="grid grid-cols-2 gap-2">
                     {QUICK_DESTINATIONS.map(dest => (
                       <button
@@ -639,8 +651,8 @@ const RideStartScreen = ({
                       >
                         <span className="text-[20px] shrink-0">{dest.emoji}</span>
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-white truncate leading-snug">{dest.name}</p>
-                          <p className="text-[9px] font-bold text-blue-400">{dest.etaMin}분</p>
+                          <p className="text-[11px] font-bold text-white truncate leading-snug">{destName(dest)}</p>
+                          <p className="text-[9px] font-bold text-blue-400">{dest.etaMin}{t('rss_min')}</p>
                         </div>
                       </button>
                     ))}
@@ -671,8 +683,8 @@ const RideStartScreen = ({
                       <MessageCircle size={18} className="text-yellow-400" />
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-[13px] font-black text-white">친구에게 도착 시간 알리기</p>
-                      <p className="text-[10px] text-gray-500">카카오톡 · DM으로 전송</p>
+                      <p className="text-[13px] font-black text-white">{t('rss_notify_arrival')}</p>
+                      <p className="text-[10px] text-gray-500">{t('rss_notify_via')}</p>
                     </div>
                     <Share2 size={15} className="text-yellow-400 shrink-0" />
                   </motion.button>
@@ -716,7 +728,7 @@ const RideStartScreen = ({
                   )}
                   <Shield size={20} className={selectedDest ? 'text-white' : 'text-gray-600'} />
                   <span className="relative z-10">
-                    {selectedDest ? '헬멧 인증하고 출발하기' : '목적지를 먼저 선택하세요'}
+                    {selectedDest ? t('rss_cta_helmet') : t('rss_cta_select_first')}
                   </span>
                   {selectedDest && <ArrowRight size={18} className="text-white/80 relative z-10" />}
                 </motion.button>
@@ -728,7 +740,7 @@ const RideStartScreen = ({
                     animate={{ opacity: 1 }}
                     className="flex items-center justify-center gap-2"
                   >
-                    {['목적지 선택', '헬멧 인증', '안전 출발'].map((label, i) => (
+                    {[t('rss_step_dest'), t('rss_step_helmet'), t('rss_step_go')].map((label, i) => (
                       <React.Fragment key={label}>
                         <div className="flex items-center gap-1">
                           <div
