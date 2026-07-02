@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, MoreHorizontal, Leaf, Zap, Share2, Play } from 'lucide-react';
+import { ChevronLeft, Leaf, Zap, Share2, Play } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import TargetedAdBanner from './TargetedAdBanner';
 import { toast } from '../../hooks/useToast';
@@ -106,9 +106,8 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                         <h2 className="text-[12px] font-black uppercase tracking-widest text-white/90">RIDE SUMMARY</h2>
                         <p className="text-[10px] font-bold text-cyber-cyan mt-1">{currentTime || 'Oct 24 • 5:14 PM'}</p>
                     </div>
-                    <button className="w-10 h-10 bg-[#151921] rounded-full flex items-center justify-center border border-white/5 active:scale-95 transition-transform">
-                        <MoreHorizontal size={20} className="text-cyber-cyan" />
-                    </button>
+                    {/* 우측 자리 맞춤용 spacer — 기존 '더보기' 버튼은 동작이 없어 제거 (제목 중앙 정렬 유지) */}
+                    <div className="w-10 h-10" aria-hidden="true" />
                 </div>
 
                 <div className="flex-1 px-6 pt-6 pb-8 overflow-y-auto hide-scrollbar">
