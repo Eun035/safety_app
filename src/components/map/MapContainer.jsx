@@ -84,15 +84,15 @@ const MapContainer = ({
         },
         onError: (errCode) => {
             if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
-                toast('🎤 마이크 권한이 차단됨 — 주소창 자물쇠 → 마이크 → 허용으로 변경 후 재시도', 'error');
+                toast(t('rss_toast_mic_blocked'), 'error');
             } else if (errCode === 'no-device') {
-                toast('🎤 사용 가능한 마이크를 찾지 못했어요.', 'error');
+                toast(t('rss_toast_mic_nodevice'), 'error');
             } else if (errCode === 'no-speech') {
-                toast('🎤 음성이 감지되지 않았어요.', 'info');
+                toast(t('rss_toast_mic_nospeech'), 'info');
             } else if (errCode === 'unsupported') {
-                toast('🎤 이 브라우저는 음성인식을 지원하지 않아요.', 'error');
+                toast(t('rss_toast_mic_unsupported'), 'error');
             } else if (errCode === 'insecure-context') {
-                toast('🎤 보안 컨텍스트(HTTPS)에서만 동작합니다.', 'error');
+                toast(t('rss_toast_mic_insecure'), 'error');
             }
         }
     });
@@ -159,7 +159,7 @@ const MapContainer = ({
                             formattedAddresses.push({
                                 id: `kakao-addr-${coordKey}`,
                                 title: roadName || lotName,
-                                desc: roadName ? lotName : '지번 주소',
+                                desc: roadName ? lotName : t('rss_addr_lot'),
                                 lat, lng,
                                 type: 'kakao_address',
                                 badge: '🏠 주소',
@@ -205,8 +205,8 @@ const MapContainer = ({
         setVoiceAlternatives([]);
         setSearchResults([]);
         setIsSearchFocused(false);
-        speak(`출발지가 ${item.title}로 설정되었습니다. 이제 목적지를 선택하세요.`);
-        toast('🏁 출발지가 설정되었습니다. 목적지를 선택하세요.', 'success');
+        speak(t('mc_origin_set_voice', { name: t(item.title, { defaultValue: item.title }) }));
+        toast(t('mc_origin_set_toast'), 'success');
         setMapCenter({ lat: item.lat, lng: item.lng });
         setGpsFollowMode(false);
     };
@@ -226,8 +226,8 @@ const MapContainer = ({
         setVoiceAlternatives([]);
         setSearchResults([]);
         setIsSearchFocused(false);
-        speak(`${item.title}이 목적지로 설정되었습니다.`);
-        toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+        speak(t('mc_dest_set_voice', { name: t(item.title, { defaultValue: item.title }) }));
+        toast(t('mc_dest_set_toast'), 'success');
         setMapCenter({ lat: item.lat, lng: item.lng });
         setGpsFollowMode(false);
     };
@@ -239,10 +239,10 @@ const MapContainer = ({
                 { latitude: routeDestination.lat, longitude: routeDestination.lng }
             ).then(res => {
                 setSafeRouteInfo(res);
-                toast(`안전 경로 탐색 완료! 추가 보상: ${res.safeToEarnPoints}P`, 'success');
+                toast(t('mc_route_done_toast', { p: res.safeToEarnPoints }), 'success');
             }).catch(err => {
                 console.error(err);
-                toast("안전 경로 생성에 실패했습니다.", 'error');
+                toast(t('mc_route_fail_toast'), 'error');
             });
         } else if (navStep === 'idle') {
             setSafeRouteInfo(null);
@@ -471,24 +471,24 @@ const MapContainer = ({
                         // 🚀 목적지 선택 모드일 때 클릭 시 목적지로 설정
                         if (navStep === 'select_destination') {
                             setRouteDestination({
-                                title: station.locationName || '주차 구역',
+                                title: station.locationName || t('mc_parking_zone'),
                                 lat: station.lat,
                                 lng: station.lng,
                                 type: 'parking'
                             });
                             setNavStep('route_ready');
-                            speak(`${station.locationName || '주차 구역'}이 목적지로 설정되었습니다.`);
-                            toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                            speak(t('mc_dest_set_voice', { name: station.locationName || t('mc_parking_zone') }));
+                            toast(t('mc_dest_set_toast'), 'success');
                         } else {
                             // 일반 모드에서는 정보 표시
                             setSelectedLocation({
-                                title: station.locationName || '주차 구역',
-                                desc: '안전 주차 및 리워드 적립이 가능한 구역입니다.',
+                                title: station.locationName || t('mc_parking_zone'),
+                                desc: t('mc_parking_zone_desc'),
                                 lat: station.lat,
                                 lng: station.lng,
                                 type: 'parking'
                             });
-                            speak(`${station.locationName || '주차 구역'}입니다. 안전 주차 구역입니다.`);
+                            speak(t('mc_parking_info_voice', { name: station.locationName || t('mc_parking_zone') }));
                         }
                     }}
                     className="group cursor-pointer flex flex-col items-center transition-all duration-300 hover:scale-110"
@@ -553,12 +553,12 @@ const MapContainer = ({
 
                 const formatted = allResults.map(item => ({
                     id: `pm-${item.id}`,
-                    title: `${item.place_name} (PM / 공용 주차 / 대여소)`,
+                    title: t('mc_place_title', { name: item.place_name }),
                     lat: Number(item.y),
                     lng: Number(item.x),
                     type: 'PM_STATION',
                     desc: item.road_address_name || item.address_name,
-                    safetyTip: '실시간 API 연동 구역: 올바른 주차 문화를 만들어가요.'
+                    safetyTip: t('mc_place_safety')
                 }));
 
                 const uniqueStations = formatted.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i).slice(0, 30);
@@ -572,7 +572,7 @@ const MapContainer = ({
         if (navStep === 'select_origin') {
             setRouteOrigin(location);
             setNavStep('select_destination');
-            toast('🏁 출발지가 설정되었습니다. 이제 목적지를 선택하세요.', 'success');
+            toast(t('mc_origin_set_toast'), 'success');
             return;
         }
 
@@ -581,22 +581,22 @@ const MapContainer = ({
             const isSafeZone = location.type === 'parking' || location.type === 'PM_STATION' || location.id?.startsWith('pm-');
 
             if (!isSafeZone) {
-                speak("안전한 주차와 리워드 혜택을 위해 주차장이나 헬멧 스테이션을 목적지로 선택해 주세요.");
-                toast('⚠️ 안전 주행을 위해 지정된 주차 구역을 목적지로 선택해 주세요!', 'warning');
+                speak(t('mc_select_parking_voice'));
+                toast(t('mc_select_parking_toast'), 'warning');
                 return;
             }
 
             setRouteDestination(location);
             setNavStep('route_ready');
-            speak("목적지가 설정되었습니다. 경로를 확인하고 주행을 시작하세요.");
-            toast('✨ 목적지가 설정되었습니다. 안전 경로가 생성됩니다.', 'success');
+            speak(t('mc_dest_confirm_voice'));
+            toast(t('mc_dest_confirm_toast'), 'success');
             return;
         }
 
         // 일반 모드 동작
         setHighlightedStationId(null);
         setSelectedLocation(location);
-        speak(`${location.title || ''} 지역입니다. ${location.desc || ''}. ${location.safetyTip || ''}`);
+        speak(t('mc_location_voice', { title: t(location.title || '', { defaultValue: location.title || '' }), desc: location.desc || '', tip: location.safetyTip || '' }));
     };
 
     if (loading) {
@@ -799,7 +799,7 @@ const MapContainer = ({
                     {showPMs && Array.isArray(pmParkings) && pmParkings.map((parking, idx) => (
                         <CustomOverlayMap key={`parking-${idx}`} position={{ lat: parking.lat, lng: parking.lng }} yAnchor={1} zIndex={2} clickable={true}>
                             <div
-                                onClick={() => handleMarkerClick({ id: `parking-${idx}`, lat: parking.lat, lng: parking.lng, title: parking.locationName, desc: `주차가능 대수: ${parking.capacity}`, type: 'parking' })}
+                                onClick={() => handleMarkerClick({ id: `parking-${idx}`, lat: parking.lat, lng: parking.lng, title: parking.locationName, desc: t('mc_parking_capacity', { n: parking.capacity }), type: 'parking' })}
                                 className="pointer-events-auto w-8 h-8 rounded-full bg-cyan-600 border-2 border-white flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.8)] hover:scale-110 transition-transform cursor-pointer relative"
                             >
                                 <div className="absolute -bottom-1 h-0 w-0 border-x-4 border-x-transparent border-t-[6px] border-t-cyan-600 pointer-events-none"></div>
@@ -1072,14 +1072,14 @@ const MapContainer = ({
                                 setRouteOrigin(selectedLocation);
                                 setNavStep('select_destination');
                                 setSelectedLocation(null);
-                                toast('🏁 출발지가 설정되었습니다. 목적지를 선택하세요.', 'success');
+                                toast(t('mc_origin_set_toast'), 'success');
                             }}
                             onSetDestination={() => {
                                 setRouteDestination(selectedLocation);
                                 setNavStep('route_ready');
                                 setSelectedLocation(null);
-                                speak(`${selectedLocation.title}이 목적지로 설정되었습니다.`);
-                                toast('🏁 목적지가 설정되었습니다. 주행을 시작하세요!', 'success');
+                                speak(t('mc_dest_set_voice', { name: t(selectedLocation.title, { defaultValue: selectedLocation.title }) }));
+                                toast(t('mc_dest_set_toast'), 'success');
                             }}
                         />
                     </div>

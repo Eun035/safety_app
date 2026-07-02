@@ -268,7 +268,24 @@ const resources = {
             "mc_warning_points": "사고 다발 구역이 {{n}}곳 있습니다. 진입 50m 전 햅틱 알림이 송출됩니다.",
             "mc_route_start_toast": "안전 경로 주행 시작 (예상 리워드: {{p}}P)",
             "mc_map_load_fail_title": "지도 로딩 실패",
-            "mc_map_load_fail_desc": "카카오맵 서비스를 일시적으로 사용할 수 없습니다."
+            "mc_map_load_fail_desc": "카카오맵 서비스를 일시적으로 사용할 수 없습니다.",
+            "mc_origin_set_voice": "출발지가 {{name}}로 설정되었습니다. 이제 목적지를 선택하세요.",
+            "mc_origin_set_toast": "🏁 출발지가 설정되었습니다. 목적지를 선택하세요.",
+            "mc_dest_set_voice": "{{name}}이 목적지로 설정되었습니다.",
+            "mc_dest_set_toast": "🏁 목적지가 설정되었습니다. 주행을 시작하세요!",
+            "mc_route_done_toast": "안전 경로 탐색 완료! 추가 보상: {{p}}P",
+            "mc_route_fail_toast": "안전 경로 생성에 실패했습니다.",
+            "mc_parking_zone": "주차 구역",
+            "mc_parking_zone_desc": "안전 주차 및 리워드 적립이 가능한 구역입니다.",
+            "mc_parking_info_voice": "{{name}}입니다. 안전 주차 구역입니다.",
+            "mc_place_title": "{{name}} (PM / 공용 주차 / 대여소)",
+            "mc_place_safety": "실시간 API 연동 구역: 올바른 주차 문화를 만들어가요.",
+            "mc_select_parking_voice": "안전한 주차와 리워드 혜택을 위해 주차장이나 헬멧 스테이션을 목적지로 선택해 주세요.",
+            "mc_select_parking_toast": "⚠️ 안전 주행을 위해 지정된 주차 구역을 목적지로 선택해 주세요!",
+            "mc_dest_confirm_voice": "목적지가 설정되었습니다. 경로를 확인하고 주행을 시작하세요.",
+            "mc_dest_confirm_toast": "✨ 목적지가 설정되었습니다. 안전 경로가 생성됩니다.",
+            "mc_location_voice": "{{title}} 지역입니다. {{desc}}. {{tip}}",
+            "mc_parking_capacity": "주차가능 대수: {{n}}"
         }
     },
     ja: {
@@ -548,7 +565,24 @@ const resources = {
             "mc_warning_points": "事故多発区域が{{n}}か所あります。進入50m前に触覚アラートが送信されます。",
             "mc_route_start_toast": "安全ルート走行開始（予想リワード：{{p}}P）",
             "mc_map_load_fail_title": "地図の読み込み失敗",
-            "mc_map_load_fail_desc": "Kakaoマップサービスを一時的に利用できません。"
+            "mc_map_load_fail_desc": "Kakaoマップサービスを一時的に利用できません。",
+            "mc_origin_set_voice": "出発地が{{name}}に設定されました。次に目的地を選択してください。",
+            "mc_origin_set_toast": "🏁 出発地が設定されました。目的地を選択してください。",
+            "mc_dest_set_voice": "{{name}}が目的地に設定されました。",
+            "mc_dest_set_toast": "🏁 目的地が設定されました。走行を開始してください！",
+            "mc_route_done_toast": "安全ルート探索完了！追加報酬：{{p}}P",
+            "mc_route_fail_toast": "安全ルートの生成に失敗しました。",
+            "mc_parking_zone": "駐車エリア",
+            "mc_parking_zone_desc": "安全な駐車とリワード付与が可能なエリアです。",
+            "mc_parking_info_voice": "{{name}}です。安全駐車エリアです。",
+            "mc_place_title": "{{name}}（PM / 共用駐車 / レンタル）",
+            "mc_place_safety": "リアルタイムAPI連携エリア：正しい駐車文化をつくりましょう。",
+            "mc_select_parking_voice": "安全な駐車とリワード特典のため、駐車場やヘルメットステーションを目的地に選択してください。",
+            "mc_select_parking_toast": "⚠️ 安全走行のため、指定の駐車エリアを目的地に選択してください！",
+            "mc_dest_confirm_voice": "目的地が設定されました。ルートを確認して走行を開始してください。",
+            "mc_dest_confirm_toast": "✨ 目的地が設定されました。安全ルートが生成されます。",
+            "mc_location_voice": "{{title}}エリアです。{{desc}}。{{tip}}",
+            "mc_parking_capacity": "駐車可能台数：{{n}}"
         }
     },
     "zh-CN": {
@@ -828,7 +862,24 @@ const resources = {
             "mc_warning_points": "有{{n}}处事故多发区域。进入前50m会发出震动提醒。",
             "mc_route_start_toast": "开始安全路线骑行（预计奖励：{{p}}P）",
             "mc_map_load_fail_title": "地图加载失败",
-            "mc_map_load_fail_desc": "Kakao地图服务暂时不可用。"
+            "mc_map_load_fail_desc": "Kakao地图服务暂时不可用。",
+            "mc_origin_set_voice": "出发地已设为{{name}}。请接着选择目的地。",
+            "mc_origin_set_toast": "🏁 出发地已设置。请选择目的地。",
+            "mc_dest_set_voice": "已将{{name}}设为目的地。",
+            "mc_dest_set_toast": "🏁 目的地已设置。开始骑行吧！",
+            "mc_route_done_toast": "安全路线探索完成！额外奖励：{{p}}P",
+            "mc_route_fail_toast": "安全路线生成失败。",
+            "mc_parking_zone": "停车区",
+            "mc_parking_zone_desc": "可安全停车并累积奖励的区域。",
+            "mc_parking_info_voice": "这里是{{name}}。安全停车区。",
+            "mc_place_title": "{{name}}（PM / 公共停车 / 租赁）",
+            "mc_place_safety": "实时API对接区域：共建良好停车文化。",
+            "mc_select_parking_voice": "为了安全停车和奖励优惠，请选择停车场或头盔站作为目的地。",
+            "mc_select_parking_toast": "⚠️ 为了安全骑行，请选择指定停车区作为目的地！",
+            "mc_dest_confirm_voice": "目的地已设置。请确认路线并开始骑行。",
+            "mc_dest_confirm_toast": "✨ 目的地已设置。正在生成安全路线。",
+            "mc_location_voice": "这里是{{title}}区域。{{desc}}。{{tip}}",
+            "mc_parking_capacity": "可停车数：{{n}}"
         }
     },
     en: {
@@ -1108,7 +1159,24 @@ const resources = {
             "mc_warning_points": "{{n}} accident-prone zones. Haptic alert 50m before entry.",
             "mc_route_start_toast": "Safe route ride started (est. reward: {{p}}P)",
             "mc_map_load_fail_title": "Map failed to load",
-            "mc_map_load_fail_desc": "Kakao Map service is temporarily unavailable."
+            "mc_map_load_fail_desc": "Kakao Map service is temporarily unavailable.",
+            "mc_origin_set_voice": "Origin set to {{name}}. Now select your destination.",
+            "mc_origin_set_toast": "🏁 Origin set. Select your destination.",
+            "mc_dest_set_voice": "{{name}} set as destination.",
+            "mc_dest_set_toast": "🏁 Destination set. Start your ride!",
+            "mc_route_done_toast": "Safe route found! Bonus reward: {{p}}P",
+            "mc_route_fail_toast": "Failed to generate a safe route.",
+            "mc_parking_zone": "Parking zone",
+            "mc_parking_zone_desc": "A zone for safe parking and reward earning.",
+            "mc_parking_info_voice": "This is {{name}}. A safe parking zone.",
+            "mc_place_title": "{{name}} (PM / Public Parking / Rental)",
+            "mc_place_safety": "Live API-linked zone: let's build good parking habits.",
+            "mc_select_parking_voice": "For safe parking and rewards, please select a parking lot or helmet station as your destination.",
+            "mc_select_parking_toast": "⚠️ For safe riding, please select a designated parking zone as your destination!",
+            "mc_dest_confirm_voice": "Destination set. Review the route and start your ride.",
+            "mc_dest_confirm_toast": "✨ Destination set. A safe route will be generated.",
+            "mc_location_voice": "This is {{title}}. {{desc}}. {{tip}}",
+            "mc_parking_capacity": "Available spaces: {{n}}"
         }
     }
 };
