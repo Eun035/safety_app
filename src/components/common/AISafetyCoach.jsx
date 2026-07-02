@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { X, Brain, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Zap, Shield, ChevronRight } from 'lucide-react';
 
 /**
@@ -18,6 +19,7 @@ import { X, Brain, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Zap, Sh
  *   - 3가지 코칭 포인트 최대 표시 (인지 부하 최소화)
  */
 const AISafetyCoach = ({ isOpen, onClose, data }) => {
+    const { t } = useTranslation();
 
     /**
      * generateInsights
@@ -50,8 +52,8 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                 type: 'positive',
                 icon: CheckCircle,
                 color: '#40ffdc',
-                title: '완벽한 제동 컨트롤!',
-                message: '이번 주행에서 급제동이 전혀 없었습니다. 앞차와의 거리 유지 습관이 탁월합니다.',
+                title: t('ac_brake0_title'),
+                message: t('ac_brake0_msg'),
                 action: null
             });
         } else if (suddenBrakeCount <= 2) {
@@ -59,18 +61,18 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                 type: 'warning',
                 icon: AlertTriangle,
                 color: '#f59e0b',
-                title: `급제동 ${suddenBrakeCount}회 감지`,
-                message: '급제동은 배터리 수명과 타이어 마모를 줄이고 뒤차 충돌 위험을 높입니다. 3~4초 앞을 미리 보는 습관을 길러보세요.',
-                action: '안전 거리 유지 가이드 보기'
+                title: t('ac_brake_low_title', { n: suddenBrakeCount }),
+                message: t('ac_brake_low_msg'),
+                action: t('ac_brake_low_action')
             });
         } else {
             result.push({
                 type: 'danger',
                 icon: Zap,
                 color: '#ef4444',
-                title: `급제동 ${suddenBrakeCount}회 — 주의 필요`,
-                message: '급제동이 반복되면 사고 위험이 크게 높아집니다. 속도를 낮추고 교차로 진입 전 미리 감속하는 연습을 권장합니다.',
-                action: '이번 주 급제동 패턴 분석'
+                title: t('ac_brake_high_title', { n: suddenBrakeCount }),
+                message: t('ac_brake_high_msg'),
+                action: t('ac_brake_high_action')
             });
         }
 
@@ -80,8 +82,8 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                 type: 'danger',
                 icon: TrendingUp,
                 color: '#ef4444',
-                title: `최고 속도 ${speedNum}km/h — 법적 한도 초과`,
-                message: '전동킥보드 법정 최고 속도는 25km/h입니다. 과속은 면허정지 및 과태료 대상입니다. 안전을 위해 속도를 유지해 주세요.',
+                title: t('ac_speed_over_title', { s: speedNum }),
+                message: t('ac_speed_over_msg'),
                 action: null
             });
         } else if (speedNum > 0 && speedNum <= 20) {
@@ -89,8 +91,8 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                 type: 'positive',
                 icon: Shield,
                 color: '#40ffdc',
-                title: '안전 속도 유지 완료',
-                message: `최고 속도 ${speedNum}km/h — 권장 속도 범위를 완벽히 지켰습니다. 이 속도면 제동 거리도 짧고 보행자 위험도 낮습니다.`,
+                title: t('ac_speed_safe_title'),
+                message: t('ac_speed_safe_msg', { s: speedNum }),
                 action: null
             });
         }
@@ -101,9 +103,9 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                 type: 'warning',
                 icon: Shield,
                 color: '#f59e0b',
-                title: '헬멧 미착용 감지',
-                message: '이번 주행에서 헬멧 착용이 확인되지 않았습니다. 두부 외상 위험을 80% 줄이는 가장 쉬운 방법은 헬멧 착용입니다.',
-                action: '헬멧 착용 인증하고 100P 받기'
+                title: t('ac_helmet_title'),
+                message: t('ac_helmet_msg'),
+                action: t('ac_helmet_action')
             });
         }
 
@@ -113,10 +115,10 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                 type: 'positive',
                 icon: TrendingUp,
                 color: '#a855f7',
-                title: `${distNum.toFixed(1)}km 달성!`,
+                title: t('ac_dist_title', { d: distNum.toFixed(1) }),
                 message: historyLen >= 3
-                    ? `꾸준히 주행하고 있습니다! 누적 경험이 쌓일수록 안전 반응 속도가 향상됩니다.`
-                    : `첫 번째 주행부터 좋은 거리를 달성했습니다. 앞으로 더 많은 안전 포인트가 기다립니다!`,
+                    ? t('ac_dist_msg_regular')
+                    : t('ac_dist_msg_first'),
                 action: null
             });
         }
@@ -131,8 +133,8 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                     type: 'positive',
                     icon: TrendingDown,
                     color: '#22c55e',
-                    title: '급제동 감소 추세 감지!',
-                    message: `최근 3회 주행 평균보다 급제동이 줄었습니다. 당신의 운전 습관이 개선되고 있습니다. 계속 유지하세요!`,
+                    title: t('ac_growth_title'),
+                    message: t('ac_growth_detail'),
                     action: null
                 });
             }
@@ -140,7 +142,7 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
 
         // 최대 3개까지만 표시 (인지 부하 최소화)
         return result.slice(0, 3);
-    }, [data]);
+    }, [data, t]);
 
     // 전체 코칭 점수 (100점 만점)
     const coachScore = useMemo(() => {
@@ -153,7 +155,7 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
     }, [data]);
 
     const scoreColor = coachScore >= 80 ? '#40ffdc' : coachScore >= 60 ? '#f59e0b' : '#ef4444';
-    const scoreLabel = coachScore >= 80 ? '안전 라이더' : coachScore >= 60 ? '성장 중' : '주의 필요';
+    const scoreLabel = coachScore >= 80 ? t('ac_label_safe') : coachScore >= 60 ? t('ac_label_growing') : t('ac_label_caution');
 
     return (
         <AnimatePresence>
@@ -224,19 +226,19 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <span className="text-xl font-black text-white leading-none">{coachScore}</span>
-                                    <span className="text-[8px] font-bold text-gray-400 uppercase">점</span>
+                                    <span className="text-[8px] font-bold text-gray-400 uppercase">{t('ac_score_unit')}</span>
                                 </div>
                             </div>
 
                             <div className="flex-1">
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">이번 주행 종합 평가</p>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{t('ac_overall')}</p>
                                 <p className="text-lg font-black tracking-tighter" style={{ color: scoreColor }}>{scoreLabel}</p>
                                 <p className="text-xs text-gray-400 mt-1 leading-relaxed">
                                     {coachScore >= 80
-                                        ? '훌륭합니다! 안전 습관이 완전히 자리잡고 있습니다.'
+                                        ? t('ac_summary_high')
                                         : coachScore >= 60
-                                        ? '좋은 방향으로 가고 있습니다. 조금만 더 개선해봐요!'
-                                        : '이번 주행은 위험 요소가 있었습니다. 아래 가이드를 확인하세요.'}
+                                        ? t('ac_summary_mid')
+                                        : t('ac_summary_low')}
                                 </p>
                             </div>
                         </div>
@@ -245,7 +247,7 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                         <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-3 scrollbar-hide">
                             {insights.length === 0 ? (
                                 <div className="text-center py-12 text-gray-500 text-sm">
-                                    주행 데이터를 분석 중입니다...
+                                    {t('ac_analyzing')}
                                 </div>
                             ) : (
                                 insights.map((insight, i) => {
@@ -283,7 +285,7 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                             {/* Growth Message */}
                             <div className="text-center pt-4 pb-2">
                                 <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
-                                    C-SAFE는 매 주행마다 당신의 성장을 기억합니다
+                                    {t('ac_growth_msg')}
                                 </p>
                             </div>
                         </div>
@@ -299,7 +301,7 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
                                 }}
                             >
                                 <Brain size={18} />
-                                코칭 완료 — 다음 주행 준비됨
+                                {t('ac_cta')}
                             </button>
                         </div>
                     </motion.div>
