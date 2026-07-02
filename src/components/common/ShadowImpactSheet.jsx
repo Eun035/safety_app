@@ -220,7 +220,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                             {/* ── Card 1: 실 데이터 요약 통계 ── */}
                             <section className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl">
                                 <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                    <Activity size={10} className="text-cyber-cyan" /> 최근 주행 통계
+                                    <Activity size={10} className="text-cyber-cyan" /> {t('si_recent_stats')}
                                     {hasRealData && (
                                         <span className="ml-auto text-[8px] font-bold text-cyber-cyan bg-cyber-cyan/10 px-1.5 py-0.5 rounded-full">
                                             LIVE DATA
@@ -231,12 +231,12 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 {hasRealData ? (
                                     <div className="grid grid-cols-3 gap-2">
                                         {[
-                                            { label: '주행 횟수', value: `${stats.rideCount}회`, color: '#40ffdc' },
-                                            { label: '총 거리', value: `${stats.totalDist}km`, color: '#a855f7' },
-                                            { label: 'CO₂ 절감', value: `${stats.co2Saved}kg`, color: '#22c55e' },
-                                            { label: '총 시간', value: `${stats.totalTime}분`, color: '#3b82f6' },
-                                            { label: '평균 최고속', value: `${stats.avgSpeed}km/h`, color: '#f59e0b' },
-                                            { label: '아차사고', value: `${stats.nearMissCount}건`, color: stats.nearMissCount > 0 ? '#ef4444' : '#6b7280' },
+                                            { label: t('si_rides'), value: t('si_unit_times', { n: stats.rideCount }), color: '#40ffdc' },
+                                            { label: t('si_total_dist'), value: `${stats.totalDist}km`, color: '#a855f7' },
+                                            { label: t('si_co2_saved'), value: `${stats.co2Saved}kg`, color: '#22c55e' },
+                                            { label: t('si_total_time'), value: t('si_unit_min', { n: stats.totalTime }), color: '#3b82f6' },
+                                            { label: t('si_avg_speed'), value: `${stats.avgSpeed}km/h`, color: '#f59e0b' },
+                                            { label: t('si_near_miss'), value: t('si_unit_count', { n: stats.nearMissCount }), color: stats.nearMissCount > 0 ? '#ef4444' : '#6b7280' },
                                         ].map(({ label, value, color }) => (
                                             <div key={label} className="bg-white/5 rounded-xl p-2.5 text-center border border-white/5">
                                                 <p className="text-[9px] text-gray-500 font-bold mb-0.5">{label}</p>
@@ -247,8 +247,8 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 ) : (
                                     <div className="text-center py-6">
                                         <p className="text-2xl mb-2">🛴</p>
-                                        <p className="text-xs font-bold text-gray-500">첫 주행을 완료하면</p>
-                                        <p className="text-xs text-gray-600">여기에 실제 데이터가 표시됩니다</p>
+                                        <p className="text-xs font-bold text-gray-500">{t('si_empty1')}</p>
+                                        <p className="text-xs text-gray-600">{t('si_empty2')}</p>
                                     </div>
                                 )}
                             </section>
@@ -256,14 +256,14 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                             {/* ── Card NEW-C (2026-05-29): 환경/안전 임팩트 (ESG 흡수) ── */}
                             <section className="bg-gradient-to-br from-cyber-green/10 to-black p-4 rounded-[2rem] border border-cyber-green/20 shadow-xl">
                                 <p className="text-[9px] font-black text-cyber-green/70 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                    🌿 환경 · 안전 임팩트
+                                    {t('si_env_title')}
                                 </p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {[
-                                        { label: 'CO₂ 절감', value: `${environment.carbonSaved}kg`, color: '#22c55e' },
-                                        { label: '🌳 나무 식재 환산', value: `${environment.trees}그루`, color: '#22c55e' },
-                                        { label: '안전 점수', value: `${environment.safetyScore}%`, color: '#40ffdc' },
-                                        { label: '🔥 안전 스트릭', value: `${environment.safetyStreak}일`, color: '#f59e0b' },
+                                        { label: t('si_co2_saved'), value: `${environment.carbonSaved}kg`, color: '#22c55e' },
+                                        { label: t('si_trees_label'), value: t('si_unit_trees', { n: environment.trees }), color: '#22c55e' },
+                                        { label: t('si_safety_score'), value: `${environment.safetyScore}%`, color: '#40ffdc' },
+                                        { label: t('si_safety_streak'), value: t('si_unit_days', { n: environment.safetyStreak }), color: '#f59e0b' },
                                     ].map(({ label, value, color }) => (
                                         <div key={label} className="bg-white/5 rounded-xl p-2.5 text-center border border-white/5">
                                             <p className="text-[9px] text-gray-500 font-bold mb-0.5">{label}</p>
@@ -272,7 +272,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                     ))}
                                 </div>
                                 <p className="text-[9px] text-gray-600 mt-2 text-center leading-tight">
-                                    누적 주행 거리 · 안전 행동 데이터 기반. 2kg CO₂ ≈ 1그루
+                                    {t('si_env_note')}
                                 </p>
                             </section>
 
@@ -280,7 +280,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                             <section className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl">
                                 <div className="flex items-center justify-between mb-3">
                                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                                        <Shield size={10} className="text-cyber-cyan" /> 위험구역 통제율(RSR) · 14일
+                                        <Shield size={10} className="text-cyber-cyan" /> {t('si_rsr_title')}
                                     </p>
                                     {rsrSummary.current !== null && (
                                         <div className="flex items-baseline gap-2">
@@ -295,7 +295,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 </div>
                                 {rsrSummary.current === null ? (
                                     <div className="text-center py-4">
-                                        <p className="text-[10px] text-gray-500">위험구역을 지나면 여기에 추이가 표시됩니다</p>
+                                        <p className="text-[10px] text-gray-500">{t('si_rsr_empty')}</p>
                                     </div>
                                 ) : (
                                     (() => {
@@ -322,7 +322,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 )}
                                 <div className="flex justify-between mt-1 text-[8px] text-gray-600 px-2">
                                     <span>{rsrTrend[0]?.day}</span>
-                                    <span>오늘</span>
+                                    <span>{t('si_today')}</span>
                                 </div>
                             </section>
 
@@ -331,7 +331,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 <div className="flex justify-between items-end mb-2">
                                     <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                         <MapIcon size={14} className="text-cyber-cyan" />
-                                        {hasRealData && svgPath ? '실제 경로' : t("shadow_map_title")}
+                                        {hasRealData && svgPath ? t('si_real_route') : t("shadow_map_title")}
                                     </h3>
                                     <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 px-2 py-0.5 rounded tracking-widest">
                                         {hasRealData && svgPath ? 'GPS TRACK' : 'LIVE AI SYNC'}
@@ -405,7 +405,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                         {nearMissSvgPositions.length > 0 && (
                                             <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-full">
                                                 <div className="w-2 h-2 bg-red-500 rounded-full" />
-                                                <span className="text-[8px] font-bold text-red-400">아차사고</span>
+                                                <span className="text-[8px] font-bold text-red-400">{t('si_near_miss')}</span>
                                             </div>
                                         )}
 
@@ -419,11 +419,11 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                             <TrendingUp size={18} className="text-cyber-cyan shadow-neon-cyan" />
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-sm font-black text-white mb-1">{userName}님의 데이터 기여</p>
+                                            <p className="text-sm font-black text-white mb-1">{t('si_contrib', { name: userName })}</p>
                                             <p className="text-[10px] font-bold text-gray-400">
-                                                신부동 위험 알고리즘{' '}
+                                                {t('si_algo_prefix')}{' '}
                                                 <span className="text-cyber-cyan">
-                                                    {stats.rideCount > 0 ? `${(stats.rideCount * 0.02).toFixed(2)}% 기여!` : '0.02% 기여!'}
+                                                    {t('si_contrib_pct', { pct: stats.rideCount > 0 ? (stats.rideCount * 0.02).toFixed(2) : '0.02' })}
                                                 </span>
                                             </p>
                                         </div>
@@ -435,13 +435,13 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                             <section className="bg-gradient-to-br from-[#12161b] to-black p-4 rounded-[2rem] border border-white/5 shadow-xl">
                                 <div className="flex items-center justify-between mb-3">
                                     <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                                        <AlertTriangle size={10} className="text-red-400" /> 시간대 위험 패턴
+                                        <AlertTriangle size={10} className="text-red-400" /> {t('si_time_pattern')}
                                     </p>
-                                    <span className="text-[8px] font-bold text-gray-500">총 {heatmap.total}건</span>
+                                    <span className="text-[8px] font-bold text-gray-500">{t('si_total_count', { n: heatmap.total })}</span>
                                 </div>
                                 {heatmap.total === 0 ? (
                                     <div className="text-center py-4">
-                                        <p className="text-[10px] text-gray-500">아차사고가 누적되면 요일·시간대 패턴이 표시됩니다</p>
+                                        <p className="text-[10px] text-gray-500">{t('si_heatmap_empty')}</p>
                                     </div>
                                 ) : (
                                     (() => {
@@ -449,7 +449,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                         const LABEL_W = 18;
                                         const W = LABEL_W + 24 * (CELL + GAP);
                                         const H = 7 * (CELL + GAP) + 12;
-                                        const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+                                        const dayLabels = t('si_day_labels').split(',');
                                         return (
                                             <>
                                                 <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }}>
@@ -473,7 +473,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                                                         rx="1.5"
                                                                         fill={fill}
                                                                     >
-                                                                        <title>{`${dayLabels[ri]} ${ci}시: ${v}건`}</title>
+                                                                        <title>{t('si_heat_cell', { day: dayLabels[ri], hour: ci, v })}</title>
                                                                     </rect>
                                                                 );
                                                             })}
@@ -489,17 +489,17 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                                             fill="#6b7280"
                                                             fontWeight="700"
                                                         >
-                                                            {h}시
+                                                            {t('si_hour', { h })}
                                                         </text>
                                                     ))}
                                                 </svg>
                                                 {/* 범례 */}
                                                 <div className="flex items-center justify-end gap-1 mt-1">
-                                                    <span className="text-[7px] text-gray-600">적음</span>
+                                                    <span className="text-[7px] text-gray-600">{t('si_less')}</span>
                                                     {[0.2, 0.4, 0.6, 0.8, 1.0].map(a => (
                                                         <div key={a} className="w-2 h-2 rounded-sm" style={{ backgroundColor: `rgba(239,68,68,${a})` }} />
                                                     ))}
-                                                    <span className="text-[7px] text-gray-600">많음</span>
+                                                    <span className="text-[7px] text-gray-600">{t('si_more')}</span>
                                                 </div>
                                             </>
                                         );
@@ -512,10 +512,10 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 <section className="relative group">
                                     <div className="flex justify-between items-end mb-2">
                                         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                            <AlertTriangle size={14} className="text-red-400" /> 아차사고 이력
+                                            <AlertTriangle size={14} className="text-red-400" /> {t('si_near_miss_history')}
                                         </h3>
                                         <span className="text-[10px] font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded tracking-widest">
-                                            {nearMisses.length}건
+                                            {t('si_unit_count', { n: nearMisses.length })}
                                         </span>
                                     </div>
 
@@ -527,16 +527,16 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[10px] font-bold text-white truncate">
-                                                        {nm.nearby_hazard_type || '급제동'} · {nm.speed_kmh || 0}km/h
+                                                        {nm.nearby_hazard_type || t('si_sudden_brake')} · {nm.speed_kmh || 0}km/h
                                                     </p>
                                                     <p className="text-[8px] text-gray-600">
                                                         {nm.occurred_at ? new Date(nm.occurred_at).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
-                                                        {nm.weather_risk && ' · 🌧우천'}
-                                                        {nm.in_stress_zone && ' · 👥스트레스존'}
+                                                        {nm.weather_risk && ` · ${t('si_weather_rain')}`}
+                                                        {nm.in_stress_zone && ` · ${t('si_stress_zone')}`}
                                                     </p>
                                                 </div>
                                                 <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${nm.helmet_on ? 'text-green-400 bg-green-400/10' : 'text-gray-600 bg-white/5'}`}>
-                                                    {nm.helmet_on ? '🪖헬멧' : '미착용'}
+                                                    {nm.helmet_on ? t('si_helmet') : t('si_no_helmet')}
                                                 </span>
                                             </div>
                                         ))}
@@ -549,10 +549,10 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                 <section className="relative group">
                                     <div className="flex justify-between items-end mb-2">
                                         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                            <Zap size={14} className="text-purple-400" /> 최근 주행 기록
+                                            <Zap size={14} className="text-purple-400" /> {t('si_recent_rides')}
                                         </h3>
                                         <span className="text-[10px] font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded tracking-widest italic">
-                                            {recentRides.length}회
+                                            {t('si_unit_times', { n: recentRides.length })}
                                         </span>
                                     </div>
 
@@ -564,11 +564,11 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[10px] font-bold text-white">
-                                                        {parseFloat(ride.distance || 0).toFixed(1)}km · {ride.time || 0}분
+                                                        {parseFloat(ride.distance || 0).toFixed(1)}km · {t('si_unit_min', { n: ride.time || 0 })}
                                                     </p>
                                                     <p className="text-[8px] text-gray-600">
-                                                        최고 {ride.top_speed || ride.topSpeed || 0}km/h
-                                                        · CO₂ {((parseFloat(ride.distance || 0)) * 0.2).toFixed(1)}kg 절감
+                                                        {t('si_ride_top', { s: ride.top_speed || ride.topSpeed || 0 })}
+                                                        {' · '}{t('si_ride_co2', { kg: ((parseFloat(ride.distance || 0)) * 0.2).toFixed(1) })}
                                                     </p>
                                                 </div>
                                                 <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
@@ -576,7 +576,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                                         ? 'text-green-400 bg-green-400/10'
                                                         : 'text-orange-400 bg-orange-400/10'
                                                 }`}>
-                                                    {(ride.sudden_brake_count || ride.suddenBrakeCount || 0) === 0 ? '✓ 클린' : `⚡${ride.sudden_brake_count || ride.suddenBrakeCount}회`}
+                                                    {(ride.sudden_brake_count || ride.suddenBrakeCount || 0) === 0 ? t('si_clean') : t('si_brake_count', { n: ride.sudden_brake_count || ride.suddenBrakeCount })}
                                                 </span>
                                             </div>
                                         ))}
@@ -629,7 +629,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                         </div>
 
                                         <div className="text-center">
-                                            <p className="text-[10px] text-gray-500">첫 주행 후 실제 3D 경로 리플레이가 표시됩니다</p>
+                                            <p className="text-[10px] text-gray-500">{t('si_replay_empty')}</p>
                                         </div>
                                     </div>
                                 </section>
