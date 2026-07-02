@@ -366,7 +366,14 @@ const resources = {
             "srm_partner_benefit": "제휴 상점 혜택",
             "srm_coupon": "{{partner}} 10% 쿠폰",
             "srm_download": "다운로드",
-            "srm_claim": "포인트 수령 및 요약 확인"
+            "srm_claim": "포인트 수령 및 요약 확인",
+
+            // TargetedAdBanner (라이드 요약 배너)
+            "tab_aggressive_title": "보호구 특가 할인 기간",
+            "tab_aggressive_desc": "안전이 우선! 프리미엄 헬멧 20% OFF",
+            "tab_eco_title": "에코 라이더 전용 굿즈",
+            "tab_eco_desc": "안전 주행 리워드로 친환경 텀블러 교환",
+            "tab_redeem": "포인트 교환"
         }
     },
     ja: {
@@ -764,7 +771,14 @@ const resources = {
             "srm_coupon": "{{partner}} 10%クーポン",
             "srm_download": "ダウンロード",
             "srm_claim": "ポイント受取・サマリー確認",
-            "단국대 앞 하이카페": "檀国大前ハイカフェ"
+            "단국대 앞 하이카페": "檀国大前ハイカフェ",
+
+            // TargetedAdBanner
+            "tab_aggressive_title": "プロテクター特価セール",
+            "tab_aggressive_desc": "安全第一！プレミアムヘルメット20%OFF",
+            "tab_eco_title": "エコライダー限定グッズ",
+            "tab_eco_desc": "安全走行リワードでエコタンブラーと交換",
+            "tab_redeem": "ポイント交換"
         }
     },
     "zh-CN": {
@@ -1162,7 +1176,14 @@ const resources = {
             "srm_coupon": "{{partner}} 10%优惠券",
             "srm_download": "下载",
             "srm_claim": "领取积分并查看摘要",
-            "단국대 앞 하이카페": "檀国大门前Hi Cafe"
+            "단국대 앞 하이카페": "檀国大门前Hi Cafe",
+
+            // TargetedAdBanner
+            "tab_aggressive_title": "护具特价促销",
+            "tab_aggressive_desc": "安全第一！高级头盔20% OFF",
+            "tab_eco_title": "环保骑手专属周边",
+            "tab_eco_desc": "用安全骑行奖励兑换环保保温杯",
+            "tab_redeem": "积分兑换"
         }
     },
     en: {
@@ -1560,7 +1581,14 @@ const resources = {
             "srm_coupon": "{{partner}} 10% coupon",
             "srm_download": "Download",
             "srm_claim": "Claim Points & View Summary",
-            "단국대 앞 하이카페": "Hi Cafe (Dankook Gate)"
+            "단국대 앞 하이카페": "Hi Cafe (Dankook Gate)",
+
+            // TargetedAdBanner
+            "tab_aggressive_title": "Protective Gear Sale",
+            "tab_aggressive_desc": "Safety first! Premium helmet 20% OFF",
+            "tab_eco_title": "Eco Rider Exclusive Goods",
+            "tab_eco_desc": "Redeem safe-ride rewards for an eco tumbler",
+            "tab_redeem": "Redeem Points"
         }
     }
 };
