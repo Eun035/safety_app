@@ -67,7 +67,8 @@ export function buildReferralCode(userId) {
  */
 export function buildReferralUrl(code) {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://c-pm-safety.vercel.app';
-    return `${origin}/r/${code}?utm_source=instagram&utm_medium=ride_card&utm_campaign=user_share`;
+    return `${origin}/?ref=${code}&utm_source=instagram&utm_medium=ride_card&utm_campaign=user_share`;
+
 }
 
 /**
