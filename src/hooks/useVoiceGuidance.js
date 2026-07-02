@@ -2,6 +2,23 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 /**
+ * TTS 발화용 텍스트 정리 — 화면 표기는 그대로 두고 "읽을 때만" 매끄럽게.
+ * 모든 언어(ko/ja/zh/en) 공통 규칙:
+ *  1) 괄호 병기 제거:  인도(보도) → 인도,  전방(前方) → 전방   (반각/전각 () （） 【】 ［］ 모두)
+ *  2) 슬래시 병기는 앞쪽 하나만:  인도/보도 → 인도,  QR/NFC → QR,  25km/h → 25km
+ *     - 단어(한·중·일·영문) 사이 슬래시에만 적용. 3/4·2020/12 같은 숫자 슬래시는 유지.
+ *  3) 중복 공백·구두점 정리.
+ */
+const sanitizeForSpeech = (text) => {
+    if (text === '' || text == null) return text;   // 오디오 언락용 빈 문자열은 그대로
+    let s = String(text);
+    s = s.replace(/\s*[(（【［][^)）】］]*[)）】］]/g, '');                     // (1) 괄호 병기 제거
+    s = s.replace(/(\p{L}+)\s*[/／]\s*\p{L}[\p{L}/／]*/gu, '$1');            // (2) 단어/단어 → 앞쪽만
+    s = s.replace(/\s{2,}/g, ' ').replace(/\s+([,.!?！？。、])/g, '$1').trim(); // (3) 공백 정리
+    return s;
+};
+
+/**
  * 전동 킥보드 안전 주행을 위한 음성 안내 훅
  * Web Speech API (SpeechSynthesis)를 사용하여 텍스트를 음성으로 변환합니다.
  */
@@ -101,7 +118,9 @@ export const useVoiceGuidance = () => {
             // 빈 텍스트면 건너뛰기 (초기화용 제외)
             if (text !== '' && (!text || text.trim() === '')) return;
 
-            const utterance = new SpeechSynthesisUtterance(text);
+            // 괄호·슬래시 병기는 읽을 때만 하나로 정리 (화면 표기는 원본 유지)
+            const spokenText = sanitizeForSpeech(text);
+            const utterance = new SpeechSynthesisUtterance(spokenText);
 
             let locale = 'ko-KR';
             const currentLang = i18n.language || window.localStorage.getItem('i18nextLng') || 'ko';

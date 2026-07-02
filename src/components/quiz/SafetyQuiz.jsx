@@ -123,7 +123,7 @@ const SafetyQuiz = ({ onComplete }) => {
                     </div>
                     <h2 className="text-lg sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{t("quiz_title")}</h2>
                     <p className="text-xs sm:text-sm text-gray-400 font-medium mb-5 sm:mb-10 leading-relaxed">
-                        안전한 주행을 위한 필수 지식 테스트입니다.<br />문제를 잘 듣고 O/X를 선택해 주세요.
+                        {t("quiz_intro_l1")}<br />{t("quiz_intro_l2")}
                     </p>
                     <button
                         onClick={() => {
@@ -136,7 +136,7 @@ const SafetyQuiz = ({ onComplete }) => {
                         }}
                         className="w-full py-5 sm:py-6 rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all shadow-neon-cyan bg-cyber-cyan text-black active:scale-95 flex items-center justify-center gap-2"
                     >
-                        테스트 시작하기
+                        {t("quiz_start_btn")}
                     </button>
                 </div>
             </div>

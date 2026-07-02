@@ -126,7 +126,41 @@ const resources = {
             "tts_destination_search": "목적지 {{title}}을 검색했습니다. 지도를 해당 위치로 이동합니다.",
             "search_placeholder": "랜드마크 검색 (시청, 소방서, 대학교 등)...",
             "search_no_results": "검색 결과가 없습니다.",
-            "search_no_results_desc": "천안시청, 소방서, 터미널 등을 입력해 보세요!"
+            "search_no_results_desc": "천안시청, 소방서, 터미널 등을 입력해 보세요!",
+
+            // Phase 1 — 퀴즈 인트로 / 추천 환영 모달
+            "quiz_intro_l1": "안전한 주행을 위한 필수 지식 테스트입니다.",
+            "quiz_intro_l2": "문제를 잘 듣고 O/X를 선택해 주세요.",
+            "quiz_start_btn": "테스트 시작하기",
+            "ref_welcome_title": "친구 추천으로 오셨네요",
+            "ref_code_label": "추천 코드",
+            "ref_reward_title": "첫 라이딩 완료 시 +500P",
+            "ref_reward_desc1": "친구와 본인 양쪽 모두에게 자동 적립됩니다.",
+            "ref_reward_desc2": "헬멧 인증·합법 주차 시 추가 적립.",
+            "ref_demo_title": "7초 안전 코치 시연",
+            "ref_demo_l1_label": "L1 사전 예고",
+            "ref_demo_l3_label": "L3 진입",
+            "ref_demo_l4_label": "L4 위반",
+            "ref_demo_speaker": "외부 스피커 음성",
+            "ref_demo_haptic": "패턴 햅틱",
+            "ref_demo_btn_done": "✓ 시연 완료 — 다시 보기",
+            "ref_demo_btn_running": "시연 진행 중...",
+            "ref_demo_btn_start": "▶ 시연 시작",
+            "ref_cta_later": "나중에",
+            "ref_cta_start": "지금 시작",
+            "ref_demo_speak_l1": "전방 보호구역, 시속 10km 권장.",
+            "ref_demo_speak_l3": "감속! 보호구역 진입.",
+            "ref_demo_speak_l4": "속도 위반! 즉시 감속!",
+            "close": "닫기",
+
+            // RideSettings (RIDE CONTROL 시트)
+            "rs_subtitle": "주행 모드 · 환경 · 토글 설정",
+            "rs_speed_limit": "속도 제한",
+            "rs_scooter": "전동스쿠터",
+            "rs_ebike": "전동자전거",
+            "rs_unlimited": "제한 해제",
+            "rs_summary_desc": "주행 종료 후 요약 카드 노출",
+            "rs_show_brands": "표시할 브랜드"
         }
     },
     ja: {
@@ -244,7 +278,41 @@ const resources = {
             "tts_destination_search": "目的地{{title}}を検索しました。地図を該当位置へ移動します。",
             "search_placeholder": "ランドマーク検索（市役所、消防署、大学など）...",
             "search_no_results": "検索結果がありません。",
-            "search_no_results_desc": "天安市役所、消防署、ターミナルなどを入力してください！"
+            "search_no_results_desc": "天安市役所、消防署、ターミナルなどを入力してください！",
+
+            // Phase 1 — クイズ導入 / 紹介ウェルカムモーダル
+            "quiz_intro_l1": "安全走行のための必須知識テストです。",
+            "quiz_intro_l2": "問題をよく聞いて〇/✕を選んでください。",
+            "quiz_start_btn": "テストを開始",
+            "ref_welcome_title": "友達の紹介で来られましたね",
+            "ref_code_label": "紹介コード",
+            "ref_reward_title": "初回ライド完了で +500P",
+            "ref_reward_desc1": "友達とご本人の両方に自動で付与されます。",
+            "ref_reward_desc2": "ヘルメット認証・合法駐車で追加付与。",
+            "ref_demo_title": "7秒 安全コーチ体験",
+            "ref_demo_l1_label": "L1 事前予告",
+            "ref_demo_l3_label": "L3 進入",
+            "ref_demo_l4_label": "L4 違反",
+            "ref_demo_speaker": "外部スピーカー音声",
+            "ref_demo_haptic": "パターン触覚",
+            "ref_demo_btn_done": "✓ 体験完了 — もう一度",
+            "ref_demo_btn_running": "体験中...",
+            "ref_demo_btn_start": "▶ 体験開始",
+            "ref_cta_later": "後で",
+            "ref_cta_start": "今すぐ開始",
+            "ref_demo_speak_l1": "前方は保護区域、時速10km推奨。",
+            "ref_demo_speak_l3": "減速！保護区域に進入。",
+            "ref_demo_speak_l4": "速度違反！直ちに減速！",
+            "close": "閉じる",
+
+            // RideSettings (RIDE CONTROL シート)
+            "rs_subtitle": "走行モード・環境・トグル設定",
+            "rs_speed_limit": "制限速度",
+            "rs_scooter": "電動スクーター",
+            "rs_ebike": "電動自転車",
+            "rs_unlimited": "制限解除",
+            "rs_summary_desc": "走行終了後にサマリーカードを表示",
+            "rs_show_brands": "表示するブランド"
         }
     },
     "zh-CN": {
@@ -362,7 +430,41 @@ const resources = {
             "tts_destination_search": "已搜索目的地{{title}}。正在将地图移动到该位置。",
             "search_placeholder": "搜索地标（市政厅、消防局、大学等）...",
             "search_no_results": "无搜索结果。",
-            "search_no_results_desc": "请输入天安市政厅、消防局、客运站等！"
+            "search_no_results_desc": "请输入天安市政厅、消防局、客运站等！",
+
+            // Phase 1 — 问答导入 / 推荐欢迎弹窗
+            "quiz_intro_l1": "这是安全骑行的必备知识测试。",
+            "quiz_intro_l2": "请仔细听题并选择 〇/✕。",
+            "quiz_start_btn": "开始测试",
+            "ref_welcome_title": "您通过好友推荐而来",
+            "ref_code_label": "推荐码",
+            "ref_reward_title": "完成首次骑行 +500P",
+            "ref_reward_desc1": "好友和本人双方将自动累积。",
+            "ref_reward_desc2": "头盔认证·合法停车可额外累积。",
+            "ref_demo_title": "7秒 安全教练演示",
+            "ref_demo_l1_label": "L1 提前预告",
+            "ref_demo_l3_label": "L3 进入",
+            "ref_demo_l4_label": "L4 违规",
+            "ref_demo_speaker": "外部扬声器语音",
+            "ref_demo_haptic": "震动模式",
+            "ref_demo_btn_done": "✓ 演示完成 — 重新观看",
+            "ref_demo_btn_running": "演示进行中...",
+            "ref_demo_btn_start": "▶ 开始演示",
+            "ref_cta_later": "稍后",
+            "ref_cta_start": "立即开始",
+            "ref_demo_speak_l1": "前方保护区域，建议时速10公里。",
+            "ref_demo_speak_l3": "减速！进入保护区域。",
+            "ref_demo_speak_l4": "超速违规！立即减速！",
+            "close": "关闭",
+
+            // RideSettings (RIDE CONTROL 面板)
+            "rs_subtitle": "骑行模式 · 环境 · 开关设置",
+            "rs_speed_limit": "限速",
+            "rs_scooter": "电动滑板车",
+            "rs_ebike": "电动自行车",
+            "rs_unlimited": "解除限制",
+            "rs_summary_desc": "骑行结束后显示摘要卡片",
+            "rs_show_brands": "显示的品牌"
         }
     },
     en: {
@@ -480,7 +582,41 @@ const resources = {
             "tts_destination_search": "Searched for destination {{title}}. Moving the map to this location.",
             "search_placeholder": "Search landmarks (City Hall, Fire Station, College)...",
             "search_no_results": "No results found.",
-            "search_no_results_desc": "Try searching for Cheonan City Hall, Fire Station, or Terminal!"
+            "search_no_results_desc": "Try searching for Cheonan City Hall, Fire Station, or Terminal!",
+
+            // Phase 1 — Quiz intro / Referral welcome modal
+            "quiz_intro_l1": "This is an essential knowledge test for safe riding.",
+            "quiz_intro_l2": "Listen carefully and choose O/X.",
+            "quiz_start_btn": "Start Test",
+            "ref_welcome_title": "You came from a friend's referral",
+            "ref_code_label": "Referral Code",
+            "ref_reward_title": "+500P on your first ride",
+            "ref_reward_desc1": "Automatically credited to both you and your friend.",
+            "ref_reward_desc2": "Extra points for helmet verification & legal parking.",
+            "ref_demo_title": "7-Second Safety Coach Demo",
+            "ref_demo_l1_label": "L1 Pre-warning",
+            "ref_demo_l3_label": "L3 Entry",
+            "ref_demo_l4_label": "L4 Violation",
+            "ref_demo_speaker": "External Speaker Voice",
+            "ref_demo_haptic": "Haptic Pattern",
+            "ref_demo_btn_done": "✓ Demo Done — Replay",
+            "ref_demo_btn_running": "Demo Running...",
+            "ref_demo_btn_start": "▶ Start Demo",
+            "ref_cta_later": "Later",
+            "ref_cta_start": "Start Now",
+            "ref_demo_speak_l1": "Protected zone ahead, 10 km/h advised.",
+            "ref_demo_speak_l3": "Slow down! Entering protected zone.",
+            "ref_demo_speak_l4": "Speed violation! Slow down now!",
+            "close": "Close",
+
+            // RideSettings (RIDE CONTROL sheet)
+            "rs_subtitle": "Ride Mode · Environment · Toggles",
+            "rs_speed_limit": "Speed Limit",
+            "rs_scooter": "E-Scooter",
+            "rs_ebike": "E-Bike",
+            "rs_unlimited": "Unlimited",
+            "rs_summary_desc": "Show summary card after ride ends",
+            "rs_show_brands": "Brands to Show"
         }
     }
 };

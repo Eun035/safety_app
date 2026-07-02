@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Volume2, Vibrate, X, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 추천 링크(/r/CODE) 진입 사용자에게 1회 노출되는 환영 화면.
@@ -11,6 +12,7 @@ import { Gift, Volume2, Vibrate, X, Sparkles } from 'lucide-react';
 const SHOWN_KEY = 'csafe_referral_welcome_shown_v1';
 
 const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [demoStep, setDemoStep] = useState(null); // null | 'L1' | 'L3' | 'L4' | 'done'
 
@@ -33,17 +35,17 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
         const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
         setDemoStep('L1');
-        speak?.('전방 보호구역, 시속 10km 권장.', 'L1');
+        speak?.(t('ref_demo_speak_l1'), 'L1');
         vibrate?.('L1');
         await wait(2500);
 
         setDemoStep('L3');
-        speak?.('감속! 보호구역 진입.', 'L3');
+        speak?.(t('ref_demo_speak_l3'), 'L3');
         vibrate?.('L3');
         await wait(2500);
 
         setDemoStep('L4');
-        speak?.('속도 위반! 즉시 감속!', 'L4');
+        speak?.(t('ref_demo_speak_l4'), 'L4');
         vibrate?.('L4');
         await wait(2000);
 
@@ -68,7 +70,7 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                     >
                         {/* 헤더 */}
                         <div className="relative p-6 pb-5 border-b border-white/5">
-                            <button onClick={close} className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-white/10 text-gray-400" title="닫기">
+                            <button onClick={close} className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-white/10 text-gray-400" title={t('close')}>
                                 <X size={18} />
                             </button>
                             <div className="flex items-center gap-3">
@@ -76,8 +78,8 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                                     <Gift size={26} className="text-cyber-cyan" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-black text-white tracking-tight">친구 추천으로 오셨네요</h2>
-                                    <p className="text-[11px] text-cyber-cyan font-bold mt-0.5">추천 코드 {pendingReferral?.code}</p>
+                                    <h2 className="text-base font-black text-white tracking-tight">{t('ref_welcome_title')}</h2>
+                                    <p className="text-[11px] text-cyber-cyan font-bold mt-0.5">{t('ref_code_label')} {pendingReferral?.code}</p>
                                 </div>
                             </div>
                         </div>
@@ -87,10 +89,10 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                             <div className="bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-2xl p-4 flex items-start gap-3 mb-4">
                                 <Sparkles size={20} className="text-cyber-cyan shrink-0 mt-0.5" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-black text-white mb-1">첫 라이딩 완료 시 +500P</div>
+                                    <div className="text-xs font-black text-white mb-1">{t('ref_reward_title')}</div>
                                     <div className="text-[11px] text-gray-300 font-medium leading-relaxed">
-                                        친구와 본인 양쪽 모두에게 자동 적립됩니다.<br/>
-                                        헬멧 인증·합법 주차 시 추가 적립.
+                                        {t('ref_reward_desc1')}<br/>
+                                        {t('ref_reward_desc2')}
                                     </div>
                                 </div>
                             </div>
@@ -98,13 +100,13 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                             {/* 시연 박스 */}
                             <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                                 <div className="text-[11px] font-black text-gray-300 uppercase tracking-widest mb-2.5">
-                                    7초 안전 코치 시연
+                                    {t('ref_demo_title')}
                                 </div>
                                 <div className="flex gap-2 mb-3">
                                     {[
-                                        { id: 'L1', label: 'L1 사전 예고', color: 'text-yellow-300', bg: 'bg-yellow-500/15 border-yellow-500/30' },
-                                        { id: 'L3', label: 'L3 진입',     color: 'text-orange-300', bg: 'bg-orange-500/15 border-orange-500/30' },
-                                        { id: 'L4', label: 'L4 위반',     color: 'text-red-300',    bg: 'bg-red-500/15 border-red-500/30' }
+                                        { id: 'L1', label: t('ref_demo_l1_label'), color: 'text-yellow-300', bg: 'bg-yellow-500/15 border-yellow-500/30' },
+                                        { id: 'L3', label: t('ref_demo_l3_label'), color: 'text-orange-300', bg: 'bg-orange-500/15 border-orange-500/30' },
+                                        { id: 'L4', label: t('ref_demo_l4_label'), color: 'text-red-300',    bg: 'bg-red-500/15 border-red-500/30' }
                                     ].map(stage => {
                                         const active = demoStep === stage.id;
                                         return (
@@ -120,8 +122,8 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                                     })}
                                 </div>
                                 <div className="flex items-center justify-between gap-2 text-[10px] text-gray-400 font-bold">
-                                    <span className="flex items-center gap-1.5"><Volume2 size={12} /> 외부 스피커 음성</span>
-                                    <span className="flex items-center gap-1.5"><Vibrate size={12} /> 패턴 햅틱</span>
+                                    <span className="flex items-center gap-1.5"><Volume2 size={12} /> {t('ref_demo_speaker')}</span>
+                                    <span className="flex items-center gap-1.5"><Vibrate size={12} /> {t('ref_demo_haptic')}</span>
                                 </div>
                                 <button
                                     type="button"
@@ -129,7 +131,7 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                                     disabled={demoStep && demoStep !== 'done'}
                                     className="mt-3 w-full py-2.5 rounded-xl bg-white/10 border border-white/15 hover:bg-white/15 active:scale-95 text-cyber-cyan font-black text-xs transition disabled:opacity-50"
                                 >
-                                    {demoStep === 'done' ? '✓ 시연 완료 — 다시 보기' : demoStep ? '시연 진행 중...' : '▶ 시연 시작'}
+                                    {demoStep === 'done' ? t('ref_demo_btn_done') : demoStep ? t('ref_demo_btn_running') : t('ref_demo_btn_start')}
                                 </button>
                             </div>
                         </div>
@@ -141,14 +143,14 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
                                 onClick={close}
                                 className="flex-1 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-gray-300 font-bold text-xs hover:bg-white/10 active:scale-95 transition"
                             >
-                                나중에
+                                {t('ref_cta_later')}
                             </button>
                             <button
                                 type="button"
                                 onClick={close}
                                 className="flex-[2] py-3.5 rounded-2xl bg-cyber-cyan text-black font-black text-xs uppercase tracking-wider shadow-neon-cyan hover:opacity-90 active:scale-95 transition"
                             >
-                                지금 시작
+                                {t('ref_cta_start')}
                             </button>
                         </div>
                     </motion.div>

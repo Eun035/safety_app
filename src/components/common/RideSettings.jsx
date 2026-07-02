@@ -1,10 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sliders, Moon, Zap, Shield, Filter, Bike, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // VIBE 탭 핑크 톤과 매칭하는 sheet 디자인 (다른 footer 시트들과 동일한 슬라이드업 패턴)
 const ACCENT = '#FF8C94';
 
 const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
+    const { t } = useTranslation();
     const brands = ['G-Bike', 'Swing', 'Dear', 'Beam', 'Lime', 'Alphon', 'Elecle'];
 
     const toggleBrand = (brand) => {
@@ -54,7 +56,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                                 </h2>
                             </div>
                             <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: ACCENT }}>
-                                주행 모드 · 환경 · 토글 설정
+                                {t('rs_subtitle')}
                             </p>
                         </div>
 
@@ -64,7 +66,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                             {/* === Section 1: Ride Mode === */}
                             <section className="bg-gradient-to-br from-[#1a160d] to-[#0a0c0f] p-4 rounded-[1.5rem] border border-white/5 shadow-xl">
                                 <p className="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{ color: ACCENT }}>
-                                    <Zap size={12} /> Ride Mode · 속도 제한
+                                    <Zap size={12} /> Ride Mode · {t('rs_speed_limit')}
                                 </p>
                                 <div className="grid grid-cols-3 gap-2">
                                     <button
@@ -73,7 +75,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                                     >
                                         <Shield size={16} />
                                         <span className="text-[11px] font-black uppercase italic">15 km/h</span>
-                                        <span className="text-[8px] font-bold opacity-60">전동스쿠터</span>
+                                        <span className="text-[8px] font-bold opacity-60">{t('rs_scooter')}</span>
                                     </button>
                                     <button
                                         onClick={() => setConfig({ ...config, speedLimit: 25, isBicycleMode: true })}
@@ -81,7 +83,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                                     >
                                         <Zap size={16} />
                                         <span className="text-[11px] font-black uppercase italic">25 km/h</span>
-                                        <span className="text-[8px] font-bold opacity-60">전동자전거</span>
+                                        <span className="text-[8px] font-bold opacity-60">{t('rs_ebike')}</span>
                                     </button>
                                     <button
                                         onClick={() => setConfig({ ...config, speedLimit: 999, isBicycleMode: true })}
@@ -89,7 +91,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                                     >
                                         <Bike size={16} />
                                         <span className="text-[11px] font-black uppercase italic">PRO</span>
-                                        <span className="text-[8px] font-bold opacity-60">제한 해제</span>
+                                        <span className="text-[8px] font-bold opacity-60">{t('rs_unlimited')}</span>
                                     </button>
                                 </div>
                             </section>
@@ -121,7 +123,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-black text-white">Ride Summary</p>
-                                        <p className="text-[10px] text-gray-500 font-bold">주행 종료 후 요약 카드 노출</p>
+                                        <p className="text-[10px] text-gray-500 font-bold">{t('rs_summary_desc')}</p>
                                     </div>
                                 </div>
                                 <button
@@ -135,7 +137,7 @@ const RideSettings = ({ isOpen, onClose, onNext, config, setConfig }) => {
                             {/* === Section 4: Brand Filtering === */}
                             <section className="bg-gray-800/40 p-4 rounded-2xl border border-gray-700/50">
                                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <Filter size={12} /> Active Brands · 표시할 브랜드
+                                    <Filter size={12} /> Active Brands · {t('rs_show_brands')}
                                 </p>
                                 <div className="flex flex-wrap gap-1.5">
                                     {brands.map(brand => (
