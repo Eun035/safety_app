@@ -465,7 +465,14 @@ const resources = {
             "rw_convert": "지역화폐로 전환하기",
             "rw_converted": "전환 완료",
             "rw_invite_title": "친구 초대하고 5,000P 받기",
-            "rw_invite_desc": "초대한 친구가 첫 주행 완료 시 지급"
+            "rw_invite_desc": "초대한 친구가 첫 주행 완료 시 지급",
+
+            // FavoriteStations (즐겨찾기)
+            "fav_title": "즐겨찾기",
+            "fav_empty": "즐겨찾기한 스테이션이 없습니다",
+            "fav_empty_hint": "지도 내 마커의 ⭐ 아이콘을 눌러 추가하세요.",
+            "fav_no_info": "정보 없음",
+            "fav_remove": "즐겨찾기 삭제"
         }
     },
     ja: {
@@ -962,7 +969,14 @@ const resources = {
             "rw_convert": "地域通貨に交換する",
             "rw_converted": "交換完了",
             "rw_invite_title": "友達を招待して5,000P獲得",
-            "rw_invite_desc": "招待した友達が初回ライド完了時に付与"
+            "rw_invite_desc": "招待した友達が初回ライド完了時に付与",
+
+            // FavoriteStations (お気に入り)
+            "fav_title": "お気に入り",
+            "fav_empty": "お気に入りのステーションがありません",
+            "fav_empty_hint": "地図上のマーカーの⭐アイコンを押して追加してください。",
+            "fav_no_info": "情報なし",
+            "fav_remove": "お気に入り削除"
         }
     },
     "zh-CN": {
@@ -1459,7 +1473,14 @@ const resources = {
             "rw_convert": "兑换为地区货币",
             "rw_converted": "已兑换",
             "rw_invite_title": "邀请好友得5,000P",
-            "rw_invite_desc": "被邀请好友完成首次骑行时发放"
+            "rw_invite_desc": "被邀请好友完成首次骑行时发放",
+
+            // FavoriteStations (收藏)
+            "fav_title": "收藏",
+            "fav_empty": "没有收藏的站点",
+            "fav_empty_hint": "点击地图标记上的⭐图标即可添加。",
+            "fav_no_info": "无信息",
+            "fav_remove": "删除收藏"
         }
     },
     en: {
@@ -1956,7 +1977,14 @@ const resources = {
             "rw_convert": "Convert to local currency",
             "rw_converted": "Converted",
             "rw_invite_title": "Invite a friend, get 5,000P",
-            "rw_invite_desc": "Paid when your invited friend finishes their first ride"
+            "rw_invite_desc": "Paid when your invited friend finishes their first ride",
+
+            // FavoriteStations
+            "fav_title": "Favorites",
+            "fav_empty": "No favorite stations",
+            "fav_empty_hint": "Tap the ⭐ icon on a map marker to add.",
+            "fav_no_info": "No info",
+            "fav_remove": "Remove favorite"
         }
     }
 };

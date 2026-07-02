@@ -1,10 +1,12 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Star, MapPin, X, Navigation } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { calculateDistance } from '../../utils/distance';
 
 const FavoriteStations = ({ isOpen, onClose, onSelect, userLocation }) => {
+    const { t } = useTranslation();
     const [favorites, setFavorites] = useLocalStorage('csafe_favorite_stations', []);
 
     const handleSelect = (station) => {
@@ -47,7 +49,7 @@ const FavoriteStations = ({ isOpen, onClose, onSelect, userLocation }) => {
                             {/* Header */}
                             <div className="px-6 pb-4 pt-1 flex flex-col">
                                 <h2 className="text-[22px] font-black italic tracking-tighter text-white uppercase leading-none">
-                                    즐겨찾기
+                                    {t('fav_title')}
                                 </h2>
                                 <p className="text-[10px] font-bold text-amber-400 tracking-wider uppercase mt-1.5">
                                     FAVORITE STATIONS
@@ -63,9 +65,9 @@ const FavoriteStations = ({ isOpen, onClose, onSelect, userLocation }) => {
                                             <Star size={36} className="text-amber-400/40" />
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-sm font-black text-gray-400 mb-2">즐겨찾기한 스테이션이 없습니다</p>
+                                            <p className="text-sm font-black text-gray-400 mb-2">{t('fav_empty')}</p>
                                             <span className="text-[11px] text-gray-600 bg-white/5 px-4 py-2 rounded-full border border-white/5 inline-block">
-                                                지도 내 마커의 ⭐ 아이콘을 눌러 추가하세요.
+                                                {t('fav_empty_hint')}
                                             </span>
                                         </div>
                                     </div>
@@ -97,7 +99,7 @@ const FavoriteStations = ({ isOpen, onClose, onSelect, userLocation }) => {
                                                     {/* Info */}
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="font-black text-white text-sm truncate pr-2">{loc.title}</h3>
-                                                        <p className="text-[11px] text-gray-500 mt-0.5 truncate">{loc.desc || '정보 없음'}</p>
+                                                        <p className="text-[11px] text-gray-500 mt-0.5 truncate">{loc.desc || t('fav_no_info')}</p>
                                                     </div>
 
                                                     {/* Right Side */}
@@ -111,7 +113,7 @@ const FavoriteStations = ({ isOpen, onClose, onSelect, userLocation }) => {
                                                         <button
                                                             onClick={(e) => handleRemove(e, locId)}
                                                             className="text-gray-600 hover:text-red-400 p-1 transition-colors"
-                                                            title="즐겨찾기 삭제"
+                                                            title={t('fav_remove')}
                                                         >
                                                             <X size={15} />
                                                         </button>
