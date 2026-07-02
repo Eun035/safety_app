@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { X, AlertTriangle, CheckCircle2, MapPin, ChevronRight, Shield, Navigation } from 'lucide-react';
 import { calculateDistance } from '../../utils/distance';
 
@@ -86,6 +87,7 @@ const SafeCorridorSheet = ({
     stressZones = [],
     onNavigate,
 }) => {
+    const { t } = useTranslation();
     const routeHazards = useMemo(
         () => analyzeRouteHazards(routeOrigin, routeDestination, locations, stressZones),
         [routeOrigin, routeDestination, locations, stressZones]
@@ -163,15 +165,17 @@ const SafeCorridorSheet = ({
                                     </div>
                                     <div className="flex-1 space-y-2">
                                         <div className="bg-white/5 rounded-xl px-3 py-2">
-                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">출발지</p>
+                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">{t('rss_origin')}</p>
                                             <p className="text-[11px] font-black text-white truncate">
-                                                {routeOrigin?.name || '현재 위치'}
+                                                {t(routeOrigin?.title || routeOrigin?.name || '현재 위치', { defaultValue: routeOrigin?.title || routeOrigin?.name || '현재 위치' })}
                                             </p>
                                         </div>
                                         <div className="bg-white/5 rounded-xl px-3 py-2">
-                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">목적지</p>
+                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">{t('rss_destination')}</p>
                                             <p className="text-[11px] font-black text-white truncate">
-                                                {routeDestination?.name || `${routeDestination?.lat?.toFixed(4)}, ${routeDestination?.lng?.toFixed(4)}`}
+                                                {routeDestination?.title || routeDestination?.name
+                                                    ? t(routeDestination.title || routeDestination.name, { defaultValue: routeDestination.title || routeDestination.name })
+                                                    : `${routeDestination?.lat?.toFixed(4)}, ${routeDestination?.lng?.toFixed(4)}`}
                                             </p>
                                         </div>
                                     </div>

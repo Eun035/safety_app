@@ -682,7 +682,8 @@ const resources = {
             "eg_check2": "外部の音が聞こえる環境です。",
             "eg_cancel": "キャンセル",
             "eg_start": "走行開始",
-            "end_ride_verify": "走行終了と駐車認証"
+            "end_ride_verify": "走行終了と駐車認証",
+            "현재 위치": "現在地"
         }
     },
     "zh-CN": {
@@ -1038,7 +1039,8 @@ const resources = {
             "eg_check2": "处于能听到外部声音的环境。",
             "eg_cancel": "取消",
             "eg_start": "开始骑行",
-            "end_ride_verify": "结束骑行并停车认证"
+            "end_ride_verify": "结束骑行并停车认证",
+            "현재 위치": "当前位置"
         }
     },
     en: {
@@ -1394,7 +1396,8 @@ const resources = {
             "eg_check2": "can hear external sounds.",
             "eg_cancel": "Cancel",
             "eg_start": "Start Ride",
-            "end_ride_verify": "End Ride & Verify Parking"
+            "end_ride_verify": "End Ride & Verify Parking",
+            "현재 위치": "Current Location"
         }
     }
 };
