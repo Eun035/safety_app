@@ -248,7 +248,27 @@ const resources = {
             "pr_pay_card": "카드 결제하기",
             "pr_pay_points": "포인트로 전액 결제",
             "pr_pay_later": "나중에 결제",
-            "pr_paid": "💳 결제 완료 — {{amount}}원"
+            "pr_paid": "💳 결제 완료 — {{amount}}원",
+
+            // MapContainer (지도 가이드 패널)
+            "mc_search_origin": "출발지 검색",
+            "mc_search_dest": "목적지 검색",
+            "mc_results_count": "{{n}}건",
+            "mc_no_results": "검색 결과가 없습니다",
+            "mc_no_results_hint": "다른 키워드로 검색해보세요",
+            "mc_step_origin": "출발지를 선택하세요 (1/2)",
+            "mc_step_dest": "목적지를 선택하세요 (2/2)",
+            "mc_step_ready": "안전 경로 탐색 완료!",
+            "mc_origin_placeholder": "출발지 입력 또는 음성검색",
+            "mc_dest_placeholder": "목적지 입력 또는 음성검색",
+            "mc_aria_voice_origin": "음성으로 출발지 검색",
+            "mc_aria_voice_dest": "음성으로 목적지 검색",
+            "mc_origin_selecting": "출발지 선택 중...",
+            "mc_dest_selecting": "목적지 선택 중...",
+            "mc_warning_points": "사고 다발 구역이 {{n}}곳 있습니다. 진입 50m 전 햅틱 알림이 송출됩니다.",
+            "mc_route_start_toast": "안전 경로 주행 시작 (예상 리워드: {{p}}P)",
+            "mc_map_load_fail_title": "지도 로딩 실패",
+            "mc_map_load_fail_desc": "카카오맵 서비스를 일시적으로 사용할 수 없습니다."
         }
     },
     ja: {
@@ -508,7 +528,27 @@ const resources = {
             "pr_pay_card": "カードで決済",
             "pr_pay_points": "ポイントで全額決済",
             "pr_pay_later": "後で決済",
-            "pr_paid": "💳 決済完了 — {{amount}}ウォン"
+            "pr_paid": "💳 決済完了 — {{amount}}ウォン",
+
+            // MapContainer (地図ガイドパネル)
+            "mc_search_origin": "出発地検索",
+            "mc_search_dest": "目的地検索",
+            "mc_results_count": "{{n}}件",
+            "mc_no_results": "検索結果がありません",
+            "mc_no_results_hint": "別のキーワードで検索してください",
+            "mc_step_origin": "出発地を選択してください (1/2)",
+            "mc_step_dest": "目的地を選択してください (2/2)",
+            "mc_step_ready": "安全ルート探索完了！",
+            "mc_origin_placeholder": "出発地を入力または音声検索",
+            "mc_dest_placeholder": "目的地を入力または音声検索",
+            "mc_aria_voice_origin": "音声で出発地を検索",
+            "mc_aria_voice_dest": "音声で目的地を検索",
+            "mc_origin_selecting": "出発地を選択中...",
+            "mc_dest_selecting": "目的地を選択中...",
+            "mc_warning_points": "事故多発区域が{{n}}か所あります。進入50m前に触覚アラートが送信されます。",
+            "mc_route_start_toast": "安全ルート走行開始（予想リワード：{{p}}P）",
+            "mc_map_load_fail_title": "地図の読み込み失敗",
+            "mc_map_load_fail_desc": "Kakaoマップサービスを一時的に利用できません。"
         }
     },
     "zh-CN": {
@@ -768,7 +808,27 @@ const resources = {
             "pr_pay_card": "刷卡支付",
             "pr_pay_points": "用积分全额支付",
             "pr_pay_later": "稍后支付",
-            "pr_paid": "💳 支付完成 — {{amount}}韩元"
+            "pr_paid": "💳 支付完成 — {{amount}}韩元",
+
+            // MapContainer (地图引导面板)
+            "mc_search_origin": "出发地搜索",
+            "mc_search_dest": "目的地搜索",
+            "mc_results_count": "{{n}}条",
+            "mc_no_results": "没有搜索结果",
+            "mc_no_results_hint": "请尝试其他关键词",
+            "mc_step_origin": "请选择出发地 (1/2)",
+            "mc_step_dest": "请选择目的地 (2/2)",
+            "mc_step_ready": "安全路线探索完成！",
+            "mc_origin_placeholder": "输入出发地或语音搜索",
+            "mc_dest_placeholder": "输入目的地或语音搜索",
+            "mc_aria_voice_origin": "语音搜索出发地",
+            "mc_aria_voice_dest": "语音搜索目的地",
+            "mc_origin_selecting": "正在选择出发地...",
+            "mc_dest_selecting": "正在选择目的地...",
+            "mc_warning_points": "有{{n}}处事故多发区域。进入前50m会发出震动提醒。",
+            "mc_route_start_toast": "开始安全路线骑行（预计奖励：{{p}}P）",
+            "mc_map_load_fail_title": "地图加载失败",
+            "mc_map_load_fail_desc": "Kakao地图服务暂时不可用。"
         }
     },
     en: {
@@ -1028,7 +1088,27 @@ const resources = {
             "pr_pay_card": "Pay by Card",
             "pr_pay_points": "Pay fully with points",
             "pr_pay_later": "Pay later",
-            "pr_paid": "💳 Paid — {{amount}} KRW"
+            "pr_paid": "💳 Paid — {{amount}} KRW",
+
+            // MapContainer (map guide panel)
+            "mc_search_origin": "Search origin",
+            "mc_search_dest": "Search destination",
+            "mc_results_count": "{{n}} results",
+            "mc_no_results": "No results found",
+            "mc_no_results_hint": "Try a different keyword",
+            "mc_step_origin": "Select your origin (1/2)",
+            "mc_step_dest": "Select your destination (2/2)",
+            "mc_step_ready": "Safe route found!",
+            "mc_origin_placeholder": "Enter origin or search by voice",
+            "mc_dest_placeholder": "Enter destination or search by voice",
+            "mc_aria_voice_origin": "Search origin by voice",
+            "mc_aria_voice_dest": "Search destination by voice",
+            "mc_origin_selecting": "Selecting origin...",
+            "mc_dest_selecting": "Selecting destination...",
+            "mc_warning_points": "{{n}} accident-prone zones. Haptic alert 50m before entry.",
+            "mc_route_start_toast": "Safe route ride started (est. reward: {{p}}P)",
+            "mc_map_load_fail_title": "Map failed to load",
+            "mc_map_load_fail_desc": "Kakao Map service is temporarily unavailable."
         }
     }
 };

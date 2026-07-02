@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Map, MapMarker, Circle, Polyline, useKakaoLoader, CustomOverlayMap, MarkerClusterer } from 'react-kakao-maps-sdk';
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
+import { useTranslation } from 'react-i18next';
 import InfoCard from './InfoCard';
 import { AlertTriangle, Navigation, Zap, X, Mic } from 'lucide-react';
 import { useGeolocation } from '../../hooks/useGeolocation';
@@ -45,6 +46,7 @@ const MapContainer = ({
     const mapRef = useRef(null);
     const hasNotifiedReady = useRef(false);
     const { speak } = useVoiceGuidance();
+    const { t } = useTranslation();
 
     const [map, setMap] = useState(null);
     const pmParkings = usePMParkingData();
@@ -610,8 +612,8 @@ const MapContainer = ({
         return (
             <div className="w-full h-full bg-red-50 flex flex-col items-center justify-center p-6 text-center">
                 <AlertTriangle size={48} className="text-red-500 mb-4" />
-                <h3 className="text-lg font-black text-red-900 mb-2">지도 로딩 실패</h3>
-                <p className="text-sm text-red-600 font-medium">카카오맵 서비스를 일시적으로 사용할 수 없습니다.</p>
+                <h3 className="text-lg font-black text-red-900 mb-2">{t('mc_map_load_fail_title')}</h3>
+                <p className="text-sm text-red-600 font-medium">{t('mc_map_load_fail_desc')}</p>
             </div>
         );
     }
@@ -851,12 +853,12 @@ const MapContainer = ({
                                 <div className="flex items-center gap-2">
                                     <Navigation size={14} className="text-cyber-cyan" />
                                     <span className="text-[11px] font-black text-cyber-cyan uppercase tracking-widest">
-                                        {navStep === 'select_origin' ? '출발지 검색' : '목적지 검색'}
+                                        {navStep === 'select_origin' ? t('mc_search_origin') : t('mc_search_dest')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-[9px] text-gray-500 font-bold">
-                                        {searchResults.length}건
+                                        {t('mc_results_count', { n: searchResults.length })}
                                     </span>
                                     <button
                                         onClick={() => { setIsSearchFocused(false); setSearchQuery(''); setVoiceAlternatives([]); }}
@@ -895,11 +897,11 @@ const MapContainer = ({
 
                                             {/* 텍스트 */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[13px] font-black text-white truncate">{item.title}</p>
+                                                <p className="text-[13px] font-black text-white truncate">{t(item.title, { defaultValue: item.title })}</p>
                                                 <p className="text-[10px] text-gray-400 truncate mt-0.5">{item.desc}</p>
                                                 {item.badge && (
                                                     <span className="inline-block mt-1 text-[8px] px-1.5 py-0.5 bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 rounded-full font-bold">
-                                                        {item.badge}
+                                                        {t(item.badge, { defaultValue: item.badge })}
                                                     </span>
                                                 )}
                                             </div>
@@ -913,8 +915,8 @@ const MapContainer = ({
                                 ) : searchQuery.trim().length >= 1 ? (
                                     <div className="flex flex-col items-center justify-center py-12 gap-2">
                                         <span className="text-2xl">🔍</span>
-                                        <p className="text-xs font-black text-gray-500">검색 결과가 없습니다</p>
-                                        <p className="text-[9px] text-gray-600">다른 키워드로 검색해보세요</p>
+                                        <p className="text-xs font-black text-gray-500">{t('mc_no_results')}</p>
+                                        <p className="text-[9px] text-gray-600">{t('mc_no_results_hint')}</p>
                                     </div>
                                 ) : null}
                             </div>
@@ -929,9 +931,9 @@ const MapContainer = ({
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-white font-black flex items-center gap-2">
                                     <Navigation size={18} className="text-cyber-cyan" />
-                                    {navStep === 'select_origin' && '출발지를 선택하세요 (1/2)'}
-                                    {navStep === 'select_destination' && '목적지를 선택하세요 (2/2)'}
-                                    {navStep === 'route_ready' && '안전 경로 탐색 완료!'}
+                                    {navStep === 'select_origin' && t('mc_step_origin')}
+                                    {navStep === 'select_destination' && t('mc_step_dest')}
+                                    {navStep === 'route_ready' && t('mc_step_ready')}
                                 </h3>
                                 <button onClick={() => { setNavStep('idle'); setRouteOrigin(null); setRouteDestination(null); }} className="text-gray-400 hover:text-white p-1">
                                     <X size={20} />
@@ -952,7 +954,7 @@ const MapContainer = ({
                                                     setIsSearchFocused(true);
                                                 }}
                                                 onFocus={() => setIsSearchFocused(true)}
-                                                placeholder="출발지 입력 또는 음성검색"
+                                                placeholder={t('mc_origin_placeholder')}
                                                 className="w-full bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5 pr-8"
                                             />
                                             {voiceSupported && !searchQuery && (
@@ -965,7 +967,7 @@ const MapContainer = ({
                                                             ? 'text-cyber-cyan bg-cyber-cyan/15 animate-pulse shadow-[0_0_8px_rgba(64,255,220,0.6)]'
                                                             : 'text-cyber-cyan/70 hover:text-cyber-cyan hover:bg-white/10'
                                                     }`}
-                                                    aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 출발지 검색'}
+                                                    aria-label={isVoiceListening ? t('rss_voice_listening') : t('mc_aria_voice_origin')}
                                                 >
                                                     <Mic size={14} />
                                                 </button>
@@ -973,7 +975,7 @@ const MapContainer = ({
                                         </div>
                                     ) : (
                                         <span className={`text-xs font-black ${routeOrigin ? 'text-white' : 'text-gray-400'}`}>
-                                            {routeOrigin ? routeOrigin.title : '출발지 선택 중...'}
+                                            {routeOrigin ? t(routeOrigin.title, { defaultValue: routeOrigin.title }) : t('mc_origin_selecting')}
                                         </span>
                                     )}
                                 </div>
@@ -992,7 +994,7 @@ const MapContainer = ({
                                                     setIsSearchFocused(true);
                                                 }}
                                                 onFocus={() => setIsSearchFocused(true)}
-                                                placeholder="목적지 입력 또는 음성검색"
+                                                placeholder={t('mc_dest_placeholder')}
                                                 className="w-full bg-transparent text-xs font-black text-white outline-none border-none placeholder-gray-500 py-0.5 pr-8"
                                             />
                                             {voiceSupported && !searchQuery && (
@@ -1005,7 +1007,7 @@ const MapContainer = ({
                                                             ? 'text-orange-400 bg-orange-500/20 animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.6)]'
                                                             : 'text-orange-400/70 hover:text-orange-400 hover:bg-white/10'
                                                     }`}
-                                                    aria-label={isVoiceListening ? '음성 인식 중' : '음성으로 목적지 검색'}
+                                                    aria-label={isVoiceListening ? t('rss_voice_listening') : t('mc_aria_voice_dest')}
                                                 >
                                                     <Mic size={14} />
                                                 </button>
@@ -1013,7 +1015,7 @@ const MapContainer = ({
                                         </div>
                                     ) : (
                                         <span className={`text-xs font-black ${routeDestination ? 'text-white' : 'text-gray-400'}`}>
-                                            {routeDestination ? routeDestination.title : '목적지 선택 중...'}
+                                            {routeDestination ? t(routeDestination.title, { defaultValue: routeDestination.title }) : t('mc_dest_selecting')}
                                         </span>
                                     )}
                                 </div>
@@ -1038,13 +1040,13 @@ const MapContainer = ({
                                         <div>
                                             <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-0.5">Route Caution</p>
                                             <p className="text-[11px] text-gray-300 font-bold leading-tight">
-                                                사고 다발 구역이 {safeRouteInfo?.warningPoints?.length || 0}곳 있습니다. 진입 50m 전 햅틱 알림이 송출됩니다.
+                                                {t('mc_warning_points', { n: safeRouteInfo?.warningPoints?.length || 0 })}
                                             </p>
                                         </div>
                                     </div>
                                     <button onClick={() => {
                                         if (safeRouteInfo) {
-                                            toast(`안전 경로 주행 시작 (예상 리워드: ${safeRouteInfo.safeToEarnPoints}P)`, 'info');
+                                            toast(t('mc_route_start_toast', { p: safeRouteInfo.safeToEarnPoints }), 'info');
                                         }
                                         onRouteReady();
                                     }} className="w-full py-4 bg-cyber-green text-black font-black rounded-xl hover:bg-emerald-400 transition-all shadow-neon-green flex items-center justify-center gap-2 uppercase tracking-widest text-xs">
