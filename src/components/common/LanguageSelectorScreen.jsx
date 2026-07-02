@@ -62,23 +62,12 @@ const LanguageSelectorScreen = ({ onComplete }) => {
                     })}
                 </div>
 
-                {/* Cancel + Confirm 2-step */}
-                <div className="flex gap-2 sm:gap-3 w-full mt-4 sm:mt-6">
-                    <button
-                        onClick={() => setPendingLanguage(null)}
-                        disabled={!pendingLanguage}
-                        className={`flex-1 py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all active:scale-95 ${
-                            pendingLanguage
-                                ? 'bg-white/10 text-white border border-white/20 hover:bg-white/15'
-                                : 'bg-white/5 text-gray-600 cursor-not-allowed border border-white/5'
-                        }`}
-                    >
-                        Cancel
-                    </button>
+                {/* Confirm (전체 너비) */}
+                <div className="w-full mt-4 sm:mt-6">
                     <button
                         onClick={handleConfirm}
                         disabled={!pendingLanguage}
-                        className={`flex-[2] py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all active:scale-95 ${
+                        className={`w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all active:scale-95 ${
                             pendingLanguage
                                 ? 'bg-cyber-cyan text-black shadow-neon-cyan'
                                 : 'bg-white/5 text-gray-600 cursor-not-allowed'
