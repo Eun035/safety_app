@@ -1651,21 +1651,21 @@ function App() {
                 )}
               </div>
               <h2 className="text-2xl font-black text-white mb-3 tracking-tighter relative z-10">
-                {parkingGeofenceModal.success ? "합법 주차 성공!" : "주차 구역 이탈 경고"}
+                {parkingGeofenceModal.success ? t('pgf_success_title') : t('pgf_fail_title')}
               </h2>
               {parkingGeofenceModal.success ? (
-                <p className="text-cyber-cyan font-black mb-6 text-xl tracking-tight relative z-10">+100 P 적립 완료</p>
+                <p className="text-cyber-cyan font-black mb-6 text-xl tracking-tight relative z-10">{t('pgf_success_points')}</p>
               ) : (
-                <p className="text-red-400 font-bold mb-6 text-md tracking-tight relative z-10 text-center">반경 10m 이내에<br />지정 주차장이 없습니다.</p>
+                <p className="text-red-400 font-bold mb-6 text-md tracking-tight relative z-10 text-center">{t('pgf_fail_sub1')}<br />{t('pgf_fail_sub2')}</p>
               )}
-              <p className={`font-medium mb-8 text-sm leading-relaxed relative z-10 ${parkingGeofenceModal.success ? 'text-gray-300' : 'text-gray-400'}`}>
-                {parkingGeofenceModal.success ? "올바른 구역에 완료되었습니다.\n안전한 천안시를 만들어주셔서 감사합니다." : "현재 위치에 주차 시\n견인 조치 및 페널티가 부과될 수 있습니다."}
+              <p className={`font-medium mb-8 text-sm leading-relaxed relative z-10 whitespace-pre-line ${parkingGeofenceModal.success ? 'text-gray-300' : 'text-gray-400'}`}>
+                {parkingGeofenceModal.success ? t('pgf_success_desc') : t('pgf_fail_desc')}
               </p>
               <button
                 onClick={() => setParkingGeofenceModal({ isOpen: false, success: false })}
                 className={`w-full py-4 text-black font-black text-lg rounded-2xl active:scale-95 transition-all relative z-10 ${parkingGeofenceModal.success ? 'bg-cyber-cyan shadow-neon-cyan' : 'bg-white shadow-lg border border-red-200'}`}
               >
-                확인
+                {t('confirm')}
               </button>
               {/* Background glow */}
               <div className={`absolute top-0 right-0 w-40 h-40 rounded-full blur-[80px] -z-0 ${parkingGeofenceModal.success ? 'bg-cyber-cyan/20' : 'bg-red-500/10'}`}></div>

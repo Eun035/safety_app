@@ -326,7 +326,37 @@ const resources = {
             "eg_check2": "외부 소리를 들을 수 있는 환경입니다.",
             "eg_cancel": "취소",
             "eg_start": "주행 시작",
-            "end_ride_verify": "주행 종료 및 주차 인증"
+            "end_ride_verify": "주행 종료 및 주차 인증",
+
+            // ParkingVerification (주차 인증)
+            "pv_success_voice": "주차 이미지가 AI 비전 테스트를 통과했습니다. 안전 주차 감사합니다!",
+            "pv_fail_voice": "지정된 주차 구역 테두리를 이탈하였거나 형태를 인식할 수 없습니다. 다시 촬영해 주세요.",
+            "pv_init_desc1": "지정된 가상 주차 구역에 PM을 세우고",
+            "pv_init_desc2": "네온 가이드라인에 맞춰 촬영해 주세요.",
+            "pv_scan_start": "비전 스캔 시작",
+            "pv_skip_voice": "주행 데이터 전송을 위해 주차 인증을 생략하고 주행을 종료합니다.",
+            "pv_loading1": "C-Safe 서버로 이미지를 전송 중입니다...",
+            "pv_loading2": "구역 이탈 여부를 분석하고 있습니다.",
+            "pv_fail_title": "분석 실패",
+            "pv_fail_sub": "주차 구역 이탈 감지",
+            "pv_fail_desc1": "이미지가 번들거리거나 주차 구역(P)",
+            "pv_fail_desc2": "테두리를 완전히 벗어났습니다.",
+            "pv_retake": "다시 촬영하기",
+            "pv_skip_fail_voice": "주차 인증을 생략하고 주행을 안전하게 종료합니다.",
+            "pv_end_no_verify": "인증 없이 운행 종료하기 (SKIP)",
+            "pv_success_desc1": "올바른 주차로 보행자의 안전과",
+            "pv_success_desc2": "지구를 지켰습니다.",
+            "pv_claim_reward": "리워드 수령",
+
+            // 주차 지오펜스 경고 모달 (App.jsx)
+            "confirm": "확인",
+            "pgf_success_title": "합법 주차 성공!",
+            "pgf_fail_title": "주차 구역 이탈 경고",
+            "pgf_success_points": "+100 P 적립 완료",
+            "pgf_fail_sub1": "반경 10m 이내에",
+            "pgf_fail_sub2": "지정 주차장이 없습니다.",
+            "pgf_success_desc": "올바른 구역에 완료되었습니다.\n안전한 천안시를 만들어주셔서 감사합니다.",
+            "pgf_fail_desc": "현재 위치에 주차 시\n견인 조치 및 페널티가 부과될 수 있습니다."
         }
     },
     ja: {
@@ -683,7 +713,37 @@ const resources = {
             "eg_cancel": "キャンセル",
             "eg_start": "走行開始",
             "end_ride_verify": "走行終了と駐車認証",
-            "현재 위치": "現在地"
+            "현재 위치": "現在地",
+
+            // ParkingVerification (駐車認証)
+            "pv_success_voice": "駐車画像がAIビジョンテストを通過しました。安全駐車ありがとうございます！",
+            "pv_fail_voice": "指定の駐車エリア枠から外れているか、形状を認識できません。もう一度撮影してください。",
+            "pv_init_desc1": "指定の仮想駐車エリアにPMを停めて",
+            "pv_init_desc2": "ネオンガイドラインに合わせて撮影してください。",
+            "pv_scan_start": "ビジョンスキャン開始",
+            "pv_skip_voice": "走行データ送信のため、駐車認証を省略して走行を終了します。",
+            "pv_loading1": "C-Safeサーバーへ画像を送信中です...",
+            "pv_loading2": "エリア逸脱の有無を分析しています。",
+            "pv_fail_title": "分析失敗",
+            "pv_fail_sub": "駐車エリア逸脱を検知",
+            "pv_fail_desc1": "画像が反射しているか、駐車エリア(P)の",
+            "pv_fail_desc2": "枠を完全に外れています。",
+            "pv_retake": "再撮影",
+            "pv_skip_fail_voice": "駐車認証を省略して走行を安全に終了します。",
+            "pv_end_no_verify": "認証なしで走行終了 (SKIP)",
+            "pv_success_desc1": "正しい駐車で歩行者の安全と",
+            "pv_success_desc2": "地球を守りました。",
+            "pv_claim_reward": "リワード受取",
+
+            // 駐車ジオフェンス警告モーダル
+            "confirm": "確認",
+            "pgf_success_title": "合法駐車 成功！",
+            "pgf_fail_title": "駐車エリア逸脱の警告",
+            "pgf_success_points": "+100P 付与完了",
+            "pgf_fail_sub1": "半径10m以内に",
+            "pgf_fail_sub2": "指定駐車場がありません。",
+            "pgf_success_desc": "正しいエリアに完了しました。\n安全な天安市づくりにご協力ありがとうございます。",
+            "pgf_fail_desc": "現在地に駐車すると\n牽引措置やペナルティが科される場合があります。"
         }
     },
     "zh-CN": {
@@ -1040,7 +1100,37 @@ const resources = {
             "eg_cancel": "取消",
             "eg_start": "开始骑行",
             "end_ride_verify": "结束骑行并停车认证",
-            "현재 위치": "当前位置"
+            "현재 위치": "当前位置",
+
+            // ParkingVerification (停车认证)
+            "pv_success_voice": "停车图像已通过AI视觉检测。感谢您安全停车！",
+            "pv_fail_voice": "已超出指定停车区边界或无法识别形状。请重新拍摄。",
+            "pv_init_desc1": "请将PM停在指定的虚拟停车区",
+            "pv_init_desc2": "并按霓虹引导线拍摄。",
+            "pv_scan_start": "开始视觉扫描",
+            "pv_skip_voice": "为发送骑行数据，跳过停车认证并结束骑行。",
+            "pv_loading1": "正在向C-Safe服务器发送图像...",
+            "pv_loading2": "正在分析是否超出区域。",
+            "pv_fail_title": "分析失败",
+            "pv_fail_sub": "检测到超出停车区",
+            "pv_fail_desc1": "图像反光或已完全超出停车区(P)",
+            "pv_fail_desc2": "的边界。",
+            "pv_retake": "重新拍摄",
+            "pv_skip_fail_voice": "跳过停车认证并安全结束骑行。",
+            "pv_end_no_verify": "不认证结束骑行 (SKIP)",
+            "pv_success_desc1": "正确停车守护了行人安全",
+            "pv_success_desc2": "和地球。",
+            "pv_claim_reward": "领取奖励",
+
+            // 停车地理围栏警告弹窗
+            "confirm": "确认",
+            "pgf_success_title": "合法停车成功！",
+            "pgf_fail_title": "停车区逸脱警告",
+            "pgf_success_points": "+100 P 已累积",
+            "pgf_fail_sub1": "半径10m内",
+            "pgf_fail_sub2": "没有指定停车场。",
+            "pgf_success_desc": "已在正确区域完成。\n感谢您共建安全的天安市。",
+            "pgf_fail_desc": "在当前位置停车时\n可能被拖走并处以罚款。"
         }
     },
     en: {
@@ -1397,7 +1487,37 @@ const resources = {
             "eg_cancel": "Cancel",
             "eg_start": "Start Ride",
             "end_ride_verify": "End Ride & Verify Parking",
-            "현재 위치": "Current Location"
+            "현재 위치": "Current Location",
+
+            // ParkingVerification
+            "pv_success_voice": "Your parking photo passed the AI vision test. Thanks for parking safely!",
+            "pv_fail_voice": "You're outside the designated parking zone or the shape isn't recognizable. Please retake the photo.",
+            "pv_init_desc1": "Park your PM in the designated virtual zone",
+            "pv_init_desc2": "and shoot along the neon guideline.",
+            "pv_scan_start": "Start Vision Scan",
+            "pv_skip_voice": "Skipping parking verification and ending the ride to send data.",
+            "pv_loading1": "Sending image to the C-Safe server...",
+            "pv_loading2": "Analyzing whether you left the zone.",
+            "pv_fail_title": "Analysis failed",
+            "pv_fail_sub": "Parking zone deviation detected",
+            "pv_fail_desc1": "The image is glary or fully outside the",
+            "pv_fail_desc2": "parking zone (P) border.",
+            "pv_retake": "Retake",
+            "pv_skip_fail_voice": "Skipping parking verification and ending the ride safely.",
+            "pv_end_no_verify": "End ride without verification (SKIP)",
+            "pv_success_desc1": "Proper parking protected pedestrians",
+            "pv_success_desc2": "and the planet.",
+            "pv_claim_reward": "Claim Reward",
+
+            // Parking geofence warning modal
+            "confirm": "OK",
+            "pgf_success_title": "Legal parking success!",
+            "pgf_fail_title": "Parking zone deviation warning",
+            "pgf_success_points": "+100 P earned",
+            "pgf_fail_sub1": "No designated parking",
+            "pgf_fail_sub2": "within a 10m radius.",
+            "pgf_success_desc": "Completed in the correct zone.\nThank you for keeping Cheonan safe.",
+            "pgf_fail_desc": "Parking here may result in\ntowing and penalties."
         }
     }
 };

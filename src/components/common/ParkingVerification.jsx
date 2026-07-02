@@ -22,10 +22,10 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                 const isSuccess = Math.random() > 0.2; // 80% 통과 확률
                 if (isSuccess) {
                     setStep('SUCCESS');
-                    speak("주차 이미지가 AI 비전 테스트를 통과했습니다. 안전 주차 감사합니다!");
+                    speak(t('pv_success_voice'));
                 } else {
                     setStep('FAIL');
-                    speak("지정된 주차 구역 테두리를 이탈하였거나 형태를 인식할 수 없습니다. 다시 촬영해 주세요.");
+                    speak(t('pv_fail_voice'));
                 }
             }, 2500);
         }
@@ -43,7 +43,7 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                         </div>
                         <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">{t("Parking Cam")}</h2>
                         <p className="text-gray-400 text-sm mb-8 leading-relaxed font-medium">
-                            지정된 가상 주차 구역에 PM을 세우고<br />네온 가이드라인에 맞춰 촬영해 주세요.
+                            {t('pv_init_desc1')}<br />{t('pv_init_desc2')}
                         </p>
 
                         <input
@@ -60,11 +60,11 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                             className="w-full py-5 bg-cyber-cyan text-black rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-white active:scale-95 transition-all shadow-neon-cyan"
                         >
                             <Camera size={24} />
-                            비전 스캔 시작
+                            {t('pv_scan_start')}
                         </button>
                         <button
                             onClick={() => {
-                                speak("주행 데이터 전송을 위해 주차 인증을 생략하고 주행을 종료합니다.");
+                                speak(t('pv_skip_voice'));
                                 onComplete(null);
                             }}
                             className="mt-4 text-cyber-cyan/60 hover:text-cyber-cyan font-bold text-sm tracking-widest uppercase"
@@ -78,7 +78,7 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                     <div className="p-8 text-center relative flex flex-col items-center justify-center min-h-[300px]">
                         <div className="w-16 h-16 border-4 border-cyber-cyan/30 border-t-cyber-cyan border-b-cyber-cyan rounded-full animate-spin mb-6"></div>
                         <h2 className="text-xl font-black text-cyber-cyan tracking-widest mb-2 animate-pulse uppercase">AI Vision Analysis</h2>
-                        <p className="text-gray-400 text-sm font-bold tracking-tight">C-Safe 서버로 이미지를 전송 중입니다...<br />구역 이탈 여부를 분석하고 있습니다.</p>
+                        <p className="text-gray-400 text-sm font-bold tracking-tight">{t('pv_loading1')}<br />{t('pv_loading2')}</p>
                     </div>
                 )}
  
@@ -88,10 +88,10 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                         <div className="bg-red-500/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.5)]">
                             <X size={40} className="text-red-500" />
                         </div>
-                        <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">분석 실패</h2>
-                        <p className="text-red-400 font-black mb-6 text-lg tracking-tight">주차 구역 이탈 감지</p>
+                        <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">{t('pv_fail_title')}</h2>
+                        <p className="text-red-400 font-black mb-6 text-lg tracking-tight">{t('pv_fail_sub')}</p>
                         <p className="text-gray-400 text-sm mb-8 leading-relaxed font-medium">
-                            이미지가 번들거리거나 주차 구역(P)<br />테두리를 완전히 벗어났습니다.
+                            {t('pv_fail_desc1')}<br />{t('pv_fail_desc2')}
                         </p>
  
                         <button
@@ -99,16 +99,16 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                             className="w-full py-5 bg-red-500 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-3 active:scale-95 transition-all shadow-lg"
                         >
                             <Camera size={24} />
-                            다시 촬영하기
+                            {t('pv_retake')}
                         </button>
                         <button
                             onClick={() => {
-                                speak("주차 인증을 생략하고 주행을 안전하게 종료합니다.");
+                                speak(t('pv_skip_fail_voice'));
                                 onComplete(null);
                             }}
                             className="mt-4 text-red-400/60 hover:text-red-400 font-bold text-xs tracking-wider uppercase block mx-auto transition-colors"
                         >
-                            인증 없이 운행 종료하기 (SKIP)
+                            {t('pv_end_no_verify')}
                         </button>
                     </div>
                 )}
@@ -127,7 +127,7 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                         <h2 className="text-2xl font-black text-white mb-2 tracking-tighter">SUCCESS!</h2>
                         <p className="text-cyber-green font-black mb-6 text-xl tracking-tight">+10 ECO POINT</p>
                         <p className="text-gray-400 text-sm mb-8 leading-relaxed font-medium">
-                            올바른 주차로 보행자의 안전과<br />지구를 지켰습니다.
+                            {t('pv_success_desc1')}<br />{t('pv_success_desc2')}
                         </p>
                         <button
                             onClick={() => {
@@ -139,7 +139,7 @@ const ParkingVerification = ({ isOpen, onClose, speak, onComplete }) => {
                             }}
                             className="w-full py-5 bg-white text-black rounded-2xl font-black text-lg hover:bg-gray-200 active:scale-95 transition-all shadow-lg"
                         >
-                            리워드 수령
+                            {t('pv_claim_reward')}
                         </button>
                     </div>
                 )}
