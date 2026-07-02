@@ -6,6 +6,17 @@
 
 ---
 
+## 🗓️ 최근 업데이트 — 2026-07-02
+
+- ✅ **추천(Referral) 기능 완성** — Supabase RLS/RPC 적용 + 양방향 +500P 보상 E2E 검증 (`?ref=` 링크 방식)
+- ✅ **전면 다국어 전환** — react-i18next 기반 **한국어·영어·일본어·중국어** 25개+ 화면 번역 (온보딩·퀴즈·주행·지도·헬멧·결제·요약·AI코치·프로필·월렛·미션·통계 등)
+- ✅ **TTS 개선** — 괄호/슬래시 병기(`인도(보도)`, `km/h`)를 읽을 때 하나로 정리 (전 언어 공통)
+- ✅ **UI 정리** — 언어선택 Cancel 제거, 라이드요약 미사용 버튼 제거
+
+📄 상세: **[SESSION_2026-07-02.md](SESSION_2026-07-02.md)**
+
+---
+
 ## 🏛️ 프로젝트 개요
 
 C-Safe는 전동 킥보드(PM) 초보 사용자를 위한 **AI 기반 도시 모빌리티 행동 개선 플랫폼**입니다.  
@@ -441,6 +452,7 @@ PWA는 OS 레벨 앱 삭제 이벤트가 없으므로 '계정 탈퇴'를 표준 
 - `src/hooks/useSpeechRecognition.js`
 - `src/components/common/AccountDeletionModal.jsx`
 - `SESSION_2026-06-22.md` (별도 세션 노트)
+- `SESSION_2026-07-02.md` (다국어 전환 · 추천 기능 완성 세션 노트)
 
 #### 운영 메모
 - 사용 중 production URL: `safety-app-fourth.vercel.app` (`safety-app-git-main-eunyoung-s-projects.vercel.app` 자동 branch alias도 동일 코드)
