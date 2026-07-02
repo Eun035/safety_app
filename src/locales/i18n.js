@@ -217,7 +217,14 @@ const resources = {
             "mp_matched": "🔍 {{title}} 매칭 완료!",
             "mp_region_switched": "🏙️ {{name}} 지역으로 전환",
             "mp_clear_search": "검색어 지우기",
-            "mp_voice_search": "음성으로 검색"
+            "mp_voice_search": "음성으로 검색",
+
+            // HelmetStationSelector (헬멧 픽업)
+            "hss_in_range": "목적지 반경 {{r}}m 이내 {{n}}곳",
+            "hss_out_range": "반경 {{r}}m 내 거점 없음 — 가까운 {{n}}곳",
+            "hss_no_coords": "목적지 좌표가 없어 거점을 표시할 수 없습니다.",
+            "hss_skip": "건너뛰기 (헬멧 지참)",
+            "hss_skip_hint": "이미 헬멧이 있다면 다음 단계로 진행하세요"
         }
     },
     ja: {
@@ -446,7 +453,14 @@ const resources = {
             "🏢 시청 우선": "🏢 市役所優先",
             "🚒 소방서 우선": "🚒 消防署優先",
             "🏫 대학교": "🏫 大学",
-            "🚉 교통거점": "🚉 交通拠点"
+            "🚉 교통거점": "🚉 交通拠点",
+
+            // HelmetStationSelector (ヘルメット受取)
+            "hss_in_range": "目的地から半径{{r}}m以内に{{n}}件",
+            "hss_out_range": "半径{{r}}m内に拠点なし — 近い{{n}}件",
+            "hss_no_coords": "目的地の座標がないため拠点を表示できません。",
+            "hss_skip": "スキップ（ヘルメット持参）",
+            "hss_skip_hint": "すでにヘルメットをお持ちなら次のステップへ"
         }
     },
     "zh-CN": {
@@ -675,7 +689,14 @@ const resources = {
             "🏢 시청 우선": "🏢 市政厅优先",
             "🚒 소방서 우선": "🚒 消防局优先",
             "🏫 대학교": "🏫 大学",
-            "🚉 교통거점": "🚉 交通枢纽"
+            "🚉 교통거점": "🚉 交通枢纽",
+
+            // HelmetStationSelector (头盔领取)
+            "hss_in_range": "目的地半径{{r}}m内{{n}}处",
+            "hss_out_range": "半径{{r}}m内无站点 — 最近的{{n}}处",
+            "hss_no_coords": "没有目的地坐标，无法显示站点。",
+            "hss_skip": "跳过（自带头盔）",
+            "hss_skip_hint": "如果已有头盔，请进入下一步"
         }
     },
     en: {
@@ -904,7 +925,14 @@ const resources = {
             "🏢 시청 우선": "🏢 City Hall",
             "🚒 소방서 우선": "🚒 Fire Station",
             "🏫 대학교": "🏫 University",
-            "🚉 교통거점": "🚉 Transit Hub"
+            "🚉 교통거점": "🚉 Transit Hub",
+
+            // HelmetStationSelector
+            "hss_in_range": "{{n}} within {{r}}m of destination",
+            "hss_out_range": "None within {{r}}m — nearest {{n}}",
+            "hss_no_coords": "No destination coordinates — cannot show stations.",
+            "hss_skip": "Skip (bring your own helmet)",
+            "hss_skip_hint": "If you already have a helmet, proceed to the next step"
         }
     }
 };

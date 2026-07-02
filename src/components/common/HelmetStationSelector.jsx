@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { X, MapPin, Store, ShieldCheck, Clock, ChevronRight } from 'lucide-react';
 import { calculateDistance } from '../../utils/distance';
 import helmetStationsData from '../../data/helmet_stations.json';
@@ -27,6 +28,7 @@ const HelmetStationSelector = ({
     destinationLng,
     maxRadiusMeters = 800
 }) => {
+    const { t } = useTranslation();
     // 목적지 기준 거리 계산 + 가까운 순 정렬
     const stations = useMemo(() => {
         if (destinationLat == null || destinationLng == null) return [];
@@ -81,14 +83,14 @@ const HelmetStationSelector = ({
                                 </h2>
                                 <p className="text-[10px] font-bold text-cyber-cyan tracking-wider uppercase mt-1.5">
                                     {inRangeCount > 0
-                                        ? `목적지 반경 ${maxRadiusMeters}m 이내 ${inRangeCount}곳`
-                                        : `반경 ${maxRadiusMeters}m 내 거점 없음 — 가까운 ${stations.length}곳`}
+                                        ? t('hss_in_range', { r: maxRadiusMeters, n: inRangeCount })
+                                        : t('hss_out_range', { r: maxRadiusMeters, n: stations.length })}
                                 </p>
                             </div>
                             <button
                                 onClick={onClose}
                                 className="p-2 text-gray-500 hover:text-white transition-colors"
-                                aria-label="닫기"
+                                aria-label={t('close')}
                             >
                                 <X size={20} />
                             </button>
@@ -99,7 +101,7 @@ const HelmetStationSelector = ({
                             {stations.length === 0 ? (
                                 <div className="text-center py-8">
                                     <p className="text-xs text-gray-500">
-                                        목적지 좌표가 없어 거점을 표시할 수 없습니다.
+                                        {t('hss_no_coords')}
                                     </p>
                                 </div>
                             ) : (
@@ -189,10 +191,10 @@ const HelmetStationSelector = ({
                                 onClick={() => (onSkip ? onSkip() : onClose?.())}
                                 className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-white/5 hover:bg-white/10 active:bg-white/20 text-gray-300 border border-white/10 transition-all"
                             >
-                                건너뛰기 (헬멧 지참)
+                                {t('hss_skip')}
                             </button>
                             <p className="text-[10px] text-gray-600 text-center mt-2">
-                                이미 헬멧이 있다면 다음 단계로 진행하세요
+                                {t('hss_skip_hint')}
                             </p>
                         </div>
                     </motion.div>
