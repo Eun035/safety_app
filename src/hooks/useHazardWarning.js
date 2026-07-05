@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { calculateDistance } from '../utils/distance';
 import { supabase } from '../lib/supabaseClient';
+import i18n from '../locales/i18n';
 // 🔧 [GPS FIX - C1] 기존: 자체 watchPosition으로 GPS 중복 생성
 // 변경: useGeolocation Zustand 스토어를 구독하여 단일 GPS 라이프사이클 사용
 // 효과: GPS 워처 중복 제거 → 배터리 절약, race condition 해소
@@ -84,9 +85,9 @@ export const useHazardWarning = (locations = []) => {
                     });
                     warnedHazards.current.add(hazardId);
 
-                    let warningText = '🚨 위험 구역입니다. 브레이크를 잡아주세요.';
+                    let warningText = i18n.t('hw_warning');
                     if (foundHazard.detourGuide || foundHazard.safetyTip) {
-                        warningText = `🚨 위험 구역입니다. 브레이크를 잡아주세요. ${foundHazard.detourGuide || foundHazard.safetyTip}`;
+                        warningText = `${i18n.t('hw_warning')} ${foundHazard.detourGuide || foundHazard.safetyTip}`;
                     }
                     triggerVoiceWarning(warningText);
                 }
@@ -121,9 +122,9 @@ export const useHazardWarning = (locations = []) => {
                         });
                         warnedHazards.current.add(hazardId);
 
-                        let warningText = '🚨 위험 구역입니다. 브레이크를 잡아주세요.';
+                        let warningText = i18n.t('hw_warning');
                         if (foundHazard.safety_tip || foundHazard.description) {
-                            warningText = `🚨 위험 구역입니다. 브레이크를 잡아주세요. ${foundHazard.safety_tip || foundHazard.description}`;
+                            warningText = `${i18n.t('hw_warning')} ${foundHazard.safety_tip || foundHazard.description}`;
                         }
                         triggerVoiceWarning(warningText);
                     }

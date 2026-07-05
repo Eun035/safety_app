@@ -11,11 +11,13 @@ import {
   Navigation2, CheckCircle2, HeartPulse,
   Footprints, Sliders, Copy
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabaseClient';
 import { B2GExportService } from '../../services/B2GExportService';
 import { toast } from '../../hooks/useToast';
 
 const AdminDashboard = ({ onClose }) => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalRides: 0,
@@ -58,14 +60,14 @@ const AdminDashboard = ({ onClose }) => {
       setReceiptData({ hash, date: new Date().toLocaleString() });
     } catch (err) {
       console.error("Export failed:", err);
-      toast('데이터 추출에 실패했습니다.', 'error');
+      toast(t('adm_extract_fail'), 'error');
     }
   };
 
   const handleCopyHash = async () => {
     try {
       await navigator.clipboard.writeText(receiptData.hash);
-      toast('무결성 해시 키가 복사되었습니다.', 'success');
+      toast(t('adm_hash_copied'), 'success');
     } catch (err) {
       console.error('Copy failed:', err);
     }

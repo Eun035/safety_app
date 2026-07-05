@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Info, ShieldCheck, MapPin, Star, Navigation } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { toast } from '../../hooks/useToast';
@@ -6,6 +7,7 @@ import { useRegion } from '../../hooks/useRegion';
 import { REGIONS } from '../../config/regions';
 
 const InfoCard = ({ location, onClose, onSetOrigin, onSetDestination }) => {
+    const { t } = useTranslation();
     // Phase 26: 즐겨찾기 기능 (Bookmark)
     const [favorites, setFavorites] = useLocalStorage('csafe_favorite_stations', []);
     const currentRegion = useRegion(s => s.currentRegion);
@@ -25,10 +27,10 @@ const InfoCard = ({ location, onClose, onSetOrigin, onSetDestination }) => {
         e.stopPropagation();
         if (isFavorite) {
             setFavorites(prev => prev.filter(fav => (fav.id || fav.title) !== locId));
-            toast("즐겨찾기에서 제거되었습니다.", 'info');
+            toast(t('ic_fav_removed'), 'info');
         } else {
             setFavorites(prev => [...prev, location]);
-            toast("⭐ 즐겨찾기에 추가되었습니다!", 'success');
+            toast(t('ic_fav_added'), 'success');
         }
     };
 

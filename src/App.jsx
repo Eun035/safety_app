@@ -177,7 +177,7 @@ function App() {
   // 🏆 초보자 미션 시스템 (게임화 → 재방문 유도). 완료 시 포인트 자동 지급.
   const { progressMission } = useBeginnerMissions({
     onReward: (missionId, points) => {
-      toast(`🏆 미션 완료! +${points.toLocaleString()}P 적립`, 'success');
+      toast(t('app_mission_done', { p: points.toLocaleString() }), 'success');
       if (user?.id) {
         supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
           .then(({ data }) => {
@@ -225,10 +225,10 @@ function App() {
   React.useEffect(() => {
     if (!rider.isRunning) return;
     if (rider.status === 'WOBBLY') {
-      speak('차량이 흔들립니다. 자세 안정.', 'L2');
+      speak(t('app_voice_shake'), 'L2');
       vibrate('L2');
     } else if (rider.status === 'CRITICAL') {
-      speak('주의! 급격한 흔들림 감지. 즉시 감속.', 'L4');
+      speak(t('app_voice_shake_hard'), 'L4');
       vibrate('L4');
     }
   }, [rider.status, rider.isRunning, speak, vibrate]);
@@ -532,9 +532,9 @@ function App() {
 
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (isIOS) {
-        toast("Safari의 '공유' 아이콘 → '홈 화면에 추가'를 탭하여 설치해 주세요.", 'info');
+        toast(t('app_install_ios'), 'info');
       } else {
-        toast("설치를 지원하지 않는 환경이거나 이미 설치되어 있습니다.", 'info');
+        toast(t('app_install_unsupported'), 'info');
       }
       return;
     }
@@ -652,7 +652,7 @@ function App() {
         status: 'active'
       };
       setCoupons(prev => [newPoint, ...prev]);
-      toast("✅ 안전모 착용 확인! 선지급 마일리지 50P 적립 완료", 'success');
+      toast(t('app_helmet_confirmed'), 'success');
 
       startRide();
       startTracking(); // 실제 GPS 트래킹 시작
@@ -668,7 +668,7 @@ function App() {
           if (data) {
             supabase.from('profiles').update({ points: (data.points || 0) + earnedPoints }).eq('id', user.id)
               .then(() => {
-                toast(`🎉 안전 지식 테스트 완료! ${earnedPoints}P 적립`, 'success');
+                toast(t('app_quiz_done', { p: earnedPoints }), 'success');
                 loadUser(); // 프로필 새로고침
               });
           }
@@ -685,7 +685,7 @@ function App() {
     };
 
     setCoupons(prev => [newPoint, ...prev]);
-    toast("🎁 보관 완료! 천안사랑카드 500P 적립", 'success');
+    toast(t('app_store_done'), 'success');
   };
 
   const handleShareApp = () => {
@@ -697,7 +697,7 @@ function App() {
       }).catch(console.error);
     } else {
       copyToClipboard(window.location.href);
-      toast('🔗 앱 링크가 클립보드에 복사되었습니다.', 'info');
+      toast(t('app_link_copied'), 'info');
     }
   };
 
@@ -1294,7 +1294,7 @@ function App() {
           }}
           onEditProfile={() => setIsProfileEditOpen(true)}
           onMissionReward={(missionId, points) => {
-            toast(`🏆 미션 완료! +${points.toLocaleString()}P 적립`, 'success');
+            toast(t('app_mission_done', { p: points.toLocaleString() }), 'success');
           }}
           onDeleteAccount={() => {
             setIsProfileSheetOpen(false);
@@ -1339,7 +1339,7 @@ function App() {
             if (rideConfig.showRideSummary === false) {
               console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary skipped (user opt-out)');
               helmetOnRef.current = false; // 다음 주행 위해 초기화
-              toast('🛴 안전하게 도착했어요!', 'success');
+              toast(t('app_arrived'), 'success');
             } else {
               console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary open');
               setIsRideSummaryOpen(true);
@@ -1404,7 +1404,7 @@ function App() {
           routeOrigin={routeOrigin}
           routeDestination={routeDestination}
           onLaunch={() => {
-            speak('주행 중 화면 주시를 삼가고 음성 안내에 집중해 주세요. 안전 운행하세요!');
+            speak(t('app_voice_nav_focus'));
           }}
         />
 
@@ -1433,7 +1433,7 @@ function App() {
           }}
           onSelect={(station) => {
             setSelectedHelmetStation(station);
-            toast(`🪖 헬멧 거점 선택 · ${station.name}`, 'success');
+            toast(t('app_helmet_station_selected', { name: station.name }), 'success');
             setIsHelmetStationOpen(false);
             setIsHelmetAIOpen(true);
           }}
@@ -1483,7 +1483,7 @@ function App() {
               type: '안전 보상',
               status: 'active'
             }, ...prev]);
-            toast(`🪖 헬멧 반납 완료 · ${station.name} · +${HELMET_RETURN_REWARD}P 적립`, 'success');
+            toast(t('app_helmet_returned', { name: station.name, p: HELMET_RETURN_REWARD }), 'success');
             console.warn('[C-Safe][chain] step2a → HelmetReturn confirm, PaymentReceipt open. finalRideSummary:', finalRideSummary);
             setIsHelmetReturnOpen(false);
             setSelectedHelmetStation(null);
@@ -1532,7 +1532,7 @@ function App() {
                 })
                 .catch(err => console.warn('[C-Safe] 하이브리드 인증 보상 적립 실패:', err?.message || err));
             }
-            toast(`⚡ 본인 확인 완료 · 안전 크레딧 +${HYBRID_REWARD}P 적립`, 'success');
+            toast(t('app_identity_verified', { p: HYBRID_REWARD }), 'success');
 
             // 🛡️ 헬멧 착용 상태 기록 (Near-Miss 맥락 데이터)
             helmetOnRef.current = true;
@@ -1549,7 +1549,7 @@ function App() {
           onSkip={() => {
             // 🟡 헬멧 인증 SKIP — 보상 없음, helmetOn=false 기록
             helmetOnRef.current = false;
-            toast('🟡 헬멧 인증 건너뜀 · 보상 없이 주행 시작', 'info');
+            toast(t('app_helmet_skipped'), 'info');
 
             setIsHelmetAIOpen(false);
             setNavStep('idle');
