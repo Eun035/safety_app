@@ -259,6 +259,28 @@ const RideStartScreen = ({
     }
   }, [isOpen]);
 
+  // ⌨️ 모바일 키보드가 하단 "빠른 목적지"를 가리는 문제 대응.
+  // VisualViewport로 키보드가 차지한 높이(kbInset)를 측정 → 시트를 키보드 위로 올리고
+  // 내부 스크롤로 모든 항목이 노출되도록 한다.
+  const [kbInset, setKbInset] = useState(0);
+  useEffect(() => {
+    if (!isOpen || typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => {
+      // 레이아웃 뷰포트 - 비주얼 뷰포트 하단 = 키보드(및 하단 UI)가 덮은 높이
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      // 80px 이하 변화는 키보드가 아닌 주소창 등으로 간주하여 무시
+      setKbInset(inset > 80 ? Math.round(inset) : 0);
+    };
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, [isOpen]);
+
   // 출발지~좌표 거리로 ETA 추정 (PM 평균 15 km/h 기준)
   const estimateEtaMin = useCallback((lat, lng) => {
     if (!userLat || !userLng || !lat || !lng) return 5;
@@ -389,6 +411,8 @@ const RideStartScreen = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          // 키보드가 올라오면 그 높이만큼 시트를 위로 밀어 올려 하단 항목 가림 방지
+          style={{ paddingBottom: kbInset ? `${kbInset}px` : 0, transition: 'padding-bottom 0.2s ease' }}
         >
           {/* 배경 */}
           <motion.div
@@ -409,7 +433,8 @@ const RideStartScreen = ({
               borderTop: '1px solid rgba(37, 99, 235, 0.4)',
               borderRadius: '2rem 2rem 0 0',
               boxShadow: '0 -20px 80px rgba(0, 0, 0, 0.95), 0 -2px 30px rgba(37, 99, 235, 0.15)',
-              maxHeight: '90dvh',
+              // 키보드가 열리면 (뷰포트 - 키보드) 안에 맞춰 상단 12px 여백만 남기고 최대화
+              maxHeight: kbInset ? `calc(100dvh - ${kbInset}px - 12px)` : '90dvh',
             }}
           >
             {/* 드래그 핸들 */}
