@@ -570,7 +570,25 @@ const resources = {
             "ad_tag_ads_too_many": "광고가 많아요",
             "ad_tag_battery_drain": "배터리 소모가 커요",
             "ad_tag_no_longer_need": "더 이상 PM을 안 타요",
-            "ad_tag_other": "기타"
+            "ad_tag_other": "기타",
+
+            // SafeCorridorSheet (경로 안전 분석)
+            "scs_title": "경로 안전 분석",
+            "scs_distance": "거리",
+            "scs_est_time": "예상 시간",
+            "scs_safety_grade": "안전 등급",
+            "scs_no_hazard": "경로에 위험 구역이 없습니다",
+            "scs_n_hazards": "경로 내 위험 구역 {{n}}개 감지됨",
+            "scs_safe_msg": "안전한 경로입니다. 안전 운행하세요!",
+            "scs_caution_msg": "아래 목록을 확인하고 주의 운행하세요",
+            "scs_route_hazards": "경로 위험 구역",
+            "scs_from_route": "경로로부터 약 {{m}}m",
+            "scs_radius": "· 반경 {{m}}m",
+            "scs_tips_title": "안전 주행 팁",
+            "scs_tip1": "위험 구역 진입 전 미리 감속하세요",
+            "scs_tip2": "보행자 보호구역은 서행 운행이 필수입니다",
+            "scs_tip3": "음성 안내를 활성화하면 화면 주시 없이 안전 알림을 받을 수 있습니다",
+            "scs_nav_external": "외부 앱으로 길 안내"
         }
     },
     ja: {
@@ -1198,7 +1216,27 @@ const resources = {
             "ad_tag_ads_too_many": "広告が多い",
             "ad_tag_battery_drain": "バッテリー消費が大きい",
             "ad_tag_no_longer_need": "もうPMに乗らない",
-            "ad_tag_other": "その他"
+            "ad_tag_other": "その他",
+
+            // SafeCorridorSheet (経路の安全分析)
+            "scs_title": "経路の安全分析",
+            "scs_distance": "距離",
+            "scs_est_time": "予想時間",
+            "scs_safety_grade": "安全等級",
+            "scs_no_hazard": "経路に危険区域はありません",
+            "scs_n_hazards": "経路内に危険区域を{{n}}件検知",
+            "scs_safe_msg": "安全な経路です。安全運転を！",
+            "scs_caution_msg": "下のリストを確認して注意運転してください",
+            "scs_route_hazards": "経路の危険区域",
+            "scs_from_route": "経路から約{{m}}m",
+            "scs_radius": "· 半径{{m}}m",
+            "scs_tips_title": "安全走行のヒント",
+            "scs_tip1": "危険区域に入る前に事前に減速しましょう",
+            "scs_tip2": "歩行者保護区域では徐行が必須です",
+            "scs_tip3": "音声案内を有効にすると、画面を見ずに安全通知を受け取れます",
+            "scs_nav_external": "外部アプリで道案内",
+            "안전": "安全", "양호": "良好", "주의": "注意", "위험": "危険", "고위험": "高リスク",
+            "보행자 보호구역": "歩行者保護区域", "급경사": "急勾配", "사고 다발": "事故多発", "결빙 위험": "凍結危険", "침수 위험": "浸水危険", "도로 파손": "路面損傷", "위험 구역": "危険区域"
         }
     },
     "zh-CN": {
@@ -1826,7 +1864,27 @@ const resources = {
             "ad_tag_ads_too_many": "广告太多",
             "ad_tag_battery_drain": "耗电严重",
             "ad_tag_no_longer_need": "不再骑PM了",
-            "ad_tag_other": "其他"
+            "ad_tag_other": "其他",
+
+            // SafeCorridorSheet (路线安全分析)
+            "scs_title": "路线安全分析",
+            "scs_distance": "距离",
+            "scs_est_time": "预计时间",
+            "scs_safety_grade": "安全等级",
+            "scs_no_hazard": "路线上没有危险区域",
+            "scs_n_hazards": "路线内检测到{{n}}个危险区域",
+            "scs_safe_msg": "这是安全路线。安全骑行！",
+            "scs_caution_msg": "请查看下方列表并谨慎骑行",
+            "scs_route_hazards": "路线危险区域",
+            "scs_from_route": "距路线约{{m}}m",
+            "scs_radius": "· 半径{{m}}m",
+            "scs_tips_title": "安全骑行提示",
+            "scs_tip1": "进入危险区域前请提前减速",
+            "scs_tip2": "行人保护区必须缓慢行驶",
+            "scs_tip3": "启用语音导航可在不看屏幕的情况下接收安全提醒",
+            "scs_nav_external": "用外部应用导航",
+            "안전": "安全", "양호": "良好", "주의": "注意", "위험": "危险", "고위험": "高危",
+            "보행자 보호구역": "行人保护区", "급경사": "陡坡", "사고 다발": "事故多发", "결빙 위험": "结冰危险", "침수 위험": "积水危险", "도로 파손": "路面破损", "위험 구역": "危险区域"
         }
     },
     en: {
@@ -2454,7 +2512,27 @@ const resources = {
             "ad_tag_ads_too_many": "Too many ads",
             "ad_tag_battery_drain": "High battery drain",
             "ad_tag_no_longer_need": "No longer ride PMs",
-            "ad_tag_other": "Other"
+            "ad_tag_other": "Other",
+
+            // SafeCorridorSheet
+            "scs_title": "Route Safety Analysis",
+            "scs_distance": "Distance",
+            "scs_est_time": "Est. Time",
+            "scs_safety_grade": "Safety Grade",
+            "scs_no_hazard": "No hazard zones on this route",
+            "scs_n_hazards": "{{n}} hazard zones detected on route",
+            "scs_safe_msg": "This route is safe. Ride safely!",
+            "scs_caution_msg": "Check the list below and ride carefully",
+            "scs_route_hazards": "Route Hazard Zones",
+            "scs_from_route": "~{{m}}m from route",
+            "scs_radius": "· radius {{m}}m",
+            "scs_tips_title": "Safe Riding Tips",
+            "scs_tip1": "Slow down before entering hazard zones",
+            "scs_tip2": "Slow riding is required in pedestrian zones",
+            "scs_tip3": "Enable voice guidance to get alerts without watching the screen",
+            "scs_nav_external": "Navigate with external app",
+            "안전": "Safe", "양호": "Good", "주의": "Caution", "위험": "Risky", "고위험": "High Risk",
+            "보행자 보호구역": "Pedestrian zone", "급경사": "Steep slope", "사고 다발": "Accident-prone", "결빙 위험": "Ice risk", "침수 위험": "Flood risk", "도로 파손": "Road damage", "위험 구역": "Hazard zone"
         }
     }
 };

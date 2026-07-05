@@ -143,7 +143,7 @@ const SafeCorridorSheet = ({
                                     SAFE CORRIDOR
                                 </h2>
                                 <p className="text-[9px] font-bold text-cyber-cyan tracking-wider uppercase mt-0.5">
-                                    경로 안전 분석
+                                    {t('scs_title')}
                                 </p>
                             </div>
                             <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors mt-1">
@@ -184,17 +184,17 @@ const SafeCorridorSheet = ({
                                 {/* 거리/시간/안전등급 */}
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="bg-white/5 rounded-xl p-2.5 text-center">
-                                        <p className="text-[8px] text-gray-500 font-bold mb-0.5">거리</p>
+                                        <p className="text-[8px] text-gray-500 font-bold mb-0.5">{t('scs_distance')}</p>
                                         <p className="text-sm font-black text-white">
                                             {totalDist >= 1000 ? `${(totalDist / 1000).toFixed(1)}km` : `${totalDist}m`}
                                         </p>
                                     </div>
                                     <div className="bg-white/5 rounded-xl p-2.5 text-center">
-                                        <p className="text-[8px] text-gray-500 font-bold mb-0.5">예상 시간</p>
-                                        <p className="text-sm font-black text-cyber-cyan">{estMinutes}분</p>
+                                        <p className="text-[8px] text-gray-500 font-bold mb-0.5">{t('scs_est_time')}</p>
+                                        <p className="text-sm font-black text-cyber-cyan">{t('si_unit_min', { n: estMinutes })}</p>
                                     </div>
                                     <div className={`${grade.bg} border ${grade.border} rounded-xl p-2.5 text-center`}>
-                                        <p className="text-[8px] text-gray-400 font-bold mb-0.5">안전 등급</p>
+                                        <p className="text-[8px] text-gray-400 font-bold mb-0.5">{t('scs_safety_grade')}</p>
                                         <p className="text-lg font-black" style={{ color: grade.color }}>{grade.grade}</p>
                                     </div>
                                 </div>
@@ -215,13 +215,13 @@ const SafeCorridorSheet = ({
                                 <div>
                                     <p className="text-[11px] font-black text-white">
                                         {routeHazards.length === 0
-                                            ? '경로에 위험 구역이 없습니다'
-                                            : `경로 내 위험 구역 ${routeHazards.length}개 감지됨`}
+                                            ? t('scs_no_hazard')
+                                            : t('scs_n_hazards', { n: routeHazards.length })}
                                     </p>
                                     <p className="text-[9px] text-gray-400 mt-0.5">
                                         {routeHazards.length === 0
-                                            ? '안전한 경로입니다. 안전 운행하세요!'
-                                            : '아래 목록을 확인하고 주의 운행하세요'}
+                                            ? t('scs_safe_msg')
+                                            : t('scs_caution_msg')}
                                     </p>
                                 </div>
                             </motion.div>
@@ -230,7 +230,7 @@ const SafeCorridorSheet = ({
                             {routeHazards.length > 0 && (
                                 <div className="space-y-2">
                                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1 flex items-center gap-1.5">
-                                        <AlertTriangle size={8} className="text-amber-400" /> 경로 위험 구역
+                                        <AlertTriangle size={8} className="text-amber-400" /> {t('scs_route_hazards')}
                                     </p>
                                     {routeHazards.map((h, i) => {
                                         const meta = hazardMeta(h);
@@ -257,10 +257,10 @@ const SafeCorridorSheet = ({
 
                                                 {/* 내용 */}
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[11px] font-black text-white truncate">{meta.label}</p>
+                                                    <p className="text-[11px] font-black text-white truncate">{t(meta.label, { defaultValue: meta.label })}</p>
                                                     <p className="text-[9px] text-gray-500">
-                                                        경로로부터 약 {h.perpDist}m
-                                                        {h.category === 'stress' && ` · 반경 ${h.radius}m`}
+                                                        {t('scs_from_route', { m: h.perpDist })}
+                                                        {h.category === 'stress' && ` ${t('scs_radius', { m: h.radius })}`}
                                                     </p>
                                                 </div>
 
@@ -278,13 +278,13 @@ const SafeCorridorSheet = ({
                             {/* ── 안전 팁 ── */}
                             <div className="bg-cyber-cyan/5 border border-cyber-cyan/20 rounded-2xl px-4 py-3">
                                 <p className="text-[9px] font-black text-cyber-cyan uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                    <Shield size={9} /> 안전 주행 팁
+                                    <Shield size={9} /> {t('scs_tips_title')}
                                 </p>
                                 <ul className="space-y-1">
                                     {[
-                                        '위험 구역 진입 전 미리 감속하세요',
-                                        '보행자 보호구역은 서행 운행이 필수입니다',
-                                        '음성 안내를 활성화하면 화면 주시 없이 안전 알림을 받을 수 있습니다',
+                                        t('scs_tip1'),
+                                        t('scs_tip2'),
+                                        t('scs_tip3'),
                                     ].map((tip, i) => (
                                         <li key={i} className="text-[9px] text-gray-400 flex items-start gap-1.5">
                                             <span className="text-cyber-cyan mt-0.5 shrink-0">·</span> {tip}
@@ -301,14 +301,14 @@ const SafeCorridorSheet = ({
                                 onClick={onClose}
                                 className="flex-1 py-3.5 rounded-2xl bg-white/5 text-gray-400 font-bold text-[11px] border border-white/10 hover:bg-white/10 transition-all active:scale-95"
                             >
-                                닫기
+                                {t('close')}
                             </button>
                             <button
                                 onClick={onNavigate}
                                 className="flex-[2] py-3.5 rounded-2xl bg-cyber-cyan text-black font-black text-[11px] uppercase tracking-wider shadow-neon-cyan hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
                                 <Navigation size={14} />
-                                외부 앱으로 길 안내
+                                {t('scs_nav_external')}
                             </button>
                         </div>
                     </motion.div>
