@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShieldCheck, AlertCircle, AlertTriangle, Zap, Gauge, Timer, Mountain } from 'lucide-react';
 
 const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
+    const { t } = useTranslation();
     if (!isOpen || !data) return null;
 
     const { speed, reactionDist, brakingDist, totalDist, riskLevel, mu, incline, reactionTime, surface } = data;
@@ -13,7 +15,7 @@ const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
             text: 'text-emerald-400',
             glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
             icon: ShieldCheck,
-            label: '안전 (SAFE)'
+            label: t('dt_safe')
         },
         warning: {
             bg: 'bg-amber-950/40',
@@ -21,7 +23,7 @@ const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
             text: 'text-amber-400',
             glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
             icon: AlertCircle,
-            label: '주의 (WARNING)'
+            label: t('dt_warning')
         },
         danger: {
             bg: 'bg-red-950/40',
@@ -29,7 +31,7 @@ const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
             text: 'text-red-400',
             glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]',
             icon: AlertTriangle,
-            label: totalDist === Infinity ? '제동 불가 (RUNAWAY)' : '위험 (DANGER)'
+            label: totalDist === Infinity ? t('dt_runaway') : t('dt_danger')
         }
     }[riskLevel];
 
@@ -118,7 +120,7 @@ const DigitalTwinIndicator = ({ isOpen, onClose, data }) => {
                 <div className={`w-full py-4 rounded-2xl font-black text-sm mb-4 border ${theme.border} bg-white/5 flex flex-col items-center justify-center gap-1 z-10`}>
                     <span className={`text-[10px] font-black tracking-widest ${theme.text}`}>ALGORITHM STATUS: {theme.label}</span>
                     {riskLevel !== 'safe' && (
-                        <p className="text-white text-[11px] animate-pulse">속도를 줄이고 안전 거리를 확보하세요!</p>
+                        <p className="text-white text-[11px] animate-pulse">{t('dt_slow_down')}</p>
                     )}
                 </div>
 

@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ACCENT = '#CCFF00';
 const BG_BASE = '#0a0a0a';
@@ -34,18 +35,20 @@ const ShareCard = forwardRef(({
     referralCode,
     ratio = 'story',
     helmetOn = false,
-    routeLabel = '안심 도로'
+    routeLabel = null
 }, ref) => {
+    const { t } = useTranslation();
     const preset = RATIO_PRESETS[ratio] || RATIO_PRESETS.story;
     const distance = Number(metrics?.distance ?? 2.4);
     const timeMin = Number(metrics?.time ?? 8.4);
     const suddenBrakeCount = Number(metrics?.suddenBrakeCount ?? 0);
+    const rLabel = routeLabel || t('sc_route_label');
 
     const durationLabel = formatDurationMmss(timeMin);
     const avgSpeed = computeAvgSpeedKmh(distance, timeMin);
     const safetyScore = computeSafetyScore(suddenBrakeCount);
 
-    const title = `${routeLabel} ${distance.toFixed(1)}km 비행 완료 ⚡`;
+    const title = t('sc_title', { route: rLabel, km: distance.toFixed(1) });
     const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
 
     return (
@@ -237,8 +240,8 @@ const ShareCard = forwardRef(({
                                 lineHeight: 1.2,
                                 fontFamily: '"Pretendard", system-ui, sans-serif'
                             }}>
-                                QR로 <span style={{ color: ACCENT }}>안전 라이딩</span><br />
-                                즉시 시작
+                                {t('sc_qr_pre')}<span style={{ color: ACCENT }}>{t('sc_qr_ride')}</span><br />
+                                {t('sc_start_now')}
                             </div>
                         )}
                         {referralCode && (

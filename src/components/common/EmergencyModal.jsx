@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Phone, ShieldAlert } from 'lucide-react';
 
 const EmergencyModal = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     if (!isOpen) return null;
 
     const contacts = [
-        { name: '경찰청', number: '112', icon: '👮' },
-        { name: '소방청 (119)', number: '119', icon: '🚒' },
-        { name: '단국대 통합경비실', number: '041-550-1114', icon: '🏫' },
+        { name: t('em_police'), number: '112', icon: '👮' },
+        { name: t('em_fire'), number: '119', icon: '🚒' },
+        { name: t('em_dankook'), number: '041-550-1114', icon: '🏫' },
     ];
 
     return (
@@ -15,8 +17,8 @@ const EmergencyModal = ({ isOpen, onClose }) => {
             <div className="bg-white w-full max-w-xs rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="bg-red-600 p-6 flex flex-col items-center text-white">
                     <ShieldAlert size={40} className="mb-2 animate-bounce" />
-                    <h2 className="text-xl font-black">긴급 연락망</h2>
-                    <p className="text-red-100 text-xs mt-1">도움이 필요하신가요?</p>
+                    <h2 className="text-xl font-black">{t('em_title')}</h2>
+                    <p className="text-red-100 text-xs mt-1">{t('em_subtitle')}</p>
                 </div>
 
                 <div className="p-4 space-y-3">

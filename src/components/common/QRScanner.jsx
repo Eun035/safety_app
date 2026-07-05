@@ -47,7 +47,7 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess, mode = 'station' }) => {
             }
         ).catch((err) => {
             console.error("카메라를 자동으로 시작하는 데 실패했습니다.", err);
-            toast('📷 카메라 권한을 허용해 주시거나 카메라가 정상 작동하는지 확인해주세요.', 'error');
+            toast(t('qr_cam_fail'), 'error');
         });
 
         // Cleanup on unmount or when `isOpen` becomes false

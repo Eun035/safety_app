@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const routeOptions = [
-    { id: 'safe', label: '🛡️ 안전 최우선' },
-    { id: 'eco', label: '🍃 유유자적 에코모드' },
-    { id: 'bike_lane', label: '🚲 자전거 도로' },
-    { id: 'fastest', label: '⚡ 최단 거리' }
+    { id: 'safe', label: 'rps_safe' },
+    { id: 'eco', label: 'rps_eco' },
+    { id: 'bike_lane', label: 'rps_bike' },
+    { id: 'fastest', label: 'rps_fast' }
 ];
 
 const RoutePreferenceSelector = ({ selectedMode, onModeChange }) => {
+    const { t } = useTranslation();
     return (
         <div className="w-full px-2 mb-4">
             <h3 className="text-gray-400 font-bold text-[9px] mb-2.5 ml-1 tracking-widest uppercase flex items-center gap-2">
@@ -29,7 +31,7 @@ const RoutePreferenceSelector = ({ selectedMode, onModeChange }) => {
                                     : 'bg-black/40 text-gray-400 border-white/5 hover:border-cyber-cyan/30 hover:bg-white/5'
                                 }`}
                         >
-                            {option.label}
+                            {t(option.label)}
                         </button>
                     );
                 })}
