@@ -82,6 +82,31 @@ function roundRect(ctx, x, y, w, h, r) {
     ctx.closePath();
 }
 
+// 공유 아이콘(노드 3개 + 연결선) — SNS 공유/앱 다운로드 유도 그래픽
+function drawShareGlyph(ctx, cx, cy, s, color) {
+    const r = s * 0.15;
+    const A = [cx + s * 0.30, cy - s * 0.34]; // 우상단
+    const B = [cx - s * 0.34, cy];            // 좌중앙
+    const C = [cx + s * 0.30, cy + s * 0.34]; // 우하단
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = s * 0.085;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(B[0], B[1]); ctx.lineTo(A[0], A[1]); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(B[0], B[1]); ctx.lineTo(C[0], C[1]); ctx.stroke();
+    ctx.fillStyle = color;
+    [A, B, C].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); });
+    ctx.restore();
+}
+
+// 폭을 넘치면 말줄임표로 자르기
+function truncateToWidth(ctx, text, maxWidth) {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    let s = text;
+    while (s.length > 1 && ctx.measureText(`${s}…`).width > maxWidth) s = s.slice(0, -1);
+    return `${s}…`;
+}
+
 function wrapLines(ctx, text, maxWidth, maxLines = 3) {
     const words = String(text).split(/\s+/);
     const lines = [];
@@ -276,7 +301,18 @@ export async function renderShareCard({
     drawStat('AVG SPEED', String(avgSpeed), 'km/h', false);
     drawStat('SAFETY SCORE', String(safetyScore), '%', true);
 
-    // ── 푸터: 앱 다운로드 CTA (QR 제거, 전체 폭 사용) ────────
+    // ── 푸터: 공유 아이콘 배지(우) + 앱 다운로드 CTA(좌) ─────
+    // 공유 아이콘 배지 — SNS에 공유하면 앱을 받을 수 있음을 나타내는 그래픽
+    const badgeR = Math.round(P.qr * 0.30);
+    const bcx = P.w - P.pad - badgeR;
+    const bcy = footerY + Math.round(P.qr * 0.42);
+    ctx.beginPath(); ctx.arc(bcx, bcy, badgeR, 0, Math.PI * 2);
+    ctx.fillStyle = T.panelHi; ctx.fill();
+    ctx.lineWidth = 4; ctx.strokeStyle = T.accent; ctx.stroke();
+    drawShareGlyph(ctx, bcx, bcy, badgeR * 1.05, T.accent);
+
+    // 좌측 컬럼 폭 (배지 영역 제외)
+    const colW = P.w - P.pad * 2 - (badgeR * 2 + 40);
     const lx = P.pad;
     let ly = footerY + 8;
     ctx.textAlign = 'left';
@@ -286,18 +322,18 @@ export async function renderShareCard({
     ctx.font = `900 ${ratio === 'square' ? 42 : 52}px ${SANS}`;
     ctx.fillStyle = T.accent;
     const cta = i18n.t('sc_dl_cta');
-    const ctaLines = wrapLines(ctx, cta, P.w - P.pad * 2, 2);
+    const ctaLines = wrapLines(ctx, cta, colW, 2);
     const ctaLH = ratio === 'square' ? 52 : 64;
     ctaLines.forEach((ln, i) => ctx.fillText(ln, lx, ly + i * ctaLH));
     ly += ctaLines.length * ctaLH + 16;
 
-    // 다운로드 주소 (host)
+    // 다운로드 주소 (host, 길면 말줄임)
     let host = 'com.csafe.pm';
     if (shareUrl) { try { host = new URL(shareUrl).host; } catch { /* noop */ } }
-    ctx.font = `800 28px ${MONO}`;
+    ctx.font = `800 26px ${MONO}`;
     ctx.fillStyle = T.textDim;
-    ctx.fillText(host, lx, ly);
-    ly += 46;
+    ctx.fillText(truncateToWidth(ctx, host, colW), lx, ly);
+    ly += 44;
 
     // REF 코드 칩
     if (referralCode) {

@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, Leaf, Zap, Share2, Gauge, ShieldCheck, Download } from 'lucide-react';
+import { ChevronLeft, Leaf, Zap, Share2, Gauge, ShieldCheck } from 'lucide-react';
 import TargetedAdBanner from './TargetedAdBanner';
 import { toast } from '../../hooks/useToast';
 import { buildRouteSketch } from '../../utils/routeSketch';
 import { renderShareCard, SHARE_THEMES, suggestTheme } from '../../utils/renderShareCard';
 import { buildReferralCode, buildReferralUrl } from '../../utils/referral';
-import { promptAppInstall } from '../../utils/pwaInstall';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId, helmetOn = false }) => {
     const { t } = useTranslation();
@@ -118,19 +117,6 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
         } finally {
             setIsSharing(false);
         }
-    };
-
-    // 📲 앱 다운로드(홈 화면에 추가) — PWA 설치 프롬프트
-    const handleDownloadApp = async () => {
-        const outcome = await promptAppInstall();
-        if (outcome === 'accepted' || outcome === 'installed') {
-            toast(t('rsm_install_done'), 'success');
-        } else if (outcome === 'unavailable') {
-            // iOS Safari 등 설치 프롬프트 미지원 → 수동 안내 + 앱 링크 열기
-            toast(t('rsm_install_hint'), 'info');
-            window.open(referralUrl, '_blank', 'noopener');
-        }
-        // 'dismissed'는 사용자가 취소한 것이므로 별도 처리 없음
     };
 
     return (
@@ -348,15 +334,6 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                     >
                         <Share2 size={22} className="text-black" strokeWidth={2.5} />
                         {isSharing ? t('rsm_generating') : 'Share to Instagram'}
-                    </button>
-
-                    {/* 📲 앱 다운로드 버튼 — 눌러서 홈 화면에 설치 */}
-                    <button
-                        onClick={handleDownloadApp}
-                        className="w-full h-14 mt-3 rounded-[22px] flex items-center justify-center gap-2.5 font-black text-cyber-cyan text-[15px] border border-cyber-cyan/40 bg-cyber-cyan/10 active:scale-95 transition-transform"
-                    >
-                        <Download size={20} className="text-cyber-cyan" strokeWidth={2.5} />
-                        {t('rsm_download_app')}
                     </button>
 
                     <p className="text-center text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-8 mb-2">
