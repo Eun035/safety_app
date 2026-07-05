@@ -58,12 +58,17 @@ const ShareCard = forwardRef(({
     return (
         <div
             ref={ref}
+            aria-hidden="true"
             style={{
+                // 화면 밖(-9999px)에 두면 모바일에서 페인팅되지 않아 캡처가 검게 나오는 문제가 있어
+                // 뷰포트 안에 두되 완전 투명 + 뒤쪽(z-index -1) 배치로 보이지 않게 하면서 페인팅되게 한다.
                 position: 'fixed',
-                left: '-9999px',
+                left: 0,
                 top: 0,
                 width: `${preset.w}px`,
                 height: `${preset.h}px`,
+                opacity: 0,
+                zIndex: -1,
                 pointerEvents: 'none'
             }}
         >

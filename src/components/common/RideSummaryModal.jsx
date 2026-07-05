@@ -68,12 +68,25 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
         if (!shareCardRef.current || isSharing) return;
         setIsSharing(true);
         try {
+            // 폰트가 아직 로드되지 않은 상태로 캡처하면 검은 이미지가 나올 수 있어 로드 대기
+            if (document.fonts?.ready) {
+                try { await document.fonts.ready; } catch { /* noop */ }
+            }
+
             // 1) 오프스크린 ShareCard DOM → PNG 캡처
-            const dataUrl = await toPng(shareCardRef.current, {
+            //  skipFonts: html-to-image가 웹폰트 CSS를 fetch·임베드하다 실패하면 캡처 전체가
+            //  검게(배경색만) 나오는 문제가 있어 폰트 임베드를 건너뛴다(시스템 폰트로 렌더).
+            const captureOpts = {
                 pixelRatio: 1,           // ShareCard 내부에 이미 1080px 기준 큰 크기 사용
                 cacheBust: true,
-                backgroundColor: '#000'
-            });
+                backgroundColor: '#000',
+                skipFonts: true
+            };
+
+            // html-to-image는 첫 호출에서 배경/이미지 임베드가 덜 되어 빈(검은) 이미지가
+            // 나오는 알려진 이슈가 있다. 워밍업 캡처 1회 후 실제 결과를 사용한다.
+            await toPng(shareCardRef.current, captureOpts);
+            const dataUrl = await toPng(shareCardRef.current, captureOpts);
 
             // 2) dataURL → Blob → File (navigator.share file 지원 위해)
             const blob = await (await fetch(dataUrl)).blob();
