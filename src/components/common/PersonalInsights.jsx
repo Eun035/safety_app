@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Layers, MapPin, Clock, Calendar, BarChart3, ChevronRight, Zap, Target, History } from 'lucide-react';
 import ReferralStatsCard from './ReferralStatsCard';
 
 const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact, userId }) => {
+    const { t: tr } = useTranslation();
 
     // 공통 유틸: ride의 timestamp 추출 (Supabase start_time / localStorage date 둘 다 지원)
     const getRideTs = (r) => {
@@ -140,19 +142,19 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact, u
                             </div>
                             {/* 실데이터 주간 변화율 (기존 "12%" 하드코딩 mock 제거) */}
                             {insights.weekVarPct === null ? (
-                                <p className="text-sm font-bold text-gray-500">비교할 지난주 데이터가 없습니다.</p>
+                                <p className="text-sm font-bold text-gray-500">{tr('pi_no_lastweek')}</p>
                             ) : insights.weekVarPct === 0 ? (
-                                <p className="text-sm font-bold text-gray-400">지난주와 비슷한 활동량입니다.</p>
+                                <p className="text-sm font-bold text-gray-400">{tr('pi_similar')}</p>
                             ) : insights.weekVarPct > 0 ? (
-                                <p className="text-sm font-bold text-gray-400">지난주 대비 <span className="text-purple-400">▲ {insights.weekVarPct}%</span> 더 많이 이동했습니다.</p>
+                                <p className="text-sm font-bold text-gray-400">{tr('pi_vs_lastweek')}<span className="text-purple-400">▲ {insights.weekVarPct}%</span>{tr('pi_more_moved')}</p>
                             ) : (
-                                <p className="text-sm font-bold text-gray-400">지난주 대비 <span className="text-amber-400">▼ {Math.abs(insights.weekVarPct)}%</span> 적게 이동했습니다.</p>
+                                <p className="text-sm font-bold text-gray-400">{tr('pi_vs_lastweek')}<span className="text-amber-400">▼ {Math.abs(insights.weekVarPct)}%</span>{tr('pi_less_moved')}</p>
                             )}
 
                             {/* 실데이터 7일 일별 거리 막대그래프 (기존 [30,45,25,60,40,80,50] 하드코딩 mock 제거) */}
                             {(() => {
                                 const maxDist = Math.max(...insights.dailyDistances, 0.1);
-                                const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+                                const dayLabels = tr('si_day_labels').split(',');
                                 const todayDow = new Date().getDay();
                                 return (
                                     <div className="mt-8">
@@ -208,8 +210,8 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact, u
                                 </div>
                             )) : (
                                 <div className="text-center py-4">
-                                    <p className="text-xs text-gray-500">목적지 텍스트 저장 기능 준비 중</p>
-                                    <p className="text-[10px] text-gray-600 mt-1">(Coming soon — rides 컬럼 보강 후 가동)</p>
+                                    <p className="text-xs text-gray-500">{tr('pi_coming1')}</p>
+                                    <p className="text-[10px] text-gray-600 mt-1">{tr('pi_coming2')}</p>
                                 </div>
                             )}
                         </div>

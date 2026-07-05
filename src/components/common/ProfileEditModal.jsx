@@ -1,5 +1,6 @@
 // src/components/common/ProfileEditModal.jsx
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Camera, Save } from 'lucide-react';
 import { useUserStore } from '../../hooks/useUserStore';
 import { toast } from '../../hooks/useToast';
@@ -14,6 +15,7 @@ const PRESET_AVATARS = [
 ];
 
 const ProfileEditModal = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const { profile, updateProfile } = useUserStore();
     const [nickname, setNickname] = useState('');
     const [age, setAge] = useState('');
@@ -32,7 +34,7 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
 
     const handleSave = async () => {
         if (!nickname.trim()) {
-            toast('닉네임을 입력해주세요.', 'error');
+            toast(t('pe_need_nickname'), 'error');
             return;
         }
 
@@ -43,7 +45,7 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
             profile_image: avatar,
         });
         setIsSaving(false);
-        toast('프로필이 성공적으로 업데이트되었습니다.', 'success');
+        toast(t('pe_updated'), 'success');
         onClose();
     };
 
@@ -89,7 +91,7 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
                             type="text"
                             value={nickname}
                             onChange={(e) => setNickname(e.target.value)}
-                            placeholder="라이더 닉네임"
+                            placeholder={t('pe_nickname_ph')}
                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-bold placeholder-gray-600 focus:outline-none focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 transition-all"
                         />
                     </div>
@@ -99,10 +101,10 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
                             type="number"
                             value={age}
                             onChange={(e) => setAge(e.target.value)}
-                            placeholder="나이 (시니어 모드 테스트용)"
+                            placeholder={t('pe_age_ph')}
                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-bold placeholder-gray-600 focus:outline-none focus:border-cyber-cyan/50 focus:ring-1 focus:ring-cyber-cyan/50 transition-all"
                         />
-                        <p className="text-[9px] text-gray-500 mt-1">65세 이상 입력 시 '시니어 안심 주행 모드'가 활성화됩니다.</p>
+                        <p className="text-[9px] text-gray-500 mt-1">{t('pe_senior_hint')}</p>
                     </div>
                 </div>
 
