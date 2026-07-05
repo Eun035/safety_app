@@ -45,6 +45,7 @@ export function buildRouteSketch(path, { width = 100, height = 100, padding = 12
 
     return {
         d,
+        points: coords,                                    // 캔버스 렌더용 [[x,y], ...]
         start: { x: +sx.toFixed(1), y: +sy.toFixed(1) },
         end: { x: +ex.toFixed(1), y: +ey.toFixed(1) },
         count: pts.length
