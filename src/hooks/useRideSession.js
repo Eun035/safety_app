@@ -295,7 +295,10 @@ export const useRideSession = create((set, get) => ({
             suddenBrakeCount: state.suddenBrakeCount,
             co2Saved: (state.totalDistance * 0.2).toFixed(1),
             zoneEvents: finalZoneEvents,
-            rideRsr: rideRsr !== null ? Math.round(rideRsr) : null
+            rideRsr: rideRsr !== null ? Math.round(rideRsr) : null,
+            // SNS 공유 카드용 실제 주행 데이터
+            path: state.currentPath.map(p => ({ lat: p.lat, lng: p.lng })),
+            destination: destinationText || null
         };
 
         // 1. Supabase 'rides' 테이블에 저장 (비동기) - 게스트 모드일 경우 스킵

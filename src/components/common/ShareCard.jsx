@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { buildRouteSketch } from '../../utils/routeSketch';
 
 const ACCENT = '#CCFF00';
 const BG_BASE = '#0a0a0a';
@@ -35,10 +36,13 @@ const ShareCard = forwardRef(({
     referralCode,
     ratio = 'story',
     helmetOn = false,
-    routeLabel = null
+    routeLabel = null,
+    path = null
 }, ref) => {
     const { t } = useTranslation();
     const preset = RATIO_PRESETS[ratio] || RATIO_PRESETS.story;
+    // 실제 주행 GPS 경로 스케치 (없으면 장식용 폴백 곡선 사용)
+    const routeSketch = buildRouteSketch(path, { width: preset.w, height: preset.h, padding: 140 });
     const distance = Number(metrics?.distance ?? 2.4);
     const timeMin = Number(metrics?.time ?? 8.4);
     const suddenBrakeCount = Number(metrics?.suddenBrakeCount ?? 0);
@@ -90,8 +94,8 @@ const ShareCard = forwardRef(({
                 }} />
 
                 <svg
-                    viewBox="0 0 1080 1920"
-                    preserveAspectRatio="none"
+                    viewBox={`0 0 ${preset.w} ${preset.h}`}
+                    preserveAspectRatio={routeSketch ? 'xMidYMid meet' : 'none'}
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.55 }}
                 >
                     <defs>
@@ -100,16 +104,35 @@ const ShareCard = forwardRef(({
                             <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
                         </filter>
                     </defs>
-                    <path
-                        d="M 120 1640 C 280 1460, 220 1240, 480 1140 S 820 880, 720 640 S 540 320, 920 180"
-                        fill="none"
-                        stroke={ACCENT}
-                        strokeWidth="6"
-                        strokeLinecap="round"
-                        filter="url(#csafe-glow)"
-                    />
-                    <circle cx="120" cy="1640" r="18" fill={ACCENT} filter="url(#csafe-glow)" />
-                    <circle cx="920" cy="180" r="18" fill="#fff" filter="url(#csafe-glow)" />
+                    {routeSketch ? (
+                        <>
+                            <path
+                                d={routeSketch.d}
+                                fill="none"
+                                stroke={ACCENT}
+                                strokeWidth="9"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                filter="url(#csafe-glow)"
+                            />
+                            <circle cx={routeSketch.start.x} cy={routeSketch.start.y} r="20" fill="#a855f7" filter="url(#csafe-glow)" />
+                            <circle cx={routeSketch.end.x} cy={routeSketch.end.y} r="20" fill={ACCENT} filter="url(#csafe-glow)" />
+                        </>
+                    ) : (
+                        // 경로 데이터가 없을 때만 사용하는 장식용 폴백 곡선
+                        <>
+                            <path
+                                d="M 120 1640 C 280 1460, 220 1240, 480 1140 S 820 880, 720 640 S 540 320, 920 180"
+                                fill="none"
+                                stroke={ACCENT}
+                                strokeWidth="6"
+                                strokeLinecap="round"
+                                filter="url(#csafe-glow)"
+                            />
+                            <circle cx="120" cy="1640" r="18" fill={ACCENT} filter="url(#csafe-glow)" />
+                            <circle cx="920" cy="180" r="18" fill="#fff" filter="url(#csafe-glow)" />
+                        </>
+                    )}
                 </svg>
 
                 <div style={{ position: 'relative', zIndex: 2 }}>
