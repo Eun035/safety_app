@@ -14,6 +14,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
     const [isSharing, setIsSharing] = useState(false);
     const [shareRatio, setShareRatio] = useState('story'); // story | feed | square
     const [shareTheme, setShareTheme] = useState(() => suggestTheme(metrics?.suddenBrakeCount ?? suddenBrakeCount)); // 주행 성향에 맞춘 기본 테마
+    const [shareAsset, setShareAsset] = useState(null); // 미리 렌더해 둔 { file, dataUrl }
 
     // 사용자 ID 기반 추천 코드 (Task 4에서 Supabase 동기화)
     const referralCode = buildReferralCode(userId);
@@ -53,60 +54,68 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
         }
     }, [isOpen]);
 
+    // 공유 카드 이미지를 미리 렌더해 둔다 → 버튼 클릭 시 navigator.share를 지연 없이(사용자 제스처
+    // 활성 상태에서) 즉시 호출할 수 있어 모바일 공유 시트가 확실히 뜬다. 비율/테마 변경 시 재생성.
+    useEffect(() => {
+        if (!isOpen) { setShareAsset(null); return; }
+        let cancelled = false;
+        (async () => {
+            try {
+                if (document.fonts?.ready) { try { await document.fonts.ready; } catch { /* noop */ } }
+                const { dataUrl, blob: canvasBlob } = await renderShareCard({
+                    metrics,
+                    vibeName,
+                    referralCode,
+                    shareUrl: referralUrl,
+                    ratio: shareRatio,
+                    theme: shareTheme,
+                    helmetOn,
+                    path: ridePath,
+                    routeLabel: metrics?.destination || null,
+                });
+                if (cancelled) return;
+                const blob = canvasBlob || await (await fetch(dataUrl)).blob();
+                const file = new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' });
+                if (!cancelled) setShareAsset({ file, dataUrl });
+            } catch (e) {
+                console.warn('[C-Safe] 공유 카드 사전 렌더 실패:', e?.message || e);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [isOpen, shareRatio, shareTheme, referralUrl, referralCode, metrics, vibeName, helmetOn, ridePath]);
+
     if (!isOpen) return null;
+
+    const buildShareText = () => {
+        const km = Number(metrics?.distance ?? 2.4).toFixed(1);
+        return [t('rsm_share_text', { km }), '', t('rsm_share_hashtags'), referralUrl].join('\n');
+    };
 
     const handleShare = async () => {
         if (isSharing) return;
         setIsSharing(true);
         try {
-            // 폰트 로드 대기 (캔버스 텍스트에 웹폰트 반영 안정화)
-            if (document.fonts?.ready) {
-                try { await document.fonts.ready; } catch { /* noop */ }
+            // 미리 렌더된 카드 사용(없으면 즉석 렌더)
+            let asset = shareAsset;
+            if (!asset) {
+                const { dataUrl, blob: canvasBlob } = await renderShareCard({
+                    metrics, vibeName, referralCode, shareUrl: referralUrl,
+                    ratio: shareRatio, theme: shareTheme, helmetOn, path: ridePath,
+                    routeLabel: metrics?.destination || null,
+                });
+                const blob = canvasBlob || await (await fetch(dataUrl)).blob();
+                asset = { file: new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' }), dataUrl };
             }
 
-            // Canvas 2D로 직접 렌더 → PNG. html-to-image(SVG foreignObject)가 일부 모바일
-            // 브라우저/WebView에서 빈(검은) 이미지를 만드는 문제를 근본적으로 회피한다.
-            const { dataUrl, blob: canvasBlob } = await renderShareCard({
-                metrics,
-                vibeName,
-                referralCode,
-                shareUrl: referralUrl,
-                ratio: shareRatio,
-                theme: shareTheme,
-                helmetOn,
-                path: ridePath,
-                routeLabel: metrics?.destination || null,
-            });
+            const shareText = buildShareText();
 
-            // dataURL → Blob → File (navigator.share file 지원 위해)
-            const blob = canvasBlob || await (await fetch(dataUrl)).blob();
-            const file = new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' });
-
-            // 3) 캡션 조합: 문구 + 해시태그 + 다운로드 링크 (SNS에 그대로 올릴 수 있게)
-            const km = Number(metrics?.distance ?? 2.4).toFixed(1);
-            const shareText = [
-                t('rsm_share_text', { km }),
-                '',
-                t('rsm_share_hashtags'),
-                referralUrl,
-            ].join('\n');
-
-            // 인스타 등은 이미지 공유 시 text를 무시하므로, 캡션을 먼저 클립보드에 복사해
-            // 사용자가 바로 붙여넣을 수 있게 한다.
-            let captionCopied = false;
-            if (navigator.clipboard?.writeText) {
-                try { await navigator.clipboard.writeText(shareText); captionCopied = true; } catch { /* noop */ }
-            }
-
-            // 4) Web Share Level 2 (파일 공유) 지원 시 → 인스타·카톡 직통
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            // 1) 파일 공유 우선 — 클립보드보다 먼저 호출해야 사용자 제스처가 소모되지 않아 시트가 뜬다.
+            if (navigator.canShare && navigator.canShare({ files: [asset.file] })) {
                 try {
-                    await navigator.share({
-                        title: 'C-Safe Ride',
-                        text: shareText,
-                        files: [file]
-                    });
-                    if (captionCopied) toast(t('rsm_caption_copied'), 'success');
+                    await navigator.share({ title: 'C-Safe Ride', text: shareText, files: [asset.file] });
+                    // 공유 성공 후 캡션 복사(인스타 붙여넣기용) — best effort
+                    try { await navigator.clipboard?.writeText(shareText); } catch { /* noop */ }
+                    toast(t('rsm_caption_copied'), 'success');
                     return;
                 } catch (e) {
                     if (e?.name === 'AbortError') return; // 사용자 취소
@@ -114,15 +123,17 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                 }
             }
 
-            // 5) 폴백 — 카드 PNG 다운로드 (캡션은 위에서 이미 복사됨)
+            // 2) 폴백 — 캡션 복사 + 카드 PNG 다운로드
+            let copied = false;
+            try { await navigator.clipboard?.writeText(shareText); copied = true; } catch { /* noop */ }
             const link = document.createElement('a');
-            link.href = dataUrl;
+            link.href = asset.dataUrl;
             link.download = `c-safe-ride-${Date.now()}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            toast(captionCopied ? t('rsm_caption_copied') : t('rsm_saved_toast'), 'success');
+            toast(copied ? t('rsm_caption_copied') : t('rsm_saved_toast'), 'success');
         } catch (error) {
             console.error('공유 실패:', error);
             toast(t('rsm_share_fail'), 'error');
