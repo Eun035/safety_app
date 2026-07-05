@@ -106,6 +106,7 @@ const resources = {
             "tts_vehicle_kickboard": "전동 킥보드 주행 모드가 선택되었습니다. 최고 속도는 시속 20km로 감시됩니다. 안전 주행을 위해 에지 AI 헬멧 검증을 시작합니다.",
             "tts_parking_legal": "주차 확인 성공. 리워드 100포인트가 적립되었습니다. 주차를 종료합니다.",
             "tts_parking_illegal": "주차 구역 이탈! 반경 10미터 이내 지정 주차장이 없습니다. 견인 및 페널티 위험이 있습니다.",
+            "tts_ride_start": "주행을 시작합니다. 안전 운행하세요!",
 
             // 보행자 보호구역 메타데이터
             "단국대 정문 보행자 보호구역": "단국대 정문 보행자 보호구역",
@@ -791,6 +792,7 @@ const resources = {
             "tts_vehicle_kickboard": "電動キックボードの走行モードが選択されました。最高速度は20km/hで監視されます。安全運転のためにEdge AIヘルメット検証を開始します。",
             "tts_parking_legal": "駐車が確認されました。報酬100ポイントが積立されました。駐車を終了します。",
             "tts_parking_illegal": "駐車エリアを逸脱しています！半径10メートル以内に指定駐車場がありません。牽引やペナルティの危険があります。",
+            "tts_ride_start": "走行を開始します。安全運転を心がけてください！",
 
             // 보행자 보호구역 메타데이터
             "단국대 정문 보행자 보호구역": "檀国大学校正門歩行者保護区域",
@@ -1544,6 +1546,7 @@ const resources = {
             "tts_vehicle_kickboard": "电动滑板车行驶模式已选择。最高速度限制为20km/h。为了安全骑行，开始进行Edge AI头盔验证。",
             "tts_parking_legal": "停车确认成功。奖励100积分已到账。结束停车。",
             "tts_parking_illegal": "离开停车区域！半径10米内无指定停车场。可能面临被拖走和罚款的风险。",
+            "tts_ride_start": "开始骑行。请注意安全驾驶！",
 
             // 보행자 보호구역 메타데이터
             "단국대 정문 보행자 보호구역": "檀国大学正门步行者保护区",
@@ -2297,6 +2300,7 @@ const resources = {
             "tts_vehicle_kickboard": "E-scooter mode selected. Maximum speed is monitored at 20 km per hour. Starting Edge AI helmet verification for safe riding.",
             "tts_parking_legal": "Parking verified. 100 reward points have been accumulated. Ending the ride.",
             "tts_parking_illegal": "Parking zone deviated! There is no designated parking within a 10-meter radius. There is a risk of towing and penalties.",
+            "tts_ride_start": "Ride started. Ride safely!",
 
             // Pedestrian Zone Metadata
             "단국대 정문 보행자 보호구역": "Dankook Univ Main Gate Pedestrian Zone",
