@@ -57,25 +57,24 @@ const ShareCard = forwardRef(({
 
     return (
         <div
-            ref={ref}
             aria-hidden="true"
             style={{
-                // 화면 밖(-9999px)에 두면 모바일에서 페인팅되지 않아 캡처가 검게 나오는 문제가 있어
-                // 뷰포트 안에 두되 완전 투명 + 뒤쪽(z-index -1) 배치로 보이지 않게 하면서 페인팅되게 한다.
+                // 숨김 처리는 "바깥 래퍼"에만 적용한다. 캡처 대상(ref)에 opacity:0을 걸면
+                // html-to-image가 투명한 노드를 그대로 복제해 결과가 통째로 검게 나온다.
+                // 래퍼는 opacity:0 + z-index:-1로 화면에서 감추되, 안쪽 카드는 완전 불투명 유지.
                 position: 'fixed',
                 left: 0,
                 top: 0,
-                width: `${preset.w}px`,
-                height: `${preset.h}px`,
                 opacity: 0,
                 zIndex: -1,
                 pointerEvents: 'none'
             }}
         >
             <div
+                ref={ref}
                 style={{
-                    width: '100%',
-                    height: '100%',
+                    width: `${preset.w}px`,
+                    height: `${preset.h}px`,
                     background: `radial-gradient(circle at 50% 25%, #15171a 0%, ${BG_BASE} 60%, #000 100%)`,
                     color: '#fff',
                     fontFamily: '"JetBrains Mono", "SF Mono", "Pretendard", system-ui, monospace',
