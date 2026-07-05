@@ -292,6 +292,8 @@ const resources = {
 
             // RideSummaryModal (라이딩 요약)
             "rsm_share_text": "{{km}}km 비행 완료 ⚡ C-Safe와 함께 안전 라이딩.",
+            "rsm_share_hashtags": "#C세이프 #안전라이딩 #전동킥보드 #PM라이딩 #라이드로그",
+            "rsm_caption_copied": "📋 해시태그·링크 캡션을 복사했어요. 붙여넣기 하세요!",
             "rsm_saved_toast": "📸 카드 저장 완료! 인스타에 직접 업로드하세요.",
             "rsm_share_fail": "⚠️ 공유 카드 생성 실패. 다시 시도해 주세요.",
             "rsm_ratio_story": "스토리 9:16",
@@ -1009,6 +1011,8 @@ const resources = {
 
             // RideSummaryModal (走行サマリー)
             "rsm_share_text": "{{km}}km 完走 ⚡ C-Safeと安全ライド。",
+            "rsm_share_hashtags": "#CSafe #安全ライド #電動キックボード #PM #ライドログ",
+            "rsm_caption_copied": "📋 ハッシュタグ・リンク付きキャプションをコピーしました。貼り付けてください！",
             "rsm_saved_toast": "📸 カード保存完了！Instagramに直接アップロードしてください。",
             "rsm_share_fail": "⚠️ 共有カードの生成に失敗しました。もう一度お試しください。",
             "rsm_ratio_story": "ストーリー 9:16",
@@ -1774,6 +1778,8 @@ const resources = {
 
             // RideSummaryModal (骑行摘要)
             "rsm_share_text": "{{km}}km 骑行完成 ⚡ 与C-Safe一起安全骑行。",
+            "rsm_share_hashtags": "#CSafe #安全骑行 #电动滑板车 #PM #骑行记录",
+            "rsm_caption_copied": "📋 已复制含话题标签和链接的文案，粘贴即可！",
             "rsm_saved_toast": "📸 卡片已保存！请直接上传到Instagram。",
             "rsm_share_fail": "⚠️ 分享卡片生成失败。请重试。",
             "rsm_ratio_story": "故事 9:16",
@@ -2539,6 +2545,8 @@ const resources = {
 
             // RideSummaryModal
             "rsm_share_text": "{{km}}km ride complete ⚡ Safe riding with C-Safe.",
+            "rsm_share_hashtags": "#CSafe #SafeRiding #eScooter #PM #RideLog",
+            "rsm_caption_copied": "📋 Caption with hashtags & link copied — just paste it!",
             "rsm_saved_toast": "📸 Card saved! Upload it to Instagram.",
             "rsm_share_fail": "⚠️ Failed to create share card. Please try again.",
             "rsm_ratio_story": "Story 9:16",

@@ -82,9 +82,23 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             const blob = canvasBlob || await (await fetch(dataUrl)).blob();
             const file = new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' });
 
-            // 3) Web Share Level 2 (파일 공유) 지원 시 → 인스타·카톡 직통
-            // 공유 텍스트에 다운로드 링크 포함 → 받는 사람이 바로 앱 설치 가능
-            const shareText = `${t('rsm_share_text', { km: Number(metrics?.distance ?? 2.4).toFixed(1) })}\n${referralUrl}`;
+            // 3) 캡션 조합: 문구 + 해시태그 + 다운로드 링크 (SNS에 그대로 올릴 수 있게)
+            const km = Number(metrics?.distance ?? 2.4).toFixed(1);
+            const shareText = [
+                t('rsm_share_text', { km }),
+                '',
+                t('rsm_share_hashtags'),
+                referralUrl,
+            ].join('\n');
+
+            // 인스타 등은 이미지 공유 시 text를 무시하므로, 캡션을 먼저 클립보드에 복사해
+            // 사용자가 바로 붙여넣을 수 있게 한다.
+            let captionCopied = false;
+            if (navigator.clipboard?.writeText) {
+                try { await navigator.clipboard.writeText(shareText); captionCopied = true; } catch { /* noop */ }
+            }
+
+            // 4) Web Share Level 2 (파일 공유) 지원 시 → 인스타·카톡 직통
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -92,6 +106,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                         text: shareText,
                         files: [file]
                     });
+                    if (captionCopied) toast(t('rsm_caption_copied'), 'success');
                     return;
                 } catch (e) {
                     if (e?.name === 'AbortError') return; // 사용자 취소
@@ -99,7 +114,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                 }
             }
 
-            // 4) 폴백 — 카드 PNG 다운로드 + 텍스트 클립보드
+            // 5) 폴백 — 카드 PNG 다운로드 (캡션은 위에서 이미 복사됨)
             const link = document.createElement('a');
             link.href = dataUrl;
             link.download = `c-safe-ride-${Date.now()}.png`;
@@ -107,10 +122,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             link.click();
             document.body.removeChild(link);
 
-            if (navigator.clipboard) {
-                await navigator.clipboard.writeText(shareText);
-            }
-            toast(t('rsm_saved_toast'), 'success');
+            toast(captionCopied ? t('rsm_caption_copied') : t('rsm_saved_toast'), 'success');
         } catch (error) {
             console.error('공유 실패:', error);
             toast(t('rsm_share_fail'), 'error');
