@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { X, ChevronRight, AlertTriangle, Smartphone, Volume2, CheckCircle2, Navigation } from 'lucide-react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
@@ -52,7 +53,9 @@ const NavigationLaunchSheet = ({
     routeDestination,
     onLaunch, // 실제 앱 열기 직전 App.jsx에서 TTS 실행용 콜백
 }) => {
+    const { t } = useTranslation();
     const [step, setStep] = useState('consent'); // 'consent' | 'app_select' | 'safety'
+    const appName = (a) => t(a === 'kakao' ? 'nls_kakao' : 'nls_naver');
 
     // 앱 선택 localStorage 영속화
     const [savedApp, setSavedApp] = useLocalStorage('csafe_nav_app', null);
@@ -144,14 +147,13 @@ const NavigationLaunchSheet = ({
                                     </div>
 
                                     <h2 className="text-[20px] font-black text-white text-center tracking-tighter mb-1">
-                                        외부 내비게이션 연동
+                                        {t('nls_consent_title')}
                                     </h2>
                                     <p className="text-[10px] text-gray-400 text-center mb-6 leading-relaxed px-4">
-                                        목적지 정보를 카카오맵 또는 네이버지도 앱으로
-                                        전달하여 상세 길 안내를 이용할 수 있습니다.
+                                        {t('nls_consent_desc')}
                                         <br />
                                         <span className="text-gray-500">
-                                            (위치 정보는 선택한 앱의 개인정보 처리방침에 따라 처리됩니다)
+                                            {t('nls_consent_privacy')}
                                         </span>
                                     </p>
 
@@ -162,7 +164,7 @@ const NavigationLaunchSheet = ({
                                                 <span className="text-sm">📍</span>
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider">목적지</p>
+                                                <p className="text-[8px] text-gray-500 font-bold uppercase tracking-wider">{t('rss_destination')}</p>
                                                 <p className="text-[12px] font-black text-white truncate">
                                                     {routeDestination.name || `${routeDestination.lat?.toFixed(5)}, ${routeDestination.lng?.toFixed(5)}`}
                                                 </p>
@@ -176,7 +178,7 @@ const NavigationLaunchSheet = ({
                                             onClick={onClose}
                                             className="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold text-[11px] border border-white/10 hover:bg-white/10 transition-all active:scale-95"
                                         >
-                                            사용 안 함
+                                            {t('nls_dont_use')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -185,7 +187,7 @@ const NavigationLaunchSheet = ({
                                             }}
                                             className="flex-[2] py-4 rounded-2xl bg-cyber-cyan text-black font-black text-[11px] uppercase tracking-wider shadow-neon-cyan hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2"
                                         >
-                                            동의하고 계속 <ChevronRight size={14} />
+                                            {t('nls_agree_continue')} <ChevronRight size={14} />
                                         </button>
                                     </div>
                                 </motion.div>
@@ -204,10 +206,10 @@ const NavigationLaunchSheet = ({
                                     className="px-6 pb-8 pt-2"
                                 >
                                     <h2 className="text-[18px] font-black text-white text-center tracking-tighter mb-1">
-                                        내비게이션 앱 선택
+                                        {t('nls_app_select_title')}
                                     </h2>
                                     <p className="text-[10px] text-gray-500 text-center mb-6">
-                                        선호하는 앱을 선택하세요. 다음부터 자동으로 기억됩니다.
+                                        {t('nls_app_select_desc')}
                                     </p>
 
                                     {/* 앱 선택 카드 */}
@@ -225,8 +227,8 @@ const NavigationLaunchSheet = ({
                                                 <span className="text-xl font-black text-black">K</span>
                                             </div>
                                             <div className="text-left">
-                                                <p className="text-sm font-black text-white">카카오맵</p>
-                                                <p className="text-[9px] text-gray-400">자전거·도보 경로 지원</p>
+                                                <p className="text-sm font-black text-white">{t('nls_kakao')}</p>
+                                                <p className="text-[9px] text-gray-400">{t('nls_kakao_desc')}</p>
                                             </div>
                                             {selectedApp === 'kakao' && (
                                                 <CheckCircle2 size={20} className="text-yellow-400 ml-auto" />
@@ -246,8 +248,8 @@ const NavigationLaunchSheet = ({
                                                 <span className="text-xl font-black text-white">N</span>
                                             </div>
                                             <div className="text-left">
-                                                <p className="text-sm font-black text-white">네이버지도</p>
-                                                <p className="text-[9px] text-gray-400">자전거·PM 경로 지원</p>
+                                                <p className="text-sm font-black text-white">{t('nls_naver')}</p>
+                                                <p className="text-[9px] text-gray-400">{t('nls_naver_desc')}</p>
                                             </div>
                                             {selectedApp === 'naver' && (
                                                 <CheckCircle2 size={20} className="text-green-400 ml-auto" />
@@ -257,7 +259,7 @@ const NavigationLaunchSheet = ({
 
                                     {/* 앱 변경 안내 */}
                                     <p className="text-[8px] text-gray-600 text-center mb-5">
-                                        나중에 설정에서 변경할 수 있습니다
+                                        {t('nls_change_later')}
                                     </p>
 
                                     <div className="flex gap-2">
@@ -265,7 +267,7 @@ const NavigationLaunchSheet = ({
                                             onClick={() => setStep('consent')}
                                             className="flex-1 py-4 rounded-2xl bg-white/5 text-gray-400 font-bold text-[11px] border border-white/10 hover:bg-white/10 transition-all active:scale-95"
                                         >
-                                            이전
+                                            {t('nls_prev')}
                                         </button>
                                         <button
                                             disabled={!selectedApp}
@@ -275,7 +277,7 @@ const NavigationLaunchSheet = ({
                                             }}
                                             className="flex-[2] py-4 rounded-2xl bg-cyber-cyan text-black font-black text-[11px] uppercase tracking-wider shadow-neon-cyan hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                                         >
-                                            다음 <ChevronRight size={14} />
+                                            {t('nls_next')} <ChevronRight size={14} />
                                         </button>
                                     </div>
                                 </motion.div>
@@ -305,10 +307,10 @@ const NavigationLaunchSheet = ({
                                     </div>
 
                                     <h2 className="text-[18px] font-black text-white text-center tracking-tighter mb-1">
-                                        주행 전 안전 확인
+                                        {t('nls_safety_title')}
                                     </h2>
                                     <p className="text-[10px] text-amber-400/80 text-center font-bold mb-5">
-                                        반드시 읽어주세요
+                                        {t('nls_safety_sub')}
                                     </p>
 
                                     {/* 안전 규칙 목록 */}
@@ -317,25 +319,25 @@ const NavigationLaunchSheet = ({
                                             {
                                                 icon: <Smartphone size={18} className="text-red-400" />,
                                                 bg: 'bg-red-500/10 border-red-500/30',
-                                                title: '주행 중 휴대폰 화면 주시 금지',
-                                                desc: '주행 중 스마트폰을 보는 행위는 법적으로 금지되어 있으며\n중대한 사고로 이어질 수 있습니다.',
-                                                badge: '⚠️ 법적 의무',
+                                                title: t('nls_rule1_title'),
+                                                desc: t('nls_rule1_desc'),
+                                                badge: t('nls_rule1_badge'),
                                                 badgeColor: 'text-red-400 bg-red-400/10 border-red-400/30',
                                             },
                                             {
                                                 icon: <Volume2 size={18} className="text-cyber-cyan" />,
                                                 bg: 'bg-cyber-cyan/10 border-cyber-cyan/30',
-                                                title: '음성 안내를 우선 사용하세요',
-                                                desc: '앱 실행 후 스마트폰을 주머니에 넣고\n음성 안내만으로 경로를 따라가세요.',
-                                                badge: '✓ 권장 방식',
+                                                title: t('nls_rule2_title'),
+                                                desc: t('nls_rule2_desc'),
+                                                badge: t('nls_rule2_badge'),
                                                 badgeColor: 'text-cyber-cyan bg-cyber-cyan/10 border-cyber-cyan/30',
                                             },
                                             {
                                                 icon: <CheckCircle2 size={18} className="text-green-400" />,
                                                 bg: 'bg-green-500/10 border-green-500/30',
-                                                title: '정차 후 화면 확인',
-                                                desc: '경로 확인이 필요할 경우 반드시 안전한 장소에\n정차한 후에 화면을 확인하세요.',
-                                                badge: '✓ 안전 수칙',
+                                                title: t('nls_rule3_title'),
+                                                desc: t('nls_rule3_desc'),
+                                                badge: t('nls_rule3_badge'),
                                                 badgeColor: 'text-green-400 bg-green-400/10 border-green-400/30',
                                             },
                                         ].map((item, i) => (
@@ -365,8 +367,8 @@ const NavigationLaunchSheet = ({
                                         onClick={() => setStep('app_select')}
                                         className="w-full text-center text-[9px] text-gray-600 hover:text-gray-400 transition-colors mb-4"
                                     >
-                                        {selectedApp === 'kakao' ? '카카오맵' : '네이버지도'}으로 열기
-                                        <span className="text-cyber-cyan ml-1">· 앱 변경</span>
+                                        {t('nls_open_with', { app: appName(selectedApp) })}
+                                        <span className="text-cyber-cyan ml-1">{t('nls_change_app')}</span>
                                     </button>
 
                                     {/* 출발 버튼 */}
@@ -381,7 +383,7 @@ const NavigationLaunchSheet = ({
                                         }}
                                     >
                                         <Navigation size={16} />
-                                        {selectedApp === 'kakao' ? '카카오맵' : '네이버지도'}으로 출발
+                                        {t('nls_launch_with', { app: appName(selectedApp) })}
                                     </motion.button>
                                 </motion.div>
                             )}
