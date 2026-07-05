@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import './locales/i18n' // Phase 11: 다국어 적용
+import './utils/pwaInstall' // beforeinstallprompt 리스너 조기 등록 (앱 설치 버튼용)
 import App from './App.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary'
 

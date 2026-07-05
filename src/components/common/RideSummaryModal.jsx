@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, Leaf, Zap, Share2, Gauge, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, Leaf, Zap, Share2, Gauge, ShieldCheck, Download } from 'lucide-react';
 import TargetedAdBanner from './TargetedAdBanner';
 import { toast } from '../../hooks/useToast';
 import { buildRouteSketch } from '../../utils/routeSketch';
 import { renderShareCard, SHARE_THEMES, suggestTheme } from '../../utils/renderShareCard';
-import { buildReferralCode, buildReferralUrl, generateQrDataUrl } from '../../utils/referral';
+import { buildReferralCode, buildReferralUrl } from '../../utils/referral';
+import { promptAppInstall } from '../../utils/pwaInstall';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId, helmetOn = false }) => {
     const { t } = useTranslation();
@@ -14,10 +15,10 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
     const [isSharing, setIsSharing] = useState(false);
     const [shareRatio, setShareRatio] = useState('story'); // story | feed | square
     const [shareTheme, setShareTheme] = useState(() => suggestTheme(metrics?.suddenBrakeCount ?? suddenBrakeCount)); // 주행 성향에 맞춘 기본 테마
-    const [qrDataUrl, setQrDataUrl] = useState(null);
 
     // 사용자 ID 기반 추천 코드 (Task 4에서 Supabase 동기화)
     const referralCode = buildReferralCode(userId);
+    const referralUrl = buildReferralUrl(referralCode);
 
     // ── 실제 주행 이력 기반 파생 데이터 (목업 제거) ─────────────────────
     // 실제 GPS 경로 → 종횡비 보존 스케치 라인 (미리보기 & 공유 카드 공용)
@@ -45,17 +46,6 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
     // 선택된 테마의 대표색 — 미리보기 경로에도 반영해 즉각 피드백
     const themeAccent = (SHARE_THEMES.find(x => x.id === shareTheme) || SHARE_THEMES[0]).accent;
 
-    // 모달 열릴 때 QR dataURL 1회 생성
-    useEffect(() => {
-        if (!isOpen) return;
-        let canceled = false;
-        const url = buildReferralUrl(referralCode);
-        generateQrDataUrl(url, 320).then(dataUrl => {
-            if (!canceled) setQrDataUrl(dataUrl);
-        });
-        return () => { canceled = true; };
-    }, [isOpen, referralCode]);
-
     useEffect(() => {
         if (isOpen) {
             const now = new Date();
@@ -80,8 +70,8 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             const { dataUrl, blob: canvasBlob } = await renderShareCard({
                 metrics,
                 vibeName,
-                qrDataUrl,
                 referralCode,
+                shareUrl: referralUrl,
                 ratio: shareRatio,
                 theme: shareTheme,
                 helmetOn,
@@ -94,7 +84,8 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             const file = new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' });
 
             // 3) Web Share Level 2 (파일 공유) 지원 시 → 인스타·카톡 직통
-            const shareText = t('rsm_share_text', { km: Number(metrics?.distance ?? 2.4).toFixed(1) });
+            // 공유 텍스트에 다운로드 링크 포함 → 받는 사람이 바로 앱 설치 가능
+            const shareText = `${t('rsm_share_text', { km: Number(metrics?.distance ?? 2.4).toFixed(1) })}\n${referralUrl}`;
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -127,6 +118,19 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
         } finally {
             setIsSharing(false);
         }
+    };
+
+    // 📲 앱 다운로드(홈 화면에 추가) — PWA 설치 프롬프트
+    const handleDownloadApp = async () => {
+        const outcome = await promptAppInstall();
+        if (outcome === 'accepted' || outcome === 'installed') {
+            toast(t('rsm_install_done'), 'success');
+        } else if (outcome === 'unavailable') {
+            // iOS Safari 등 설치 프롬프트 미지원 → 수동 안내 + 앱 링크 열기
+            toast(t('rsm_install_hint'), 'info');
+            window.open(referralUrl, '_blank', 'noopener');
+        }
+        // 'dismissed'는 사용자가 취소한 것이므로 별도 처리 없음
     };
 
     return (
@@ -336,14 +340,23 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                         ))}
                     </div>
 
-                    {/* Share Button */}
+                    {/* Share Button — 크게 배치 */}
                     <button
                         onClick={handleShare}
                         disabled={isSharing}
-                        className="w-full h-14 bg-gradient-to-r from-cyber-cyan to-purple-500 rounded-2xl flex items-center justify-center gap-2 font-black text-black shadow-lg shadow-cyber-cyan/20 active:scale-95 transition-transform mt-2 disabled:opacity-60"
+                        className="w-full h-[68px] bg-gradient-to-r from-cyber-cyan to-purple-500 rounded-[22px] flex items-center justify-center gap-2.5 font-black text-black text-[17px] shadow-lg shadow-cyber-cyan/30 active:scale-95 transition-transform mt-2 disabled:opacity-60"
                     >
-                        <Share2 size={18} className="text-black" />
+                        <Share2 size={22} className="text-black" strokeWidth={2.5} />
                         {isSharing ? t('rsm_generating') : 'Share to Instagram'}
+                    </button>
+
+                    {/* 📲 앱 다운로드 버튼 — 눌러서 홈 화면에 설치 */}
+                    <button
+                        onClick={handleDownloadApp}
+                        className="w-full h-14 mt-3 rounded-[22px] flex items-center justify-center gap-2.5 font-black text-cyber-cyan text-[15px] border border-cyber-cyan/40 bg-cyber-cyan/10 active:scale-95 transition-transform"
+                    >
+                        <Download size={20} className="text-cyber-cyan" strokeWidth={2.5} />
+                        {t('rsm_download_app')}
                     </button>
 
                     <p className="text-center text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-8 mb-2">

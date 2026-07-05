@@ -82,16 +82,6 @@ function roundRect(ctx, x, y, w, h, r) {
     ctx.closePath();
 }
 
-function loadImage(src) {
-    return new Promise((resolve) => {
-        if (!src) { resolve(null); return; }
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-        img.src = src;
-    });
-}
-
 function wrapLines(ctx, text, maxWidth, maxLines = 3) {
     const words = String(text).split(/\s+/);
     const lines = [];
@@ -124,8 +114,8 @@ const fmtDuration = (min) => {
 export async function renderShareCard({
     metrics = {},
     vibeName = 'Neon Rider',
-    qrDataUrl = null,
     referralCode = null,
+    shareUrl = null,
     ratio = 'story',
     theme = 'neon',
     helmetOn = false,
@@ -243,7 +233,6 @@ export async function renderShareCard({
     }
 
     // ── 푸터 영역 좌표 (하단 고정) ───────────────────────────
-    const qrImg = await loadImage(qrDataUrl);
     const footerH = P.qr;
     const footerY = P.h - P.pad - footerH;
 
@@ -287,52 +276,39 @@ export async function renderShareCard({
     drawStat('AVG SPEED', String(avgSpeed), 'km/h', false);
     drawStat('SAFETY SCORE', String(safetyScore), '%', true);
 
-    // ── 푸터: 우측 QR ────────────────────────────────────────
-    if (qrImg) {
-        const qx = P.w - P.pad - P.qr;
-        const qy = footerY;
-        ctx.fillStyle = '#ffffff'; // QR 인식 위해 항상 흰 배경
-        roundRect(ctx, qx, qy, P.qr, P.qr, 20); ctx.fill();
-        ctx.strokeStyle = T.accent; ctx.lineWidth = 3;
-        roundRect(ctx, qx, qy, P.qr, P.qr, 20); ctx.stroke();
-        const inner = P.qr - 28;
-        ctx.drawImage(qrImg, qx + 14, qy + 14, inner, inner);
-    }
-
-    // ── 푸터: 좌측 텍스트 + REF ──────────────────────────────
+    // ── 푸터: 앱 다운로드 CTA (QR 제거, 전체 폭 사용) ────────
     const lx = P.pad;
-    let ly = footerY + 4;
+    let ly = footerY + 8;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.font = `900 24px ${MONO}`;
+
+    // 큰 다운로드 CTA
+    ctx.font = `900 ${ratio === 'square' ? 42 : 52}px ${SANS}`;
+    ctx.fillStyle = T.accent;
+    const cta = i18n.t('sc_dl_cta');
+    const ctaLines = wrapLines(ctx, cta, P.w - P.pad * 2, 2);
+    const ctaLH = ratio === 'square' ? 52 : 64;
+    ctaLines.forEach((ln, i) => ctx.fillText(ln, lx, ly + i * ctaLH));
+    ly += ctaLines.length * ctaLH + 16;
+
+    // 다운로드 주소 (host)
+    let host = 'com.csafe.pm';
+    if (shareUrl) { try { host = new URL(shareUrl).host; } catch { /* noop */ } }
+    ctx.font = `800 28px ${MONO}`;
     ctx.fillStyle = T.textDim;
-    ctx.fillText('com.csafe.pm', lx, ly);
-    ly += 44;
+    ctx.fillText(host, lx, ly);
+    ly += 46;
 
-    if (ratio !== 'square') {
-        ctx.font = `900 ${ratio === 'story' ? 36 : 32}px ${SANS}`;
-        const pre = i18n.t('sc_qr_pre');
-        const ride = i18n.t('sc_qr_ride');
-        ctx.fillStyle = T.text;
-        ctx.fillText(pre, lx, ly);
-        const preW = ctx.measureText(pre).width;
-        ctx.fillStyle = T.accent;
-        ctx.fillText(ride, lx + preW, ly);
-        ly += (ratio === 'story' ? 46 : 40);
-        ctx.fillStyle = T.text;
-        ctx.fillText(i18n.t('sc_start_now'), lx, ly);
-        ly += (ratio === 'story' ? 56 : 48);
-    }
-
+    // REF 코드 칩
     if (referralCode) {
-        ctx.font = `800 22px ${MONO}`;
+        ctx.font = `800 24px ${MONO}`;
         const refText = `REF · ${referralCode}`;
         const rW = ctx.measureText(refText).width;
         ctx.fillStyle = T.accent;
-        roundRect(ctx, lx, ly, rW + 36, 46, 10); ctx.fill();
+        roundRect(ctx, lx, ly, rW + 40, 50, 12); ctx.fill();
         ctx.fillStyle = T.onAccent;
         ctx.textBaseline = 'middle';
-        ctx.fillText(refText, lx + 18, ly + 24);
+        ctx.fillText(refText, lx + 20, ly + 26);
         ctx.textBaseline = 'top';
     }
 

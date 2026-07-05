@@ -314,6 +314,9 @@ const resources = {
             "rsm_theme_aurora": "오로라",
             "rsm_theme_sunset": "선셋",
             "rsm_theme_mono": "미니멀",
+            "rsm_download_app": "앱 다운로드",
+            "rsm_install_hint": "브라우저 메뉴에서 '홈 화면에 추가'를 선택하세요",
+            "rsm_install_done": "앱이 설치되었습니다!",
 
             // HelmetDetectionCamera (헬멧+본인 인증)
             "hdc_denied_title": "카메라 권한 거부됨",
@@ -638,6 +641,7 @@ const resources = {
             "sc_qr_ride": "안전 라이딩",
             "sc_title": "{{route}} {{km}}km 비행 완료 ⚡",
             "sc_start_now": "즉시 시작",
+            "sc_dl_cta": "앱 다운로드하고 함께 라이딩 🛴",
 
             // 소형 모달 배치 2 (추천통계·프로필편집·개인인사이트)
             "rsc_copied": "🔗 초대 링크가 복사되었습니다",
@@ -1027,6 +1031,9 @@ const resources = {
             "rsm_theme_aurora": "オーロラ",
             "rsm_theme_sunset": "サンセット",
             "rsm_theme_mono": "ミニマル",
+            "rsm_download_app": "アプリDL",
+            "rsm_install_hint": "ブラウザメニューから「ホーム画面に追加」を選択してください",
+            "rsm_install_done": "アプリがインストールされました！",
 
             // helmet_stations.json — 거점 이름 & 24시간 (한국어는 defaultValue)
             "24시간": "24時間",
@@ -1397,6 +1404,7 @@ const resources = {
             "sc_qr_ride": "安全ライド",
             "sc_title": "{{route}} {{km}}km 完走 ⚡",
             "sc_start_now": "今すぐ開始",
+            "sc_dl_cta": "アプリをDLして一緒にライド 🛴",
 
             // 小型モーダル バッチ2
             "rsc_copied": "🔗 招待リンクをコピーしました",
@@ -1788,6 +1796,9 @@ const resources = {
             "rsm_theme_aurora": "极光",
             "rsm_theme_sunset": "日落",
             "rsm_theme_mono": "简约",
+            "rsm_download_app": "下载App",
+            "rsm_install_hint": "请在浏览器菜单中选择\"添加到主屏幕\"",
+            "rsm_install_done": "App已安装！",
 
             // helmet_stations.json — 站点名称 & 24小时
             "24시간": "24小时",
@@ -2158,6 +2169,7 @@ const resources = {
             "sc_qr_ride": "安全骑行",
             "sc_title": "{{route}} {{km}}km 骑行完成 ⚡",
             "sc_start_now": "立即开始",
+            "sc_dl_cta": "下载App一起安全骑行 🛴",
 
             // 小型弹窗 批次2
             "rsc_copied": "🔗 邀请链接已复制",
@@ -2549,6 +2561,9 @@ const resources = {
             "rsm_theme_aurora": "Aurora",
             "rsm_theme_sunset": "Sunset",
             "rsm_theme_mono": "Minimal",
+            "rsm_download_app": "Get the App",
+            "rsm_install_hint": "Use your browser menu → 'Add to Home Screen'",
+            "rsm_install_done": "App installed!",
 
             // helmet_stations.json — station names & 24 hours
             "24시간": "24 hours",
@@ -2919,6 +2934,7 @@ const resources = {
             "sc_qr_ride": "safe riding",
             "sc_title": "{{route}} {{km}}km ride done ⚡",
             "sc_start_now": "Start now",
+            "sc_dl_cta": "Download the app & ride with us 🛴",
 
             // Small modals batch 2
             "rsc_copied": "🔗 Invite link copied",
