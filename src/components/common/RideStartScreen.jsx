@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { toast } from '../../hooks/useToast';
 import { calculateDistance } from '../../utils/distance';
+import { getFrequentDestinations, recordDestination } from '../../utils/frequentDestinations';
 
 // ─── 인기 목적지 (빠른 선택) ─────────────────────────────────────────────
 // name = 한국어 기본값(외부 라우팅 폴백용), nameKey = i18n 키(화면 표시용)
@@ -220,7 +221,7 @@ const RideStartScreen = ({
   const destName = useCallback((d) => (d?.nameKey ? t(d.nameKey) : (d?.name || '')), [t]);
 
   // 음성 검색 — best는 input에 표시, 나머지 후보는 voiceAlternatives에 저장하여 같이 검색
-  const { start: startVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
+  const { start: startVoice, stop: stopVoice, isListening: isVoiceListening, isSupported: voiceSupported } = useSpeechRecognition({
     onResult: (text, alternatives) => {
       setSelectedDest(null);
       setQuery(text);
@@ -249,10 +250,13 @@ const RideStartScreen = ({
     if (routeDestination) setSelectedDest(routeDestination);
   }, [routeDestination]);
 
-  // 열릴 때 포커스
+  // 자주 가는 목적지(실사용 누적) — 열릴 때 로드
+  const [frequentDests, setFrequentDests] = useState([]);
+
+  // 열릴 때: 키보드는 띄우지 않고(음성 우선) 자주 가는 곳만 로드. 닫힐 때 입력 초기화.
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 350);
+      setFrequentDests(getFrequentDestinations(6));
     } else {
       setQuery('');
       setSearchResults([]);
@@ -388,10 +392,22 @@ const RideStartScreen = ({
     return () => clearTimeout(searchTimer.current);
   }, [query, voiceAlternatives, userLat, userLng, estimateEtaMin, t]);
 
+  // 표시용 자주 가는 목적지 — 실사용 누적(frequentDests)이 있으면 그것을, 없으면 큐레이션 폴백.
+  // ETA는 항상 현재 출발지 기준으로 재계산하여 "출발지 중심" 정보로 보여준다.
+  const displayDestinations = React.useMemo(() => {
+    const source = frequentDests.length > 0 ? frequentDests : QUICK_DESTINATIONS;
+    return source.slice(0, 6).map(d => ({
+      ...d,
+      etaMin: (userLat && userLng) ? estimateEtaMin(d.lat, d.lng) : d.etaMin,
+    }));
+  }, [frequentDests, userLat, userLng, estimateEtaMin]);
+
   // ETA 결정 시 pulse 애니메이션
   const handleSelectDest = useCallback((dest) => {
     setSelectedDest(dest);
     setRouteDestination?.(dest);
+    recordDestination(dest);                       // 실사용 누적 → 다음부터 "자주 가는 곳"에 반영
+    setFrequentDests(getFrequentDestinations(6));
     setQuery('');
     setSearchResults([]);
     setEtaPulse(true);
@@ -533,32 +549,39 @@ const RideStartScreen = ({
                       className="w-full bg-transparent text-[13px] font-bold text-white placeholder-gray-600 outline-none"
                     />
                   </div>
-                  {(query || selectedDest) && (
+                  {(query || selectedDest) ? (
+                    // 입력/선택 내용 지우기 — 지운 뒤 입력창에 포커스해 키보드로 바로 수정 가능
                     <button
-                      onClick={() => { setQuery(''); setSelectedDest(null); setSearchResults([]); setVoiceAlternatives([]); }}
+                      onClick={() => {
+                        setQuery(''); setSelectedDest(null); setSearchResults([]); setVoiceAlternatives([]);
+                        setTimeout(() => inputRef.current?.focus(), 0);
+                      }}
                       className="text-gray-600 hover:text-gray-400 transition-colors shrink-0"
+                      aria-label={t('rss_type_manually')}
                     >
                       <X size={14} />
                     </button>
-                  )}
-                  {!query && !selectedDest && (
-                    voiceSupported ? (
-                      <button
-                        type="button"
-                        onClick={startVoice}
-                        disabled={isVoiceListening}
-                        className={`p-1.5 rounded-full transition shrink-0 ${
-                          isVoiceListening
-                            ? 'text-red-400 bg-red-500/20 animate-pulse shadow-[0_0_12px_rgba(248,113,113,0.5)]'
-                            : 'text-gray-400 hover:text-red-400 hover:bg-white/10'
-                        }`}
-                        aria-label={isVoiceListening ? t('rss_voice_listening') : t('rss_voice_search')}
-                      >
-                        <Mic size={15} />
-                      </button>
-                    ) : (
-                      <Search size={15} className="text-gray-600 shrink-0" />
-                    )
+                  ) : isVoiceListening ? (
+                    // 🎤 음성 인식 중 취소 — 인식을 멈추고 입력창 포커스 → 키보드로 직접 입력(음성 실패 대비)
+                    <button
+                      type="button"
+                      onClick={() => { stopVoice(); setTimeout(() => inputRef.current?.focus(), 0); }}
+                      className="p-1.5 rounded-full text-red-400 bg-red-500/20 animate-pulse shadow-[0_0_12px_rgba(248,113,113,0.5)] shrink-0"
+                      aria-label={t('rss_type_manually')}
+                    >
+                      <X size={15} />
+                    </button>
+                  ) : voiceSupported ? (
+                    <button
+                      type="button"
+                      onClick={startVoice}
+                      className="p-1.5 rounded-full transition shrink-0 text-gray-400 hover:text-red-400 hover:bg-white/10"
+                      aria-label={t('rss_voice_search')}
+                    >
+                      <Mic size={15} />
+                    </button>
+                  ) : (
+                    <Search size={15} className="text-gray-600 shrink-0" />
                   )}
                 </div>
 
@@ -657,12 +680,19 @@ const RideStartScreen = ({
                 )}
               </AnimatePresence>
 
-              {/* ── 빠른 목적지 (목적지 미선택 시) ────────────────── */}
+              {/* ── 음성 우선 안내 (idle 시) ──────────────────────── */}
+              {!selectedDest && !query && searchResults.length === 0 && (
+                <p className="text-[10px] text-gray-500 text-center leading-relaxed -mt-1">
+                  {t('rss_voice_hint')}
+                </p>
+              )}
+
+              {/* ── 자주 가는 곳 (출발지 기준 ETA · 실사용 누적) ──── */}
               {!selectedDest && searchResults.length === 0 && (
                 <div>
                   <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">{t('rss_frequent')}</p>
                   <div className="grid grid-cols-2 gap-2">
-                    {QUICK_DESTINATIONS.map(dest => (
+                    {displayDestinations.map(dest => (
                       <button
                         key={dest.id}
                         onClick={() => handleSelectDest(dest)}
@@ -674,7 +704,7 @@ const RideStartScreen = ({
                         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)'; e.currentTarget.style.background = 'rgba(37,99,235,0.06)'; }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                       >
-                        <span className="text-[20px] shrink-0">{dest.emoji}</span>
+                        <span className="text-[20px] shrink-0">{dest.emoji || '📍'}</span>
                         <div className="min-w-0">
                           <p className="text-[11px] font-bold text-white truncate leading-snug">{destName(dest)}</p>
                           <p className="text-[9px] font-bold text-blue-400">{dest.etaMin}{t('rss_min')}</p>
