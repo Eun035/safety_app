@@ -309,6 +309,11 @@ const resources = {
             "rsm_vibe_chill": "칠 그 자체",
             "rsm_vibe_smooth": "스무스 라이더",
             "rsm_vibe_easy": "안전 우선",
+            "rsm_style": "스타일",
+            "rsm_theme_neon": "네온",
+            "rsm_theme_aurora": "오로라",
+            "rsm_theme_sunset": "선셋",
+            "rsm_theme_mono": "미니멀",
 
             // HelmetDetectionCamera (헬멧+본인 인증)
             "hdc_denied_title": "카메라 권한 거부됨",
@@ -1017,6 +1022,11 @@ const resources = {
             "rsm_vibe_chill": "チル最高",
             "rsm_vibe_smooth": "スムーズライダー",
             "rsm_vibe_easy": "安全第一",
+            "rsm_style": "スタイル",
+            "rsm_theme_neon": "ネオン",
+            "rsm_theme_aurora": "オーロラ",
+            "rsm_theme_sunset": "サンセット",
+            "rsm_theme_mono": "ミニマル",
 
             // helmet_stations.json — 거점 이름 & 24시간 (한국어는 defaultValue)
             "24시간": "24時間",
@@ -1773,6 +1783,11 @@ const resources = {
             "rsm_vibe_chill": "超惬意",
             "rsm_vibe_smooth": "平稳骑士",
             "rsm_vibe_easy": "安全第一",
+            "rsm_style": "风格",
+            "rsm_theme_neon": "霓虹",
+            "rsm_theme_aurora": "极光",
+            "rsm_theme_sunset": "日落",
+            "rsm_theme_mono": "简约",
 
             // helmet_stations.json — 站点名称 & 24小时
             "24시간": "24小时",
@@ -2529,6 +2544,11 @@ const resources = {
             "rsm_vibe_chill": "Chill AF",
             "rsm_vibe_smooth": "Smooth Rider",
             "rsm_vibe_easy": "Easy Does It",
+            "rsm_style": "Style",
+            "rsm_theme_neon": "Neon",
+            "rsm_theme_aurora": "Aurora",
+            "rsm_theme_sunset": "Sunset",
+            "rsm_theme_mono": "Minimal",
 
             // helmet_stations.json — station names & 24 hours
             "24시간": "24 hours",

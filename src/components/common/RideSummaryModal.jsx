@@ -4,7 +4,7 @@ import { ChevronLeft, Leaf, Zap, Share2, Gauge, ShieldCheck } from 'lucide-react
 import TargetedAdBanner from './TargetedAdBanner';
 import { toast } from '../../hooks/useToast';
 import { buildRouteSketch } from '../../utils/routeSketch';
-import { renderShareCard } from '../../utils/renderShareCard';
+import { renderShareCard, SHARE_THEMES, suggestTheme } from '../../utils/renderShareCard';
 import { buildReferralCode, buildReferralUrl, generateQrDataUrl } from '../../utils/referral';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId, helmetOn = false }) => {
@@ -13,6 +13,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
     const [currentTime, setCurrentTime] = useState("");
     const [isSharing, setIsSharing] = useState(false);
     const [shareRatio, setShareRatio] = useState('story'); // story | feed | square
+    const [shareTheme, setShareTheme] = useState(() => suggestTheme(metrics?.suddenBrakeCount ?? suddenBrakeCount)); // 주행 성향에 맞춘 기본 테마
     const [qrDataUrl, setQrDataUrl] = useState(null);
 
     // 사용자 ID 기반 추천 코드 (Task 4에서 Supabase 동기화)
@@ -40,6 +41,9 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
         : brakes <= 2
             ? { label: t('rsm_vibe_smooth'), stars: 4 }
             : { label: t('rsm_vibe_easy'), stars: 3 };
+
+    // 선택된 테마의 대표색 — 미리보기 경로에도 반영해 즉각 피드백
+    const themeAccent = (SHARE_THEMES.find(x => x.id === shareTheme) || SHARE_THEMES[0]).accent;
 
     // 모달 열릴 때 QR dataURL 1회 생성
     useEffect(() => {
@@ -79,6 +83,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                 qrDataUrl,
                 referralCode,
                 ratio: shareRatio,
+                theme: shareTheme,
                 helmetOn,
                 path: ridePath,
                 routeLabel: metrics?.destination || null,
@@ -167,13 +172,13 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                             </defs>
                             {routeSketch ? (
                                 <>
-                                    <path d={routeSketch.d} fill="none" stroke="#40ffdc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)" />
+                                    <path d={routeSketch.d} fill="none" stroke={themeAccent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)" />
                                     <circle cx={routeSketch.start.x} cy={routeSketch.start.y} r="3.5" fill="#a855f7" filter="url(#glow)" />
-                                    <circle cx={routeSketch.end.x} cy={routeSketch.end.y} r="3.5" fill="#40ffdc" filter="url(#glow)" />
+                                    <circle cx={routeSketch.end.x} cy={routeSketch.end.y} r="3.5" fill={themeAccent} filter="url(#glow)" />
                                 </>
                             ) : (
                                 // 경로 데이터가 없을 때(아주 짧은 주행)만 사용하는 폴백 스케치
-                                <path d="M 20,70 C 45,70 45,25 70,25 S 95,10 100,18" fill="none" stroke="#40ffdc55" strokeWidth="2" strokeDasharray="4 4" strokeLinecap="round" filter="url(#glow)" />
+                                <path d="M 20,70 C 45,70 45,25 70,25 S 95,10 100,18" fill="none" stroke={themeAccent} strokeOpacity="0.4" strokeWidth="2" strokeDasharray="4 4" strokeLinecap="round" filter="url(#glow)" />
                             )}
                         </svg>
 
@@ -286,6 +291,28 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
 
                     {/* Targeted Context-aware Ad */}
                     <TargetedAdBanner suddenBrakeCount={suddenBrakeCount} />
+
+                    {/* 🎨 스타일(바이브) 선택 — 카드 테마 */}
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-3 mb-2">{t('rsm_style')}</p>
+                    <div className="flex gap-2 mb-3">
+                        {SHARE_THEMES.map(opt => {
+                            const active = shareTheme === opt.id;
+                            return (
+                                <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() => setShareTheme(opt.id)}
+                                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black tracking-wider transition active:scale-95 flex items-center justify-center gap-1.5 border ${
+                                        active ? 'bg-white/10 border-white/30 text-white' : 'bg-white/5 border-white/10 text-gray-400'
+                                    }`}
+                                    style={active ? { borderColor: opt.accent, color: opt.accent } : undefined}
+                                >
+                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: opt.accent, boxShadow: active ? `0 0 8px ${opt.accent}` : 'none' }} />
+                                    {t(`rsm_theme_${opt.id}`)}
+                                </button>
+                            );
+                        })}
+                    </div>
 
                     {/* 비율 선택 chip — 인스타 스토리·피드·정사각 */}
                     <div className="flex gap-2 mt-2 mb-3">
