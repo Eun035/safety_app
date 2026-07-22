@@ -1324,7 +1324,9 @@ function App() {
         />
         <PaymentReceiptModal
           isOpen={isPaymentReceiptOpen}
-          onClose={() => setIsPaymentReceiptOpen(false)}
+          // '나중에 결제'/닫기로 결제를 건너뛰어도 뒤 체인(스테이션 보상→라이드 서머리)은
+          // 계속 진행되도록 결제 완료와 동일하게 처리한다. (여기서 멈추면 서머리가 안 뜸)
+          onClose={handlePaymentComplete}
           metrics={finalRideSummary}
           pointsUsed={100} // 예시: 보상받은 100P 즉시 사용 할인
           onPaymentComplete={handlePaymentComplete}
