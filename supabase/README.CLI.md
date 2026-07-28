@@ -97,6 +97,53 @@ select tablename from pg_publication_tables where pubname='supabase_realtime';
 
 ---
 
+## 6. 실제 셋업 로그 & 현재 상태 (2026-07-29)
+
+첫 셋업에서 겪은 것과 최종 구성. 다음에 헷갈리면 여기 참고.
+
+### 겪은 이슈 → 해결
+1. **프로젝트 일시정지(paused)** — 무료 플랜은 미사용 시 자동 정지. `db pull`이 연결 실패.
+   → 대시보드에서 **Resume project** 후 진행.
+2. **잘못된 project ref로 link** — 처음에 다른 ref로 연결됨.
+   → 대시보드 **Settings → General → Project ID**(`glzeykoghbljvxmxrcqu`)로 재링크.
+3. **DB 비밀번호 특수문자로 인한 `EAUTHQUERY` 오류** — 비밀번호에 특수문자가 있으면 CLI 진단 엔진이 실패.
+   → **Settings → Database**에서 **영문+숫자만**으로 재설정, `$env:SUPABASE_DB_PASSWORD="..."` 지정 후 재시도.
+4. **near-miss 목업 시드 실패** — 옛 시드가 실제 스키마와 컬럼 불일치.
+   → `config.toml`의 `[db.seed] enabled = false`로 비활성(데모용이라 불필요).
+5. **⚠️ `db pull` baseline이 거의 비어 있음** — 링크한 운영 프로젝트의 `public` 스키마에 **앱 테이블이 없었음**
+   (정지됐던 프로젝트라 비어 있는 상태). `20260728153846_remote_schema.sql`은 권한 몇 줄뿐.
+   → **해결(현재 구성):** `migrations_legacy/`의 실제 스키마 15개 + `20260728120000_extensions.sql`을
+     **의존성 순서 timestamp 마이그레이션으로 복원**(`20260728120001~120015`). `npm run db:reset`로
+     로컬에 전체 테이블 생성 확인 완료(rides/profiles/hazards/near_miss_events/zone_events/ride_paths/
+     safety_grid_scores/feedbacks/referrals).
+
+### 현재 `supabase/migrations/` 구성
+```
+20260728120000_extensions.sql            # uuid-ossp, postgis
+20260728120001~120015_*.sql              # 실제 앱 스키마(legacy에서 복원, 의존성 순서)
+20260728153846_remote_schema.sql         # db pull 결과(권한/기본설정 몇 줄, 거의 빈 값 — 마지막 적용)
+```
+
+### 운영 DB에 스키마 올리기 (원할 때)
+운영 프로젝트가 비어 있으므로, 준비되면 로컬 스키마를 운영에도 반영할 수 있음:
+```bash
+npm run db:push     # 위 마이그레이션을 운영에 적용 → 운영 DB에도 테이블 생성
+```
+> 주의: 운영 데이터에 영향을 주는 작업이므로, 운영에 정말 올릴 준비가 됐을 때만 실행.
+
+### 로컬에서 지도(카카오맵)까지 보려면
+`.env.local`(gitignore, 로컬 전용)에 **Supabase + 카카오 키**를 함께 넣어야 지도가 뜸:
+```
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=<npm run db:status 의 anon key>
+VITE_KAKAO_API_KEY=<카카오 JavaScript 키>          # Vercel 환경변수 또는 developers.kakao.com
+VITE_KAKAO_REST_API_KEY=<카카오 REST 키>
+```
+그리고 **developers.kakao.com → 앱 → 플랫폼 → Web 사이트 도메인**에 `http://localhost:8888` 등록.
+env 변경 후 `npm run dev` 재시작.
+
+---
+
 ## 관련
 - 오프라인 백업 스택(수동 compose): `infra/supabase/` (→ `infra/supabase/DEPRECATED.md`)
-- 옛 수작업 SQL 보관: `supabase/migrations_legacy/`
+- 옛 수작업 SQL 보관: `supabase/migrations_legacy/` (현재 스키마의 원본)

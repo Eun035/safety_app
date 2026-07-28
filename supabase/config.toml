@@ -65,7 +65,8 @@ schema_paths = []
 
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
-enabled = true
+# 비활성: 옛 near-miss 목업 시드가 운영 실제 스키마와 컬럼이 달라 실패함. 데모용이라 불필요.
+enabled = false
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
 sql_paths = ["./seed_p4_near_miss_mock.sql"]
