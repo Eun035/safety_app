@@ -1,0 +1,29 @@
+# C-Safe 마이그레이터 오버레이
+# 공식 Supabase 스택 위에 얹어, 스택이 완전히 뜬 뒤(db+auth healthy) 프로젝트의 SQL
+# 마이그레이션을 의존성 순서대로 적용하는 1회성(one-shot) 서비스.
+#   - auth.users FK 참조 때문에 GoTrue(auth) 기동 이후 적용해야 하므로 initdb가 아닌
+#     별도 컨테이너로 실행한다.
+#   - repo의 supabase/migrations 를 단일 소스로 마운트(복제하지 않음).
+services:
+  db-migrator:
+    image: supabase/postgres:17.6.1.136   # db와 동일 이미지(psql 버전 일치, 이미 pull됨)
+    container_name: supabase-db-migrator
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+    volumes:
+      # CLI 도입으로 수작업 SQL은 migrations_legacy/ 로 이동됨. 백업 스택은 그걸 사용.
+      - ../../supabase/migrations_legacy:/migrations:ro
+      - ../../supabase/migrations_legacy/supabase_referrals.sql:/extra/supabase_referrals.sql:ro
+      - ../../supabase/seed_p4_near_miss_mock.sql:/extra/seed_p4_near_miss_mock.sql:ro
+      - ./scripts/apply-migrations.sh:/apply-migrations.sh:ro
+    entrypoint: ["bash", "/apply-migrations.sh"]
