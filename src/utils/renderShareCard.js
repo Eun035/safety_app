@@ -201,34 +201,41 @@ export async function renderShareCard({
         const range = (sketch.maxSpeed || 0) - (sketch.minSpeed || 0);
         const hasSpeed = Array.isArray(speeds) && range > 0.5; // 유의미한 속도 변화가 있을 때만
 
-        // 1) 글로우 언더레이 — 전체 경로를 한 번에 굵고 흐리게(성능 위해 세그먼트별 그림자 대신)
+        // 부드러운 베지어 곡선(Catmull-Rom) 세그먼트
+        const segs = (sketch.curve && sketch.curve.segs) || null;
+        // 전체 곡선을 한 번 그리는 헬퍼(글로우 언더레이·단색 폴백용)
+        const traceWhole = () => {
+            ctx.beginPath();
+            ctx.moveTo(pts[0][0], pts[0][1]);
+            if (segs) segs.forEach(s => ctx.bezierCurveTo(s.c1[0], s.c1[1], s.c2[0], s.c2[1], s.p[0], s.p[1]));
+            else pts.forEach(([x, y], i) => (i === 0 ? null : ctx.lineTo(x, y)));
+        };
+
+        // 1) 글로우 언더레이 — 전체 곡선을 굵고 흐리게(성능 위해 세그먼트별 그림자 대신)
         ctx.globalAlpha = T.light ? 0.5 : 0.35;
         ctx.strokeStyle = T.accent;
         ctx.lineWidth = 16;
         if (T.glow) { ctx.shadowColor = T.accent; ctx.shadowBlur = 30; }
-        ctx.beginPath();
-        pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
-        ctx.stroke();
+        traceWhole(); ctx.stroke();
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
 
-        // 2) 본선 — 속도별 색 세그먼트
+        // 2) 본선 — 속도별 색 (부드러운 곡선 세그먼트)
         ctx.lineWidth = 9;
-        if (hasSpeed) {
-            for (let i = 1; i < pts.length; i++) {
-                const t = (speeds[i] - sketch.minSpeed) / range;
+        if (hasSpeed && segs) {
+            for (let i = 0; i < segs.length; i++) {
+                const t = (speeds[i + 1] - sketch.minSpeed) / range;
                 ctx.strokeStyle = hexLerp(T.accent2, T.accent, t);
                 ctx.beginPath();
-                ctx.moveTo(pts[i - 1][0], pts[i - 1][1]);
-                ctx.lineTo(pts[i][0], pts[i][1]);
+                ctx.moveTo(pts[i][0], pts[i][1]);
+                const s = segs[i];
+                ctx.bezierCurveTo(s.c1[0], s.c1[1], s.c2[0], s.c2[1], s.p[0], s.p[1]);
                 ctx.stroke();
             }
         } else {
-            // 속도 정보 없음(짧은 주행 등) → 단색
+            // 속도 정보 없음(짧은 주행 등) → 단색 곡선
             ctx.strokeStyle = T.accent;
-            ctx.beginPath();
-            pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
-            ctx.stroke();
+            traceWhole(); ctx.stroke();
         }
 
         // 3) 시작(보조색)·끝(강조색) 점

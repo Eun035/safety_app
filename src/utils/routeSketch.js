@@ -14,7 +14,7 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
-export function buildRouteSketch(path, { width = 100, height = 100, padding = 12 } = {}) {
+export function buildRouteSketch(path, { width = 100, height = 100, padding = 12, maxPoints = 64 } = {}) {
     const pts = Array.isArray(path)
         ? path.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lng))
         : [];
@@ -47,17 +47,10 @@ export function buildRouteSketch(path, { width = 100, height = 100, padding = 12
         return [x, y];
     };
 
-    const coords = pts.map(project);
-    const d = coords
-        .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`)
-        .join(' ');
-
-    const [sx, sy] = coords[0];
-    const [ex, ey] = coords[coords.length - 1];
+    let coords = pts.map(project);
 
     // ── 구간 속도(km/h) 산출 (ts가 있을 때만) ────────────────────────────
-    // speeds[i] = points[i]에 대응. 노이즈 완화를 위해 3점 이동평균.
-    let speeds = null, minSpeed = 0, maxSpeed = 0, maxSpeedIndex = 0;
+    let speedsFull = null;
     const hasTs = pts.every(p => Number.isFinite(p.ts));
     if (hasTs) {
         const raw = new Array(pts.length).fill(0);
@@ -69,20 +62,60 @@ export function buildRouteSketch(path, { width = 100, height = 100, padding = 12
             raw[i] = Math.min(kmh, 60); // 이상치 클램프(PM 현실 상한)
         }
         raw[0] = raw[1] || 0;
-        // 이동평균 스무딩
-        speeds = raw.map((_, i) => {
+        speedsFull = raw.map((_, i) => {   // 3점 이동평균 스무딩
             const a = raw[Math.max(0, i - 1)], b = raw[i], c = raw[Math.min(raw.length - 1, i + 1)];
             return (a + b + c) / 3;
         });
+    }
+
+    // ── GPS 노이즈 완화: 점을 균일하게 다운샘플(심플·chill한 곡선) ──────────
+    let speeds = speedsFull;
+    if (coords.length > maxPoints) {
+        const last = coords.length - 1;
+        const step = last / (maxPoints - 1);
+        const sc = [], ss = speedsFull ? [] : null;
+        for (let k = 0; k < maxPoints; k++) {
+            const idx = k === maxPoints - 1 ? last : Math.round(k * step);
+            sc.push(coords[idx]);
+            if (ss) ss.push(speedsFull[idx]);
+        }
+        coords = sc;
+        speeds = ss;
+    }
+
+    // ── Catmull-Rom → 3차 베지어 스무딩 (부드러운 S자 곡선) ────────────────
+    const T = 1 / 6; // 텐션(표준). 낮을수록 직선에 가깝고, 높을수록 더 흐름.
+    const segs = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+        const p0 = coords[i - 1] || coords[i];
+        const p1 = coords[i];
+        const p2 = coords[i + 1];
+        const p3 = coords[i + 2] || coords[i + 1];
+        const c1 = [p1[0] + (p2[0] - p0[0]) * T, p1[1] + (p2[1] - p0[1]) * T];
+        const c2 = [p2[0] - (p3[0] - p1[0]) * T, p2[1] - (p3[1] - p1[1]) * T];
+        segs.push({ c1, c2, p: p2 });
+    }
+    // 부드러운 SVG path (미리보기 SVG용) + 캔버스 렌더용 curve
+    let d = `M ${coords[0][0].toFixed(1)} ${coords[0][1].toFixed(1)}`;
+    for (const s of segs) {
+        d += ` C ${s.c1[0].toFixed(1)} ${s.c1[1].toFixed(1)}, ${s.c2[0].toFixed(1)} ${s.c2[1].toFixed(1)}, ${s.p[0].toFixed(1)} ${s.p[1].toFixed(1)}`;
+    }
+
+    let minSpeed = 0, maxSpeed = 0, maxSpeedIndex = 0;
+    if (speeds) {
         minSpeed = Math.min(...speeds);
         maxSpeed = Math.max(...speeds);
         maxSpeedIndex = speeds.indexOf(maxSpeed);
     }
 
+    const [sx, sy] = coords[0];
+    const [ex, ey] = coords[coords.length - 1];
+
     return {
-        d,
-        points: coords,                                    // 캔버스 렌더용 [[x,y], ...]
-        speeds,                                            // 구간 속도(km/h) 또는 null
+        d,                                                 // 부드러운 베지어 path (미리보기)
+        points: coords,                                    // 다운샘플된 [[x,y], ...]
+        curve: { segs },                                   // 캔버스 렌더용 베지어 세그먼트
+        speeds,                                            // 구간 속도(km/h) 또는 null (points와 정렬)
         minSpeed, maxSpeed, maxSpeedIndex,
         start: { x: +sx.toFixed(1), y: +sy.toFixed(1) },
         end: { x: +ex.toFixed(1), y: +ey.toFixed(1) },
