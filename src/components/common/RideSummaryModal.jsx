@@ -4,7 +4,7 @@ import { ChevronLeft, Leaf, Zap, Share2, Gauge, ShieldCheck } from 'lucide-react
 import TargetedAdBanner from './TargetedAdBanner';
 import { toast } from '../../hooks/useToast';
 import { buildRouteSketch } from '../../utils/routeSketch';
-import { renderShareCard, SHARE_THEMES, suggestTheme } from '../../utils/renderShareCard';
+import { renderShareCard, SHARE_THEMES, SHARE_LINE_STYLES, suggestTheme } from '../../utils/renderShareCard';
 import { buildReferralCode, buildReferralUrl } from '../../utils/referral';
 
 const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", capturedPhoto, suddenBrakeCount = 0, userId, helmetOn = false }) => {
@@ -14,6 +14,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
     const [isSharing, setIsSharing] = useState(false);
     const [shareRatio, setShareRatio] = useState('story'); // story | feed | square
     const [shareTheme, setShareTheme] = useState(() => suggestTheme(metrics?.suddenBrakeCount ?? suddenBrakeCount)); // 주행 성향에 맞춘 기본 테마
+    const [shareLineStyle, setShareLineStyle] = useState('solid'); // 경로 선 굵기/종류
     const [shareAsset, setShareAsset] = useState(null); // 미리 렌더해 둔 { file, dataUrl }
 
     // 사용자 ID 기반 추천 코드 (Task 4에서 Supabase 동기화)
@@ -45,6 +46,15 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
 
     // 선택된 테마의 대표색 — 미리보기 경로에도 반영해 즉각 피드백
     const themeAccent = (SHARE_THEMES.find(x => x.id === shareTheme) || SHARE_THEMES[0]).accent;
+    // 선택된 선 스타일 → 미리보기(SVG 120x90 스케일) 굵기/대시
+    const previewLine = {
+        thin:   { w: 1.2 },
+        solid:  { w: 2 },
+        bold:   { w: 3.4 },
+        dashed: { w: 2, dash: '5 4' },
+        dotted: { w: 2.4, dash: '0.5 4' },
+        double: { w: 3.2 },
+    }[shareLineStyle] || { w: 2 };
 
     useEffect(() => {
         if (isOpen) {
@@ -69,6 +79,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                     shareUrl: referralUrl,
                     ratio: shareRatio,
                     theme: shareTheme,
+                    lineStyle: shareLineStyle,
                     helmetOn,
                     path: ridePath,
                     // 개인정보 보호: 공유 카드에는 실제 도착 장소(목적지)를 넣지 않음 → 일반 라벨 사용
@@ -83,7 +94,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             }
         })();
         return () => { cancelled = true; };
-    }, [isOpen, shareRatio, shareTheme, referralUrl, referralCode, metrics, vibeName, helmetOn, ridePath]);
+    }, [isOpen, shareRatio, shareTheme, shareLineStyle, referralUrl, referralCode, metrics, vibeName, helmetOn, ridePath]);
 
     if (!isOpen) return null;
 
@@ -101,8 +112,8 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
             if (!asset) {
                 const { dataUrl, blob: canvasBlob } = await renderShareCard({
                     metrics, vibeName, referralCode, shareUrl: referralUrl,
-                    ratio: shareRatio, theme: shareTheme, helmetOn, path: ridePath,
-                    routeLabel: metrics?.destination || null,
+                    ratio: shareRatio, theme: shareTheme, lineStyle: shareLineStyle, helmetOn, path: ridePath,
+                    routeLabel: null, // 개인정보: 도착 장소 제외
                 });
                 const blob = canvasBlob || await (await fetch(dataUrl)).blob();
                 asset = { file: new File([blob], `c-safe-ride-${Date.now()}.png`, { type: 'image/png' }), dataUrl };
@@ -186,7 +197,7 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                             </defs>
                             {routeSketch ? (
                                 <>
-                                    <path d={routeSketch.d} fill="none" stroke={themeAccent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)" />
+                                    <path d={routeSketch.d} fill="none" stroke={themeAccent} strokeWidth={previewLine.w} strokeDasharray={previewLine.dash} strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)" />
                                     <circle cx={routeSketch.start.x} cy={routeSketch.start.y} r="3.5" fill="#a855f7" filter="url(#glow)" />
                                     <circle cx={routeSketch.end.x} cy={routeSketch.end.y} r="3.5" fill={themeAccent} filter="url(#glow)" />
                                 </>
@@ -323,6 +334,36 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                                 >
                                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: opt.accent, boxShadow: active ? `0 0 8px ${opt.accent}` : 'none' }} />
                                     {t(`rsm_theme_${opt.id}`)}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* ✏️ 선 스타일 선택 — 굵기/종류(실선·점선·도트·이중선) */}
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1 mb-2">{t('rsm_line_style')}</p>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                        {SHARE_LINE_STYLES.map(opt => {
+                            const active = shareLineStyle === opt.id;
+                            const css = {
+                                thin:   { w: '1px', s: 'solid' },
+                                solid:  { w: '2px', s: 'solid' },
+                                bold:   { w: '4px', s: 'solid' },
+                                dashed: { w: '2px', s: 'dashed' },
+                                dotted: { w: '3px', s: 'dotted' },
+                                double: { w: '4px', s: 'double' },
+                            }[opt.id] || { w: '2px', s: 'solid' };
+                            return (
+                                <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() => setShareLineStyle(opt.id)}
+                                    className={`py-2 rounded-xl text-[10px] font-black tracking-wider transition active:scale-95 flex flex-col items-center justify-center gap-1.5 border ${
+                                        active ? 'bg-white/10 border-white/30 text-white' : 'bg-white/5 border-white/10 text-gray-400'
+                                    }`}
+                                    style={active ? { borderColor: themeAccent, color: themeAccent } : undefined}
+                                >
+                                    <span style={{ width: 26, borderTopWidth: css.w, borderTopStyle: css.s, borderTopColor: active ? themeAccent : '#9ca3af', display: 'block' }} />
+                                    {t(`rsm_ls_${opt.id}`)}
                                 </button>
                             );
                         })}

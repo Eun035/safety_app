@@ -54,6 +54,17 @@ export const SHARE_THEMES = [
     { id: 'mono', accent: '#cfcabd' },
 ];
 
+// 경로 라인 스타일 (굵기 + 선 종류). 모달 칩과 공유 카드가 공용.
+//   width: 1080px 기준 굵기 / dash: 대시 패턴(없으면 실선) / double: 이중선 여부
+export const SHARE_LINE_STYLES = [
+    { id: 'thin',   width: 6,  dash: null,       double: false },
+    { id: 'solid',  width: 9,  dash: null,       double: false },
+    { id: 'bold',   width: 15, dash: null,       double: false },
+    { id: 'dashed', width: 10, dash: [22, 16],   double: false },
+    { id: 'dotted', width: 12, dash: [1, 22],    double: false },
+    { id: 'double', width: 14, dash: null,       double: true  },
+];
+
 // 주행 성향(급정거 횟수)에 맞춘 기본 테마 추천
 export const suggestTheme = (suddenBrakeCount = 0) => {
     const b = Number(suddenBrakeCount) || 0;
@@ -154,11 +165,13 @@ export async function renderShareCard({
     shareUrl = null,
     ratio = 'story',
     theme = 'neon',
+    lineStyle = 'solid',
     helmetOn = false,
     path = null,
     routeLabel = null,
 } = {}) {
     const P = PRESETS[ratio] || PRESETS.story;
+    const LS = SHARE_LINE_STYLES.find(s => s.id === lineStyle) || SHARE_LINE_STYLES[1];
     const T = THEMES[theme] || THEMES.neon;
     const canvas = document.createElement('canvas');
     canvas.width = P.w;
@@ -211,17 +224,19 @@ export async function renderShareCard({
             else pts.forEach(([x, y], i) => (i === 0 ? null : ctx.lineTo(x, y)));
         };
 
-        // 1) 글로우 언더레이 — 전체 곡선을 굵고 흐리게(성능 위해 세그먼트별 그림자 대신)
+        // 1) 글로우 언더레이 — 전체 곡선을 굵고 흐리게(항상 실선, 글로우용)
+        ctx.setLineDash([]);
         ctx.globalAlpha = T.light ? 0.5 : 0.35;
         ctx.strokeStyle = T.accent;
-        ctx.lineWidth = 16;
+        ctx.lineWidth = LS.width + 7;
         if (T.glow) { ctx.shadowColor = T.accent; ctx.shadowBlur = 30; }
         traceWhole(); ctx.stroke();
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
 
-        // 2) 본선 — 속도별 색 (부드러운 곡선 세그먼트)
-        ctx.lineWidth = 9;
+        // 2) 본선 — 속도별 색 + 선택한 굵기/선 종류
+        ctx.lineWidth = LS.width;
+        ctx.setLineDash(LS.dash || []);
         if (hasSpeed && segs) {
             for (let i = 0; i < segs.length; i++) {
                 const t = (speeds[i + 1] - sketch.minSpeed) / range;
@@ -237,6 +252,15 @@ export async function renderShareCard({
             ctx.strokeStyle = T.accent;
             traceWhole(); ctx.stroke();
         }
+
+        // 2b) 이중선 — 가운데에 배경톤 얇은 선을 겹쳐 두 줄처럼 보이게
+        if (LS.double) {
+            ctx.setLineDash([]);
+            ctx.strokeStyle = T.bg[2];
+            ctx.lineWidth = Math.max(2, Math.round(LS.width * 0.38));
+            traceWhole(); ctx.stroke();
+        }
+        ctx.setLineDash([]);
 
         // 3) 시작(보조색)·끝(강조색) 점
         ctx.fillStyle = T.accent2;
