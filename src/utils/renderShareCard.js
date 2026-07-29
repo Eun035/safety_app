@@ -71,6 +71,17 @@ const PRESETS = {
 const SANS = '"Pretendard", system-ui, -apple-system, "Malgun Gothic", sans-serif';
 const MONO = '"JetBrains Mono", "SF Mono", ui-monospace, monospace';
 
+// #rrggbb 두 색을 t(0~1)로 선형 보간 → 스피드 히트 그라디언트(느림→빠름)
+function hexLerp(a, b, t) {
+    const p = (h) => {
+        const n = parseInt(h.replace('#', ''), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    const [r1, g1, b1] = p(a), [r2, g2, b2] = p(b);
+    const k = Math.max(0, Math.min(1, t));
+    return `rgb(${Math.round(r1 + (r2 - r1) * k)},${Math.round(g1 + (g2 - g1) * k)},${Math.round(b1 + (b2 - b1) * k)})`;
+}
+
 function roundRect(ctx, x, y, w, h, r) {
     const rr = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
@@ -177,26 +188,92 @@ export async function renderShareCard({
     for (let y = 0; y <= P.h; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(P.w, y); ctx.stroke(); }
     ctx.restore();
 
-    // ── 실제 주행 경로 라인 ──────────────────────────────────
+    // ── 실제 주행 경로 라인 (스피드 히트 루트) ────────────────
+    // 속도별 색: 느림 = 테마 보조색(accent2) → 빠름 = 강조색(accent). 순차 인코딩(레인보우 금지).
     const sketch = buildRouteSketch(path, { width: P.w, height: P.h, padding: 160 });
     ctx.save();
-    ctx.globalAlpha = T.light ? 0.9 : 0.5;
-    ctx.strokeStyle = T.accent;
-    ctx.lineWidth = 9;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    if (T.glow) { ctx.shadowColor = T.accent; ctx.shadowBlur = 28; }
+
     if (sketch && sketch.points && sketch.points.length > 1) {
+        const pts = sketch.points;
+        const speeds = sketch.speeds;
+        const range = (sketch.maxSpeed || 0) - (sketch.minSpeed || 0);
+        const hasSpeed = Array.isArray(speeds) && range > 0.5; // 유의미한 속도 변화가 있을 때만
+
+        // 1) 글로우 언더레이 — 전체 경로를 한 번에 굵고 흐리게(성능 위해 세그먼트별 그림자 대신)
+        ctx.globalAlpha = T.light ? 0.5 : 0.35;
+        ctx.strokeStyle = T.accent;
+        ctx.lineWidth = 16;
+        if (T.glow) { ctx.shadowColor = T.accent; ctx.shadowBlur = 30; }
         ctx.beginPath();
-        sketch.points.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+        pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
         ctx.stroke();
-        if (T.glow) ctx.shadowBlur = 24;
+        ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
+
+        // 2) 본선 — 속도별 색 세그먼트
+        ctx.lineWidth = 9;
+        if (hasSpeed) {
+            for (let i = 1; i < pts.length; i++) {
+                const t = (speeds[i] - sketch.minSpeed) / range;
+                ctx.strokeStyle = hexLerp(T.accent2, T.accent, t);
+                ctx.beginPath();
+                ctx.moveTo(pts[i - 1][0], pts[i - 1][1]);
+                ctx.lineTo(pts[i][0], pts[i][1]);
+                ctx.stroke();
+            }
+        } else {
+            // 속도 정보 없음(짧은 주행 등) → 단색
+            ctx.strokeStyle = T.accent;
+            ctx.beginPath();
+            pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+            ctx.stroke();
+        }
+
+        // 3) 시작(보조색)·끝(강조색) 점
         ctx.fillStyle = T.accent2;
         ctx.beginPath(); ctx.arc(sketch.start.x, sketch.start.y, 18, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = T.accent;
         ctx.beginPath(); ctx.arc(sketch.end.x, sketch.end.y, 18, 0, Math.PI * 2); ctx.fill();
+
+        // 4) 최고 속도 지점 ⚡ 마커 + 속도 라벨
+        if (hasSpeed && sketch.maxSpeedIndex > 0) {
+            const [mx, my] = pts[sketch.maxSpeedIndex];
+            ctx.fillStyle = '#ffffff';
+            if (T.glow) { ctx.shadowColor = T.accent; ctx.shadowBlur = 24; }
+            ctx.beginPath(); ctx.arc(mx, my, 13, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.font = `900 40px ${SANS}`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', mx, my - 46);
+            ctx.font = `900 26px ${MONO}`;
+            ctx.fillStyle = T.text;
+            ctx.fillText(`${Math.round(sketch.maxSpeed)}km/h`, mx, my - 84);
+            ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        }
+
+        // 5) 범례 — 우상단(배지 반대편): 느림→빠름 그라디언트 바
+        if (hasSpeed) {
+            const lw = 190, lh = 16, lx = P.w - P.pad - lw, ly = P.pad + 20;
+            const grad = ctx.createLinearGradient(lx, 0, lx + lw, 0);
+            grad.addColorStop(0, T.accent2);
+            grad.addColorStop(1, T.accent);
+            ctx.fillStyle = grad;
+            roundRect(ctx, lx, ly, lw, lh, 8); ctx.fill();
+            ctx.font = `900 20px ${MONO}`;
+            ctx.fillStyle = T.textDim;
+            ctx.textBaseline = 'alphabetic';
+            ctx.textAlign = 'left';  ctx.fillText('SLOW', lx, ly - 8);
+            ctx.textAlign = 'right'; ctx.fillText('FAST', lx + lw, ly - 8);
+            ctx.textAlign = 'left';
+        }
     } else {
+        // 경로 데이터 없음 → 장식용 점선 곡선
+        ctx.globalAlpha = T.light ? 0.9 : 0.5;
+        ctx.strokeStyle = T.accent;
+        ctx.lineWidth = 9;
+        if (T.glow) { ctx.shadowColor = T.accent; ctx.shadowBlur = 28; }
         ctx.setLineDash([12, 14]);
         ctx.beginPath();
         ctx.moveTo(P.w * 0.12, P.h * 0.82);

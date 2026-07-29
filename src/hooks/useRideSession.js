@@ -296,8 +296,8 @@ export const useRideSession = create((set, get) => ({
             co2Saved: (state.totalDistance * 0.2).toFixed(1),
             zoneEvents: finalZoneEvents,
             rideRsr: rideRsr !== null ? Math.round(rideRsr) : null,
-            // SNS 공유 카드용 실제 주행 데이터
-            path: state.currentPath.map(p => ({ lat: p.lat, lng: p.lng })),
+            // SNS 공유 카드용 실제 주행 데이터 (ts 포함 → 구간 속도 계산·스피드 히트 루트)
+            path: state.currentPath.map(p => ({ lat: p.lat, lng: p.lng, ts: p.ts })),
             destination: destinationText || null
         };
 
