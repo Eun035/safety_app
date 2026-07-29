@@ -71,7 +71,8 @@ const RideSummaryModal = ({ isOpen, onClose, metrics, vibeName = "Neon Rider", c
                     theme: shareTheme,
                     helmetOn,
                     path: ridePath,
-                    routeLabel: metrics?.destination || null,
+                    // 개인정보 보호: 공유 카드에는 실제 도착 장소(목적지)를 넣지 않음 → 일반 라벨 사용
+                    routeLabel: null,
                 });
                 if (cancelled) return;
                 const blob = canvasBlob || await (await fetch(dataUrl)).blob();
