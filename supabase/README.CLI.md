@@ -61,12 +61,14 @@ alter publication supabase_realtime add table public.hazards, public.near_miss_e
 ## 2. 로컬 개발
 
 ```bash
-npm run db:start     # 로컬 스택 기동 (baseline + 시드 적용). 최초엔 이미지 다운로드로 수 분.
+npm run dev          # ★ predev 훅이 supabase start를 먼저 실행 → 로컬 DB 기동 후 앱(http://localhost:8888)
 npm run db:status    # API URL / anon key / Studio URL 출력
-npm run dev          # 앱: http://localhost:8888  (.env.local이 로컬을 가리킴)
 ```
+- `npm run dev` 하나면 **로컬 DB(supabase start) + 프론트(vite)** 가 함께 뜹니다. (`supabase start`는 이미 켜져 있으면 그냥 상태만 출력하고 넘어감)
+- **DB 없이 프론트만**: `npm run dev:web`
+- **DB만 따로**: `npm run db:start` · 정지: `npm run db:stop` · 완전 초기화+재적용: `npm run db:reset`
+- 최초 `db:start`는 Docker 이미지 다운로드로 수 분. **Docker Desktop이 켜져 있어야** 함.
 - **Studio(로컬 관리)**: http://127.0.0.1:54323
-- 정지: `npm run db:stop`  ·  로컬 DB 완전 초기화+재적용: `npm run db:reset`
 - 시드: `config.toml`의 `[db.seed]`가 `seed_p4_near_miss_mock.sql`(near-miss 목업 50건)을 `db:reset` 시 로드.
 
 ---

@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "supabase start",
     "dev": "vite",
+    "dev:web": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
