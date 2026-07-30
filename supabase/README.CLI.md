@@ -19,13 +19,28 @@ C-Safe DB는 **Supabase CLI**로 관리합니다. 로컬 개발 DB와 운영(클
 
 ---
 
+## 0. CLI 설치 (Windows — Scoop 권장)
+
+`db:*` 스크립트는 PATH의 `supabase` 실행파일을 사용합니다. **Windows에서는 `npx supabase`가
+백신에 의해 exe 실행이 차단(Permission denied)되는 사례가 있어, Scoop 네이티브 설치를 권장**합니다.
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned      # 한 번만
+irm get.scoop.sh | iex                                   # scoop 설치
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+supabase --version                                       # 정상 출력되면 OK
+```
+> 설치 후 **터미널을 새로 열어야** PATH가 반영됩니다. (macOS/Linux는 `brew install supabase/tap/supabase`)
+
+---
+
 ## 1. 최초 1회 — 운영에 연결하고 baseline 뽑기
 
 > 운영 액세스 토큰과 **DB 비밀번호**가 필요합니다(제3자가 대신 못 함).
 > 프로젝트 `ref`는 운영 `VITE_SUPABASE_URL`의 `https://<ref>.supabase.co` 에서 확인.
 
 ```bash
-npx supabase login                      # 브라우저로 액세스 토큰 발급
+supabase login                          # 브라우저로 액세스 토큰 발급
 npm run db:link -- --project-ref <ref>  # DB 비밀번호 입력
 npm run db:pull                         # 운영 스키마 → supabase/migrations/<timestamp>_remote_schema.sql
 ```
