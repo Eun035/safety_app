@@ -214,17 +214,24 @@ export async function renderShareCard({
         const range = (sketch.maxSpeed || 0) - (sketch.minSpeed || 0);
         const hasSpeed = Array.isArray(speeds) && range > 0.5; // 유의미한 속도 변화가 있을 때만
 
-        // 부드러운 베지어 곡선(Catmull-Rom) 세그먼트
-        const segs = (sketch.curve && sketch.curve.segs) || null;
-        // 전체 곡선을 한 번 그리는 헬퍼(글로우 언더레이·단색 폴백용)
+        // 직선+코너라운딩 stroke (변별 cmds: M/L/Q). 직선 구간은 직선, 꺾이는 코너만 둥글게.
+        const strokes = (sketch.curve && sketch.curve.strokes) || null;
+        const traceCmds = (cmds) => {
+            for (const c of cmds) {
+                if (c[0] === 'M') ctx.moveTo(c[1], c[2]);
+                else if (c[0] === 'L') ctx.lineTo(c[1], c[2]);
+                else ctx.quadraticCurveTo(c[1], c[2], c[3], c[4]);
+            }
+        };
+        // 전체 경로를 한 번 그리는 헬퍼(글로우 언더레이·단색·이중선용)
         const traceWhole = () => {
             ctx.beginPath();
-            ctx.moveTo(pts[0][0], pts[0][1]);
-            if (segs) segs.forEach(s => ctx.bezierCurveTo(s.c1[0], s.c1[1], s.c2[0], s.c2[1], s.p[0], s.p[1]));
-            else pts.forEach(([x, y], i) => (i === 0 ? null : ctx.lineTo(x, y)));
+            if (strokes) strokes.forEach(s => traceCmds(s.cmds));
+            else { ctx.moveTo(pts[0][0], pts[0][1]); pts.forEach(([x, y], i) => (i === 0 ? null : ctx.lineTo(x, y))); }
         };
+        const hasSpeedStrokes = hasSpeed && strokes && strokes.every(s => Number.isFinite(s.speed));
 
-        // 1) 글로우 언더레이 — 전체 곡선을 굵고 흐리게(항상 실선, 글로우용)
+        // 1) 글로우 언더레이 — 전체 경로를 굵고 흐리게(항상 실선, 글로우용)
         ctx.setLineDash([]);
         ctx.globalAlpha = T.light ? 0.5 : 0.35;
         ctx.strokeStyle = T.accent;
@@ -237,18 +244,16 @@ export async function renderShareCard({
         // 2) 본선 — 속도별 색 + 선택한 굵기/선 종류
         ctx.lineWidth = LS.width;
         ctx.setLineDash(LS.dash || []);
-        if (hasSpeed && segs) {
-            for (let i = 0; i < segs.length; i++) {
-                const t = (speeds[i + 1] - sketch.minSpeed) / range;
+        if (hasSpeedStrokes) {
+            for (const s of strokes) {
+                const t = (s.speed - sketch.minSpeed) / range;
                 ctx.strokeStyle = hexLerp(T.accent2, T.accent, t);
                 ctx.beginPath();
-                ctx.moveTo(pts[i][0], pts[i][1]);
-                const s = segs[i];
-                ctx.bezierCurveTo(s.c1[0], s.c1[1], s.c2[0], s.c2[1], s.p[0], s.p[1]);
+                traceCmds(s.cmds);
                 ctx.stroke();
             }
         } else {
-            // 속도 정보 없음(짧은 주행 등) → 단색 곡선
+            // 속도 정보 없음(짧은 주행 등) → 단색
             ctx.strokeStyle = T.accent;
             traceWhole(); ctx.stroke();
         }

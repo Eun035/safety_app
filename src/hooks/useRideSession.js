@@ -4,6 +4,7 @@ import helmetStations from '../data/helmet_stations.json';
 import { calculateDistance } from '../utils/distance';
 import { useUserStore } from './useUserStore';
 import { enqueue } from '../lib/pendingSyncQueue';
+import { generateMockRide } from '../utils/generateMockRide';
 
 export const useRideSession = create((set, get) => ({
     isRiding: false,
@@ -452,6 +453,68 @@ export const useRideSession = create((set, get) => ({
         localStorage.setItem('csafe_ride_history', JSON.stringify([summary, ...pastRides]));
 
         set({ isRiding: false, startTime: null, zoneEvents: [], currentZoneEvent: null });
+        return summary;
+    },
+
+    // 🎲 테스트용 모의 주행 생성·저장 (실 GPS처럼 곡선 경로 + 지표) → rides/ride_paths DB + 히스토리
+    saveMockRide: async (userId) => {
+        const mock = generateMockRide();
+        const isGuest = !userId || userId.toString().startsWith('guest_');
+        const rideId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : `mock-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+        const summary = {
+            id: mock.id,
+            db_ride_id: !isGuest ? rideId : null,
+            date: mock.date,
+            distance: mock.distance,
+            time: mock.time,
+            topSpeed: mock.topSpeed,
+            suddenBrakeCount: mock.suddenBrakeCount,
+            co2Saved: mock.co2Saved,
+            path: mock.path,
+            destination: null,
+            isMock: true,
+        };
+
+        if (!isGuest) {
+            try {
+                const ridePayload = {
+                    id: rideId,
+                    user_id: userId,
+                    start_time: new Date(mock.startTime).toISOString(),
+                    end_time: new Date().toISOString(),
+                    distance: mock.distance,
+                    is_safe_ride: mock.isSafe,
+                    top_speed: Number(mock.topSpeed),
+                    sudden_brake_count: mock.suddenBrakeCount,
+                    duration_minutes: mock.time,
+                    helmet_on_pct: mock.helmetOnPct,
+                    co2_saved_kg: Number(mock.co2Saved),
+                    is_legal_park: true,
+                    to_loc_text: null,
+                };
+                const { error } = await supabase.from('rides').insert([ridePayload]);
+                if (error) throw error;
+                try {
+                    const { error: pe } = await supabase.from('ride_paths').insert([{ ride_id: rideId, path_data: mock.path }]);
+                    if (pe) throw pe;
+                } catch (pe) {
+                    console.warn('[C-Safe] mock ride_paths insert 실패:', pe?.message || pe);
+                }
+            } catch (err) {
+                console.warn('[C-Safe] mock rides insert 실패(로컬은 저장됨):', err?.message || err);
+            }
+        }
+
+        // 로컬 히스토리 캐시 + 상태 갱신 (조회용)
+        try {
+            const past = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
+            localStorage.setItem('csafe_ride_history', JSON.stringify([summary, ...past].slice(0, 500)));
+        } catch { /* noop */ }
+        set(state => ({ rideHistory: [summary, ...state.rideHistory] }));
+
         return summary;
     }
 }));

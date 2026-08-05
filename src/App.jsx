@@ -122,7 +122,7 @@ function App() {
 
 
   // Phase 35: Lightweight Ride Session & Static Safety Grid
-  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, enterZone, exitZone, sampleZoneSpeed } = useRideSession();
+  const { isRiding, startRide, endRideSession, updateMetrics, totalDistance, suddenBrakeCount, isHardwareSyncing, historyMetrics, loadHistory, rideHistory, enterZone, exitZone, sampleZoneSpeed, saveMockRide } = useRideSession();
 
   // 🅿️ 자동 체크아웃 — 라이딩 중 PM 주차장 10m 이내 + 속도 0이 10초 유지되면
   // triggerAutoCheckout() 자동 발화 → endRideSession 전체 정상 종료 흐름 실행
@@ -796,6 +796,24 @@ function App() {
     setIsStationRewardOpen(true);
   };
 
+  // 🎲 테스트 주행 생성 — 랜덤 곡선 GPS 주행을 DB에 저장하고 라이드 서머리(리포트) 열기
+  const [isGeneratingTest, setIsGeneratingTest] = useState(false);
+  const handleGenerateTestRide = async () => {
+    if (isGeneratingTest) return;
+    setIsGeneratingTest(true);
+    try {
+      const summary = await saveMockRide(user?.id);
+      setFinalRideSummary(summary);
+      setIsRideSummaryOpen(true);
+      toast(t('app_test_ride_created', { defaultValue: '🎲 테스트 주행 생성·저장 완료' }), 'success');
+    } catch (e) {
+      console.error('[C-Safe] 테스트 주행 생성 실패:', e);
+      toast(t('rsm_share_fail', { defaultValue: '생성 실패' }), 'error');
+    } finally {
+      setIsGeneratingTest(false);
+    }
+  };
+
   return (
     <ErrorBoundary>
       <ToastContainer />
@@ -1130,6 +1148,18 @@ function App() {
                       </span>
                     </>
                   )}
+                </button>
+
+                {/* 🎲 테스트 주행 생성 — 랜덤 곡선 GPS 주행을 DB 저장 + 리포트 열기 */}
+                <button
+                  onClick={handleGenerateTestRide}
+                  disabled={isGeneratingTest}
+                  title="테스트 주행 생성 (랜덤 GPS)"
+                  className="pointer-events-auto shrink-0 w-14 h-14 rounded-2xl bg-purple-600/90 text-white flex items-center justify-center active:scale-95 transition-all disabled:opacity-50 shadow-lg border border-purple-400/40"
+                >
+                  {isGeneratingTest
+                    ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <span className="text-2xl leading-none">🎲</span>}
                 </button>
               </div>
             )}

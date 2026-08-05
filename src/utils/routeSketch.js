@@ -14,6 +14,43 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
+// 점 p에서 선분 a-b까지의 수직 거리 (RDP용)
+function perpDist(p, a, b) {
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const len2 = dx * dx + dy * dy;
+    if (len2 === 0) return Math.hypot(p[0] - a[0], p[1] - a[1]);
+    let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+}
+
+// Ramer–Douglas–Peucker — 직선 구간은 하나로 합치고 꺾이는 지점만 남긴다. (유지할 인덱스 반환)
+function rdpIndices(pts, eps) {
+    const keep = new Array(pts.length).fill(false);
+    keep[0] = keep[pts.length - 1] = true;
+    const stack = [[0, pts.length - 1]];
+    while (stack.length) {
+        const [a, b] = stack.pop();
+        let maxD = -1, idx = -1;
+        for (let i = a + 1; i < b; i++) {
+            const d = perpDist(pts[i], pts[a], pts[b]);
+            if (d > maxD) { maxD = d; idx = i; }
+        }
+        if (maxD > eps && idx > -1) { keep[idx] = true; stack.push([a, idx], [idx, b]); }
+    }
+    const out = [];
+    for (let i = 0; i < pts.length; i++) if (keep[i]) out.push(i);
+    return out;
+}
+
+// from에서 to 방향으로 dist만큼(단, 변 길이 절반 이내) 이동한 점 — 코너 라운딩용
+function towards(from, to, dist) {
+    const dx = to[0] - from[0], dy = to[1] - from[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const dd = Math.min(dist, len * 0.5);
+    return [from[0] + (dx / len) * dd, from[1] + (dy / len) * dd];
+}
+
 export function buildRouteSketch(path, { width = 100, height = 100, padding = 12, maxPoints = 64 } = {}) {
     const pts = Array.isArray(path)
         ? path.filter(p => p && Number.isFinite(p.lat) && Number.isFinite(p.lng))
@@ -83,22 +120,39 @@ export function buildRouteSketch(path, { width = 100, height = 100, padding = 12
         speeds = ss;
     }
 
-    // ── Catmull-Rom → 3차 베지어 스무딩 (부드러운 S자 곡선) ────────────────
-    const T = 1 / 6; // 텐션(표준). 낮을수록 직선에 가깝고, 높을수록 더 흐름.
-    const segs = [];
-    for (let i = 0; i < coords.length - 1; i++) {
-        const p0 = coords[i - 1] || coords[i];
-        const p1 = coords[i];
-        const p2 = coords[i + 1];
-        const p3 = coords[i + 2] || coords[i + 1];
-        const c1 = [p1[0] + (p2[0] - p0[0]) * T, p1[1] + (p2[1] - p0[1]) * T];
-        const c2 = [p2[0] - (p3[0] - p1[0]) * T, p2[1] - (p3[1] - p1[1]) * T];
-        segs.push({ c1, c2, p: p2 });
+    // ── 직선 구간 유지 + 코너만 라운딩 ──────────────────────────────────
+    // RDP로 직선 구간을 하나로 합쳐 "진짜 꺾이는 지점(vertex)"만 남기고,
+    // 각 코너를 짧은 2차 베지어로 둥글게 처리한다. (직선은 직선, 커브는 커브)
+    const sizeMin = Math.min(width, height);
+    const eps = sizeMin * 0.012;      // 단순화 허용오차
+    const r = sizeMin * 0.06;         // 코너 라운딩 반경
+
+    const vIdx = rdpIndices(coords, eps);         // 유지할 정점 인덱스
+    const V = vIdx.map(i => coords[i]);           // 정점 좌표
+    const sv = speeds ? vIdx.map(i => speeds[i]) : null; // 정점 속도
+
+    // strokes: 각 변(정점→정점)마다 {cmds, speed}. cmds = [['M',x,y],['L',x,y],['Q',cx,cy,x,y]]
+    const strokes = [];
+    let cursor = V[0];
+    for (let i = 0; i < V.length - 1; i++) {
+        const a = V[i], b = V[i + 1];
+        const isLast = (i + 1) === V.length - 1;
+        const straightEnd = isLast ? b : towards(b, a, r); // 다음 코너 앞까지 직선
+        const cmds = [['M', cursor[0], cursor[1]], ['L', straightEnd[0], straightEnd[1]]];
+        if (!isLast) {
+            const tout = towards(b, V[i + 2], r);           // 코너를 돌아 다음 변 시작점
+            cmds.push(['Q', b[0], b[1], tout[0], tout[1]]);
+            cursor = tout;
+        }
+        strokes.push({ cmds, speed: sv ? (sv[i] + sv[i + 1]) / 2 : null });
     }
-    // 부드러운 SVG path (미리보기 SVG용) + 캔버스 렌더용 curve
-    let d = `M ${coords[0][0].toFixed(1)} ${coords[0][1].toFixed(1)}`;
-    for (const s of segs) {
-        d += ` C ${s.c1[0].toFixed(1)} ${s.c1[1].toFixed(1)}, ${s.c2[0].toFixed(1)} ${s.c2[1].toFixed(1)}, ${s.p[0].toFixed(1)} ${s.p[1].toFixed(1)}`;
+
+    // 미리보기 SVG용 path 문자열
+    let d = '';
+    for (const s of strokes) for (const c of s.cmds) {
+        if (c[0] === 'M') d += `${d ? ' ' : ''}M ${c[1].toFixed(1)} ${c[2].toFixed(1)}`;
+        else if (c[0] === 'L') d += ` L ${c[1].toFixed(1)} ${c[2].toFixed(1)}`;
+        else d += ` Q ${c[1].toFixed(1)} ${c[2].toFixed(1)}, ${c[3].toFixed(1)} ${c[4].toFixed(1)}`;
     }
 
     let minSpeed = 0, maxSpeed = 0, maxSpeedIndex = 0;
@@ -112,9 +166,9 @@ export function buildRouteSketch(path, { width = 100, height = 100, padding = 12
     const [ex, ey] = coords[coords.length - 1];
 
     return {
-        d,                                                 // 부드러운 베지어 path (미리보기)
+        d,                                                 // 직선+코너라운딩 path (미리보기)
         points: coords,                                    // 다운샘플된 [[x,y], ...]
-        curve: { segs },                                   // 캔버스 렌더용 베지어 세그먼트
+        curve: { strokes },                                // 캔버스 렌더용 변별 stroke(cmds+speed)
         speeds,                                            // 구간 속도(km/h) 또는 null (points와 정렬)
         minSpeed, maxSpeed, maxSpeedIndex,
         start: { x: +sx.toFixed(1), y: +sy.toFixed(1) },
