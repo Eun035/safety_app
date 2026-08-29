@@ -17,7 +17,7 @@ const getOrCreateLocalProfile = (userId) => {
     const key = `c_safe_profile_${userId}`;
     const saved = localStorage.getItem(key);
     if (saved) {
-        try { return JSON.parse(saved); } catch (e) { /* fall through */ }
+        try { return JSON.parse(saved); } catch { /* fall through */ }
     }
     const newProfile = {
         id: userId,
@@ -134,7 +134,7 @@ export const useUserStore = create((set, get) => ({
                 } else {
                     throw new Error("No profile returned");
                 }
-            } catch (pError) {
+            } catch {
                 console.warn('[C-Safe] DB Profile creation blocked, using persistent local profile.');
                 const localProfile = getOrCreateLocalProfile(data.user.id);
                 set({ profile: localProfile });

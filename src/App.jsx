@@ -21,7 +21,6 @@ import EmergencyModal from './components/common/EmergencyModal';
 import ParkingVerification from './components/common/ParkingVerification';
 import PersonalInsights from './components/common/PersonalInsights';
 import RideSettings from './components/common/RideSettings';
-import QRScanner from './components/common/QRScanner';
 import RideSummaryModal from './components/common/RideSummaryModal';
 import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
@@ -35,6 +34,8 @@ import HelmetReturnSheet from './components/common/HelmetReturnSheet';
 import RewardWalletSheet from './components/common/RewardWalletSheet';
 // 5순위: AdminDashboard 레이지 로딩 — 초기 번들 ~39KB 절감
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
+// html5-qrcode(수백 KB)를 초기 번들에서 제외 — 스캐너를 열 때만 내려받는다.
+const QRScanner = React.lazy(() => import('./components/common/QRScanner'));
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -231,7 +232,7 @@ function App() {
       speak(t('app_voice_shake_hard'), 'L4');
       vibrate('L4');
     }
-  }, [rider.status, rider.isRunning, speak, vibrate]);
+  }, [rider.status, rider.isRunning, speak, vibrate, t]);
 
   // 🛑 라이딩 종료 시 sensor 모니터링 자동 정지 (배터리 보호)
   React.useEffect(() => {
@@ -275,7 +276,7 @@ function App() {
     if (Object.values(stressZoneInsideRef.current).some(Boolean)) {
       sampleZoneSpeed(currentSpeed);
     }
-  }, [location, isRiding, speak, enterZone, exitZone, sampleZoneSpeed, t]);
+  }, [location, isRiding, speak, vibrate, enterZone, exitZone, sampleZoneSpeed, t]);
 
   const [showEcoBadge, setShowEcoBadge] = useState(false);
 
@@ -491,6 +492,9 @@ function App() {
     }, 8000);
 
     return () => clearTimeout(mapTimeout);
+    // 마운트 1회만 도는 부팅 시퀀스(익명 로그인 → 프로필/기록 로드 → 추천 연결).
+    // loadUser/loadHistory/signInAnonymously를 의존성에 넣으면 인증이 반복 실행된다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -632,7 +636,7 @@ function App() {
         userId: user?.id
       });
     }
-  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id, t]);
+  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id, t, vibrate]);
 
 
 
@@ -1346,12 +1350,17 @@ function App() {
           coupons={coupons}
           setCoupons={setCoupons}
         />
-        <QRScanner
-          isOpen={isQRScannerOpen}
-          mode={qrScanMode}
-          onClose={() => setIsQRScannerOpen(false)}
-          onScanSuccess={handleQRScanSuccess}
-        />
+        {/* 열릴 때만 마운트해야 lazy 청크가 그 시점에 내려받아진다 */}
+        {isQRScannerOpen && (
+          <Suspense fallback={null}>
+            <QRScanner
+              isOpen={isQRScannerOpen}
+              mode={qrScanMode}
+              onClose={() => setIsQRScannerOpen(false)}
+              onScanSuccess={handleQRScanSuccess}
+            />
+          </Suspense>
+        )}
         <PaymentReceiptModal
           isOpen={isPaymentReceiptOpen}
           // '나중에 결제'/닫기로 결제를 건너뛰어도 뒤 체인(스테이션 보상→라이드 서머리)은

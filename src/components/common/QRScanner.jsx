@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { X, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +42,7 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess, mode = 'station' }) => {
                 }
                 onScanSuccessRef.current(decodedText);
             },
-            (err) => {
+            () => {
                 // 매 프레임마다 QR을 찾지 못하면 에러를 뿜어내므로 무시합니다.
             }
         ).catch((err) => {
@@ -73,6 +73,9 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess, mode = 'station' }) => {
                 scannerRef.current = null;
             }
         };
+        // t는 카메라 실패 토스트 문구에만 쓰인다. 의존성에 넣으면 언어가 바뀔 때마다
+        // 스캐너가 통째로 재시작되므로 제외한다.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     if (!isOpen) return null;

@@ -111,6 +111,8 @@ export const useHazardHeatmap = ({
         return () => {
             if (debounceTimer.current) clearTimeout(debounceTimer.current);
         };
+        // mapBounds는 아래 sw/ne의 lat·lng로 이미 완전히 커버된다(객체 동일성 오탐)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         enabled,
         mapBounds?.sw?.lat, mapBounds?.sw?.lng,
@@ -152,6 +154,8 @@ export const useHazardHeatmap = ({
         return () => {
             supabase.removeChannel(channel);
         };
+        // mapBounds는 아래 sw/ne의 lat·lng로 이미 완전히 커버된다(객체 동일성 오탐)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         enabled,
         mapBounds?.sw?.lat, mapBounds?.sw?.lng,

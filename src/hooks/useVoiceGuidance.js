@@ -1,6 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+// 🎚️ Escalation 프리셋 — 이어폰 금지 정책으로 외부 스피커 의존도가 높아진 만큼
+// 단계별 톤·속도·음량을 명확히 구분해 청각만으로 위급도 구분 가능하게 한다.
+// L1: 사전 예고 / L2: 근접 / L3: 진입 시점 / L4: 위반·긴급
+const ESCALATION_PRESETS = {
+    L1: { rate: 0.95, pitch: 0.95, volume: 0.75, interrupt: false },
+    L2: { rate: 1.0,  pitch: 1.05, volume: 0.9,  interrupt: false },
+    L3: { rate: 1.1,  pitch: 1.15, volume: 1.0,  interrupt: true  },
+    L4: { rate: 1.15, pitch: 1.25, volume: 1.0,  interrupt: true  },
+    // 퀴즈 문제 낭독: 또렷·편안. 사용자가 중간에 답을 누르면 QUIZ_FEEDBACK이 즉시 끊고 들어감.
+    QUIZ:          { rate: 0.85, pitch: 0.95, volume: 1.0, interrupt: true },
+    // 정답/오답 즉답: 짧고 명료, 진행 중 발화를 무조건 잘라낸다.
+    QUIZ_FEEDBACK: { rate: 1.0,  pitch: 1.05, volume: 1.0, interrupt: true }
+};
+
+
 /**
  * TTS 발화용 텍스트 정리 — 화면 표기는 그대로 두고 "읽을 때만" 매끄럽게.
  * 모든 언어(ko/ja/zh/en) 공통 규칙:
@@ -84,20 +99,6 @@ export const useVoiceGuidance = () => {
             document.removeEventListener('click', unlockAudio);
         };
     }, []);
-
-    // 🎚️ Escalation 프리셋 — 이어폰 금지 정책으로 외부 스피커 의존도가 높아진 만큼
-    // 단계별 톤·속도·음량을 명확히 구분해 청각만으로 위급도 구분 가능하게 한다.
-    // L1: 사전 예고 / L2: 근접 / L3: 진입 시점 / L4: 위반·긴급
-    const ESCALATION_PRESETS = {
-        L1: { rate: 0.95, pitch: 0.95, volume: 0.75, interrupt: false },
-        L2: { rate: 1.0,  pitch: 1.05, volume: 0.9,  interrupt: false },
-        L3: { rate: 1.1,  pitch: 1.15, volume: 1.0,  interrupt: true  },
-        L4: { rate: 1.15, pitch: 1.25, volume: 1.0,  interrupt: true  },
-        // 퀴즈 문제 낭독: 또렷·편안. 사용자가 중간에 답을 누르면 QUIZ_FEEDBACK이 즉시 끊고 들어감.
-        QUIZ:          { rate: 0.85, pitch: 0.95, volume: 1.0, interrupt: true },
-        // 정답/오답 즉답: 짧고 명료, 진행 중 발화를 무조건 잘라낸다.
-        QUIZ_FEEDBACK: { rate: 1.0,  pitch: 1.05, volume: 1.0, interrupt: true }
-    };
 
     const speak = useCallback((text, level = 'L2') => {
         // 지원하지 않는 환경이면 즉시 리턴하여 에러 방지

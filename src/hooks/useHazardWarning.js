@@ -133,6 +133,7 @@ export const useHazardWarning = (locations = []) => {
                 }
             } catch (err) {
                 console.error('[C-Safe] PostGIS 알림 실패:', err);
+                setError(err);
                 fallbackLocalSearch();
             }
         };

@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import './locales/i18n' // Phase 11: 다국어 적용
+import { i18nReady } from './locales/i18n' // Phase 11: 다국어 적용
 import './utils/pwaInstall' // beforeinstallprompt 리스너 조기 등록 (앱 설치 버튼용)
 import App from './App.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary'
@@ -18,10 +18,17 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-)
+// 감지된 언어의 번역 사전을 확보한 뒤 렌더한다.
+// ko는 정적으로 들어 있어 사실상 즉시 resolve되고, 실패해도 ko로 fallback되므로
+// 어떤 경우에도 앱이 그려지지 않는 일은 없다.
+const renderApp = () => {
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>,
+  )
+}
+
+i18nReady.then(renderApp).catch(renderApp)

@@ -1,4 +1,6 @@
-import QRCode from 'qrcode';
+// qrcode는 여기서 정적 import하지 않는다 — 이 모듈은 앱 부팅 시
+// captureReferralFromUrl 때문에 항상 로드되는데, QR 생성은 공유 카드에서만 쓰인다.
+// generateQrDataUrl 안에서 동적 import 한다.
 
 const SS_KEY = 'csafe_pending_referral'; // sessionStorage 키 — 가입 직전까지 보관
 
@@ -26,7 +28,7 @@ export function captureReferralFromUrl() {
     };
     try {
         sessionStorage.setItem(SS_KEY, JSON.stringify(payload));
-    } catch (e) { /* private mode 등 */ }
+    } catch { /* private mode 등 */ }
     return payload;
 }
 
@@ -36,13 +38,13 @@ export function readPendingReferral() {
     try {
         const raw = sessionStorage.getItem(SS_KEY);
         return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
+    } catch { return null; }
 }
 
 /** 가입·연결 완료 후 캡처 정보를 비운다. */
 export function clearPendingReferral() {
     if (typeof window === 'undefined') return;
-    try { sessionStorage.removeItem(SS_KEY); } catch (e) { /* noop */ }
+    try { sessionStorage.removeItem(SS_KEY); } catch { /* noop */ }
 }
 
 /**
@@ -79,6 +81,7 @@ export function buildReferralUrl(code) {
  */
 export async function generateQrDataUrl(url, sizePx = 320) {
     try {
+        const { default: QRCode } = await import('qrcode');
         return await QRCode.toDataURL(url, {
             width: sizePx,
             margin: 1,

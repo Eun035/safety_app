@@ -105,6 +105,22 @@ export default defineConfig({
     minify: 'terser',
     cssCodeSplit: false, // CSS 유실 방지를 위해 코드 분할 비활성화
     sourcemap: false,
+    // 벤더를 성격별로 분리 — 초기 JS를 줄이고, 앱 코드만 바뀌는 배포에서
+    // 무거운 라이브러리 청크가 브라우저 캐시에 그대로 남게 한다.
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'vendor-react';
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('lucide-react')) return 'vendor-icons';
+          if (id.includes('html5-qrcode') || id.includes('node_modules/qrcode')) return 'vendor-qr';
+          if (id.includes('i18next')) return 'vendor-i18n';
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          return 'vendor';
+        },
+      },
+    },
     terserOptions: {
       compress: {
         // console.log 만 제거하고 warn/error/info는 유지 (production 진단용)

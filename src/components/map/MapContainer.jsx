@@ -65,6 +65,8 @@ const MapContainer = ({
     useEffect(() => {
         setMapCenter(regionMeta.center);
         setMapLevel(regionMeta.level);
+        // regionMeta.center는 아래 center.lat/lng로 이미 완전히 커버된다(객체 동일성 오탐)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentRegion, regionMeta.center.lat, regionMeta.center.lng, regionMeta.level]);
 
     const [safeRouteInfo, setSafeRouteInfo] = useState(null);
@@ -188,7 +190,8 @@ const MapContainer = ({
         } else {
             setSearchResults(matchedLandmarks);
         }
-    }, [searchQuery, voiceAlternatives]);
+        // 지역이 바뀌면 검색 기준 좌표(regionMeta.center)도 바뀌므로 재조회해야 한다
+    }, [searchQuery, voiceAlternatives, regionMeta.center.lat, regionMeta.center.lng, t]);
 
     const handleSelectOrigin = (item) => {
         setRouteOrigin({
@@ -247,6 +250,9 @@ const MapContainer = ({
         } else if (navStep === 'idle') {
             setSafeRouteInfo(null);
         }
+        // t는 경로 실패 토스트 문구에만 쓰인다. 의존성에 넣으면 언어가 바뀔 때마다
+        // 경로를 다시 계산(네트워크 호출)하므로 제외한다.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navStep, routeOrigin, routeDestination]);
 
     const { isRiding, currentPath } = useRideSession();
@@ -510,7 +516,7 @@ const MapContainer = ({
             </CustomOverlayMap>
         ));
 
-    }, [pmParkings, navStep, setNavStep, setRouteDestination, currentLevel, mapBounds]);
+    }, [pmParkings, navStep, setNavStep, setRouteDestination, setSelectedLocation, currentLevel, mapBounds, speak, t]);
 
     useEffect(() => {
         if (!loading && !error && window.kakao?.maps?.services) {
@@ -565,7 +571,9 @@ const MapContainer = ({
                 setPmStations(uniqueStations);
             });
         }
-    }, [loading, error]);
+        // 스테이션은 regionMeta.center 반경 5km에서 검색된다 — 지역이 바뀌면 재조회해야
+        // 천안↔아산 전환 시 이전 지역 스테이션이 그대로 남지 않는다
+    }, [loading, error, regionMeta.center.lat, regionMeta.center.lng, t]);
 
     const handleMarkerClick = (location) => {
         // 탐색 모드 (Navigation Mode) 중일 때의 동작

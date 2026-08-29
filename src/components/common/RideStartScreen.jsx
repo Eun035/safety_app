@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Navigation, Clock, Share2, Shield,
@@ -13,6 +13,7 @@ import { getFrequentDestinations, recordDestination } from '../../utils/frequent
 
 // ─── 인기 목적지 (빠른 선택) ─────────────────────────────────────────────
 // name = 한국어 기본값(외부 라우팅 폴백용), nameKey = i18n 키(화면 표시용)
+const EMPTY_SEARCH_RESULTS = [];
 const QUICK_DESTINATIONS = [
   { id: 'q1', name: '단국대학교 정문', nameKey: 'rss_qd_dankook', emoji: '🎓', etaMin: 4, lat: 36.8331, lng: 127.1791 },
   { id: 'q2', name: '천안터미널', nameKey: 'rss_qd_terminal', emoji: '🚌', etaMin: 11, lat: 36.8152, lng: 127.1518 },
@@ -209,8 +210,8 @@ const RideStartScreen = ({
 }) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+  // 어떤 검색어(key)의 결과인지 함께 보관 — 결과 도착 전/응답 역전 판정에 사용
+  const [searchResults, setSearchResults] = useState({ key: '', items: EMPTY_SEARCH_RESULTS });
   const [selectedDest, setSelectedDest] = useState(routeDestination || null);
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [etaPulse, setEtaPulse] = useState(false);
@@ -245,23 +246,27 @@ const RideStartScreen = ({
   const inputRef = useRef(null);
   const searchTimer = useRef(null);
 
-  // 외부에서 routeDestination 변경 시 동기화
-  useEffect(() => {
-    if (routeDestination) setSelectedDest(routeDestination);
-  }, [routeDestination]);
-
   // 자주 가는 목적지(실사용 누적) — 열릴 때 로드
   const [frequentDests, setFrequentDests] = useState([]);
 
+  // 외부에서 routeDestination 변경 시 동기화 — effect 대신 렌더 중 조정(React 권장 패턴).
+  // 초기값 null: 첫 렌더에 이미 값이 있으면 그때 바로 반영(기존 effect 동작 보존)
+  const [prevRouteDest, setPrevRouteDest] = useState(null);
+  if (prevRouteDest !== routeDestination) {
+    setPrevRouteDest(routeDestination);
+    if (routeDestination) setSelectedDest(routeDestination);
+  }
+
   // 열릴 때: 키보드는 띄우지 않고(음성 우선) 자주 가는 곳만 로드. 닫힐 때 입력 초기화.
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(false);
+  if (prevOpen !== isOpen) {
+    setPrevOpen(isOpen);
     if (isOpen) {
       setFrequentDests(getFrequentDestinations(6));
     } else {
       setQuery('');
-      setSearchResults([]);
     }
-  }, [isOpen]);
+  }
 
   // ⌨️ 모바일 키보드가 하단 "빠른 목적지"를 가리는 문제 대응.
   // VisualViewport로 키보드가 차지한 높이(kbInset)를 측정 → 시트를 키보드 위로 올리고
@@ -293,19 +298,19 @@ const RideStartScreen = ({
   }, [userLat, userLng]);
 
   // 디바운스 검색 — query + voiceAlternatives 모두 Kakao Places + Geocoder로 병렬 조회 후 병합
-  useEffect(() => {
+  // 검색어가 비면 effect에서 상태를 되돌리는 대신 렌더에서 걸러낸다(effect 내 setState 회피)
+  const uniqueQueries = useMemo(() => {
     const allQueries = [query, ...voiceAlternatives]
       .map(q => (q || '').trim())
       .filter(q => q.length > 0);
-    const uniqueQueries = [...new Set(allQueries)];
+    return [...new Set(allQueries)];
+  }, [query, voiceAlternatives]);
 
-    if (uniqueQueries.length === 0) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
+  const searchKey = uniqueQueries.join(' ');
 
-    setIsSearching(true);
+  useEffect(() => {
+    if (uniqueQueries.length === 0) return;
+
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
       const hasKakao = typeof window !== 'undefined' && window.kakao?.maps?.services;
@@ -319,8 +324,7 @@ const RideStartScreen = ({
             if (!seen.has(r.id)) { seen.add(r.id); merged.push(r); }
           });
         });
-        setSearchResults(merged);
-        setIsSearching(false);
+        setSearchResults({ key: searchKey, items: merged });
         return;
       }
 
@@ -382,15 +386,19 @@ const RideStartScreen = ({
           });
         });
 
-        setSearchResults(merged.slice(0, 12)); // 너무 많으면 부담 — 상위 12개
-        setIsSearching(false);
+        setSearchResults({ key: searchKey, items: merged.slice(0, 12) }); // 너무 많으면 부담 — 상위 12개
       }).catch(() => {
-        setSearchResults([]);
-        setIsSearching(false);
+        setSearchResults({ key: searchKey, items: EMPTY_SEARCH_RESULTS });
       });
     }, 350);
     return () => clearTimeout(searchTimer.current);
-  }, [query, voiceAlternatives, userLat, userLng, estimateEtaMin, t]);
+  }, [uniqueQueries, searchKey, userLat, userLng, estimateEtaMin, t]);
+
+  // 검색어가 없으면 직전 결과·검색중 표시를 노출하지 않는다
+  const hasQuery = uniqueQueries.length > 0;
+  const visibleResults = (hasQuery && searchResults.key === searchKey) ? searchResults.items : EMPTY_SEARCH_RESULTS;
+  // 현재 검색어의 결과가 아직 도착하지 않았다면 '검색 중'
+  const showSearching = hasQuery && searchResults.key !== searchKey;
 
   // 표시용 자주 가는 목적지 — 실사용 누적(frequentDests)이 있으면 그것을, 없으면 큐레이션 폴백.
   // ETA는 항상 현재 출발지 기준으로 재계산하여 "출발지 중심" 정보로 보여준다.
@@ -529,7 +537,7 @@ const RideStartScreen = ({
                       border: selectedDest ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(255,255,255,0.1)',
                     }}
                   >
-                    {isSearching
+                    {showSearching
                       ? <Loader2 size={15} className="text-blue-400 animate-spin" />
                       : <MapPin size={15} className={selectedDest ? 'text-red-400' : 'text-gray-500'} />
                     }
@@ -587,7 +595,7 @@ const RideStartScreen = ({
 
                 {/* 검색 결과 드롭다운 */}
                 <AnimatePresence>
-                  {searchResults.length > 0 && (
+                  {visibleResults.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -596,7 +604,7 @@ const RideStartScreen = ({
                       className="rounded-2xl overflow-hidden border"
                       style={{ background: '#0f1117', borderColor: 'rgba(255,255,255,0.08)' }}
                     >
-                      {searchResults.map((result) => (
+                      {visibleResults.map((result) => (
                         <button
                           key={result.id}
                           onClick={() => handleSelectDest(result)}
@@ -681,14 +689,14 @@ const RideStartScreen = ({
               </AnimatePresence>
 
               {/* ── 음성 우선 안내 (idle 시) ──────────────────────── */}
-              {!selectedDest && !query && searchResults.length === 0 && (
+              {!selectedDest && !query && visibleResults.length === 0 && (
                 <p className="text-[10px] text-gray-500 text-center leading-relaxed -mt-1">
                   {t('rss_voice_hint')}
                 </p>
               )}
 
               {/* ── 자주 가는 곳 (출발지 기준 ETA · 실사용 누적) ──── */}
-              {!selectedDest && searchResults.length === 0 && (
+              {!selectedDest && visibleResults.length === 0 && (
                 <div>
                   <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">{t('rss_frequent')}</p>
                   <div className="grid grid-cols-2 gap-2">

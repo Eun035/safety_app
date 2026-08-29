@@ -28,6 +28,8 @@ const PersonalInsights = ({ isOpen, onClose, history = [], onOpenShadowImpact, u
 
         const DAY = 86400000;
         const ONE_WEEK = 7 * DAY;
+        // history 변경 시점의 '지금'을 기준으로 주간 집계 — 스냅샷이면 충분
+        // eslint-disable-next-line react-hooks/purity
         const now = Date.now();
 
         // 1. 이번 주 / 지난 주 거리 + 변화율

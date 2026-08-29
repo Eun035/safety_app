@@ -132,7 +132,7 @@ const badges = [
     { icon: '⚡', name: '스피드킹', color: 'from-purple-500/10 to-purple-900/10', border: 'border-purple-500/40', text: 'text-purple-400' },
 ];
 
-const UserProfileSheet = ({ isOpen, onClose, userName, userPoints = 12350, userScore = 92, profileImage, onAdminOpen, onEditProfile, onMissionReward, onDeleteAccount }) => {
+const UserProfileSheet = ({ isOpen, onClose, userName, userScore = 92, profileImage, onAdminOpen, onEditProfile, onMissionReward, onDeleteAccount }) => {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'missions'
 

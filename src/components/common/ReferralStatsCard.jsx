@@ -54,7 +54,7 @@ const ReferralStatsCard = ({ userId }) => {
         try {
             await navigator.clipboard.writeText(referralUrl);
             toast(t('rsc_copied'), 'success');
-        } catch (e) {
+        } catch {
             toast(t('rsc_copy_fail'), 'error');
         }
     };
@@ -66,7 +66,7 @@ const ReferralStatsCard = ({ userId }) => {
                 await navigator.share({ title: t('rsc_share_title'), text, url: referralUrl });
                 return;
             }
-        } catch (e) { /* 취소 등은 무시 */ }
+        } catch { /* 취소 등은 무시 */ }
         copyLink();
     };
 

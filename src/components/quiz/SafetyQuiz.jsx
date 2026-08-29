@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { HelpCircle, Check, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useVoiceGuidance } from '../../hooks/useVoiceGuidance';
 
 const SafetyQuiz = ({ onComplete }) => {
     const { t } = useTranslation();
-    const { speak, voicesLoaded } = useVoiceGuidance();
+    const { speak } = useVoiceGuidance();
 
     /** * [2026 최신 법규 반영 데이터 — 총 13문항, 매 시도마다 3개 랜덤 추출]
      *  1. 2인 탑승 허용 (X)        2. 인도 주행 원칙 (X)        3. 안전모 착용 의무 (O)
@@ -31,22 +31,16 @@ const SafetyQuiz = ({ onComplete }) => {
         { question: t("quiz_q14"), answer: true,  desc: t("quiz_desc14") }, // 무단 방치 위반 (O)
     ];
 
-    const [shuffledQuiz, setShuffledQuiz] = useState(() => {
+    const [shuffledQuiz] = useState(() => {
         // 컴포넌트 마운트 시 최초 즉시 3개 추출
         return [...quizDataArray].sort(() => 0.5 - Math.random()).slice(0, 3);
     });
     const [currentIdx, setCurrentIdx] = useState(0);
     const [selected, setSelected] = useState(null);
     const [isDone, setIsDone] = useState(false);
-    const [hasSpokenInit, setHasSpokenInit] = useState(false);
     const [isQuizStarted, setIsQuizStarted] = useState(false);
     const [correctCount, setCorrectCount] = useState(0);
 
-    useEffect(() => {
-        if (isQuizStarted && shuffledQuiz.length > 0 && voicesLoaded && !hasSpokenInit) {
-            setHasSpokenInit(true);
-        }
-    }, [isQuizStarted, shuffledQuiz, voicesLoaded, hasSpokenInit]);
 
     const nextQuiz = () => {
         if (currentIdx < shuffledQuiz.length - 1) {
@@ -130,7 +124,7 @@ const SafetyQuiz = ({ onComplete }) => {
                             try {
                                 const silence = new Audio("data:audio/mp3;base64,//MkxAAQAAAAgAFAAAhAAAMoAQAAAE/gAAAAAABzwAAAAABwAAhAAAMoAQAAAE/gAAAAAABzwAAAAAAA=");
                                 silence.play().catch(e => console.log('Audio init skipped', e));
-                            } catch (e) { }
+                            } catch { /* 음성 낭독 실패는 무시 */ }
                             speak(`${t("quiz_start")} ${t("next_question_is")} ${shuffledQuiz[0].question}`, 'QUIZ');
                             setIsQuizStarted(true);
                         }}

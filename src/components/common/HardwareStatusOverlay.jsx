@@ -3,13 +3,16 @@ import { Bluetooth, Lock, Unlock, CheckCircle2 } from 'lucide-react';
 
 const HardwareStatusOverlay = ({ isSyncing, isRiding }) => {
   const [progress, setProgress] = useState(0);
-  const [stepText, setStepText] = useState('');
+
+  // isSyncing이 꺼질 때 progress 초기화 — effect 대신 렌더 중 조정(React 권장 패턴)
+  const [prevSyncing, setPrevSyncing] = useState(isSyncing);
+  if (prevSyncing !== isSyncing) {
+    setPrevSyncing(isSyncing);
+    if (!isSyncing) setProgress(0);
+  }
 
   useEffect(() => {
-    if (!isSyncing) {
-      setProgress(0);
-      return;
-    }
+    if (!isSyncing) return;
 
     // 1.5초(1500ms) 동안 progress가 0에서 100까지 부드럽게 증가
     const duration = 1500;
@@ -30,17 +33,12 @@ const HardwareStatusOverlay = ({ isSyncing, isRiding }) => {
     return () => clearInterval(timer);
   }, [isSyncing]);
 
-  useEffect(() => {
-    if (progress < 25) {
-      setStepText(isRiding ? "Searching BLE Node..." : "Connecting Smart Station...");
-    } else if (progress < 60) {
-      setStepText("Handshaking Cryptographic Key...");
-    } else if (progress < 90) {
-      setStepText(isRiding ? "Applying Active Brake Lock..." : "Releasing Wheel Clamps...");
-    } else {
-      setStepText("Hardware Authorization Complete!");
-    }
-  }, [progress, isRiding]);
+  // progress에서 전적으로 파생되는 값 — 상태 대신 계산
+  const stepText =
+    progress < 25 ? (isRiding ? "Searching BLE Node..." : "Connecting Smart Station...")
+    : progress < 60 ? "Handshaking Cryptographic Key..."
+    : progress < 90 ? (isRiding ? "Applying Active Brake Lock..." : "Releasing Wheel Clamps...")
+    : "Hardware Authorization Complete!";
 
   if (!isSyncing) return null;
 

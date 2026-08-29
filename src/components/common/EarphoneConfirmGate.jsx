@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { HeadphoneOff, ShieldCheck, AlertTriangle } from 'lucide-react';
@@ -15,9 +15,12 @@ const EarphoneConfirmGate = ({ isOpen, onConfirm, onCancel }) => {
     const { t } = useTranslation();
     const [checked, setChecked] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) setChecked(false); // 매 열림마다 초기화
-    }, [isOpen]);
+    // 매 열림마다 초기화 — effect 대신 렌더 중 조정(React 권장 패턴)
+    const [prevOpen, setPrevOpen] = useState(isOpen);
+    if (prevOpen !== isOpen) {
+        setPrevOpen(isOpen);
+        if (isOpen) setChecked(false);
+    }
 
     return (
         <AnimatePresence>

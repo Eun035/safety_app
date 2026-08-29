@@ -1,5 +1,5 @@
 // src/components/common/ProfileEditModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Camera, Save } from 'lucide-react';
 import { useUserStore } from '../../hooks/useUserStore';
@@ -22,13 +22,18 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
     const [avatar, setAvatar] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
-    useEffect(() => {
+    // 열릴 때만 프로필로 폼 동기화 — effect 대신 렌더 중 조정(React 권장 패턴).
+    // 열려 있는 동안 profile이 갱신돼도 입력 중인 값을 덮어쓰지 않는다.
+    // 초기값 false: 첫 렌더부터 열려 있어도 동기화되도록(기존 effect 동작 보존)
+    const [prevOpen, setPrevOpen] = useState(false);
+    if (prevOpen !== isOpen) {
+        setPrevOpen(isOpen);
         if (isOpen && profile) {
             setNickname(profile.nickname || '');
             setAge(profile.age || '');
             setAvatar(profile.profile_image || '');
         }
-    }, [isOpen, profile]);
+    }
 
     if (!isOpen) return null;
 

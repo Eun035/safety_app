@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '../../locales/i18n';
 import { Globe, Check } from 'lucide-react';
 
 const LanguageSelectorScreen = ({ onComplete }) => {
-    const { i18n } = useTranslation();
     const [pendingLanguage, setPendingLanguage] = useState(null);
+    const [isSwitching, setIsSwitching] = useState(false);
 
     const languages = [
         { code: 'ko', label: '한국어', desc: 'Korean' },
@@ -13,10 +13,16 @@ const LanguageSelectorScreen = ({ onComplete }) => {
         { code: 'zh-CN', label: '中文', desc: 'Chinese' }
     ];
 
-    const handleConfirm = () => {
-        if (!pendingLanguage) return;
-        i18n.changeLanguage(pendingLanguage);
-        onComplete();
+    // 번역 사전을 먼저 받아온 뒤 전환한다 — 안 그러면 전환 직후 한국어가 잠깐 비친다
+    const handleConfirm = async () => {
+        if (!pendingLanguage || isSwitching) return;
+        setIsSwitching(true);
+        try {
+            await changeLanguage(pendingLanguage);
+        } finally {
+            setIsSwitching(false);
+            onComplete();
+        }
     };
 
     return (
@@ -66,7 +72,7 @@ const LanguageSelectorScreen = ({ onComplete }) => {
                 <div className="w-full mt-4 sm:mt-6">
                     <button
                         onClick={handleConfirm}
-                        disabled={!pendingLanguage}
+                        disabled={!pendingLanguage || isSwitching}
                         className={`w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base transition-all active:scale-95 ${
                             pendingLanguage
                                 ? 'bg-cyber-cyan text-black shadow-neon-cyan'
