@@ -5,6 +5,8 @@
 //   - 소요시간: 1~30분
 //   - 경로: 사인파 곡선 + 구간별 속도 변화(스피드 히트 색이 보이도록)
 
+import { co2AvoidedKg } from '../config/emissions';
+
 const CENTER = { lat: 36.8151, lng: 127.1139 }; // 천안 대략 중심
 
 const rand = (min, max) => min + Math.random() * (max - min);
@@ -61,7 +63,7 @@ export function generateMockRide() {
 
     const avgSpeed = +(distanceKm / (durationMin / 60)).toFixed(1);
     const topSpeed = Math.min(30, avgSpeed * rand(1.15, 1.45)).toFixed(1); // PM 상한 ~30km/h
-    const co2Saved = (distanceKm * 0.13).toFixed(1);
+    const co2Saved = co2AvoidedKg(distanceKm).toFixed(1);
 
     return {
         id: `mock-${startTs}`,

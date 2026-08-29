@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
 import helmetStations from '../data/helmet_stations.json';
 import { calculateDistance } from '../utils/distance';
+import { co2AvoidedKg } from '../config/emissions';
 import { useUserStore } from './useUserStore';
 import { enqueue } from '../lib/pendingSyncQueue';
 import { generateMockRide } from '../utils/generateMockRide';
@@ -294,7 +295,7 @@ export const useRideSession = create((set, get) => ({
             time: durationMinutes,
             topSpeed: state.topSpeed.toFixed(1),
             suddenBrakeCount: state.suddenBrakeCount,
-            co2Saved: (state.totalDistance * 0.2).toFixed(1),
+            co2Saved: co2AvoidedKg(state.totalDistance).toFixed(1),
             zoneEvents: finalZoneEvents,
             rideRsr: rideRsr !== null ? Math.round(rideRsr) : null,
             // SNS 공유 카드용 실제 주행 데이터 (ts 포함 → 구간 속도 계산·스피드 히트 루트)
@@ -320,7 +321,7 @@ export const useRideSession = create((set, get) => ({
                     duration_minutes: durationMinutes,
                     ride_rsr: rideRsr !== null ? Math.round(rideRsr * 100) / 100 : null,
                     helmet_on_pct: helmetOnPct,
-                    co2_saved_kg: Number((state.totalDistance * 0.2).toFixed(2)),
+                    co2_saved_kg: Number(co2AvoidedKg(state.totalDistance).toFixed(2)),
                     is_legal_park: isLegalPark,
                     to_loc_text: destinationText,
                     helmet_pickup_station_id: helmetPickupStationId
