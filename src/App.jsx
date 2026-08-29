@@ -63,6 +63,7 @@ import { useWakeLock } from './hooks/useWakeLock';
 
 import pmParkingData from './data/pm_parking_data.json';
 import { calculateDistance } from './utils/distance';
+import { co2AvoidedKg } from './config/emissions';
 import { useUserStore } from './hooks/useUserStore';
 import { useGeolocation } from './hooks/useGeolocation';
 import { useRegion } from './hooks/useRegion';
@@ -324,7 +325,7 @@ function App() {
 
   const currentMetrics = {
     mileage: totalDistance.toFixed(2),
-    savedCarbon: (totalDistance * 0.2).toFixed(1),
+    savedCarbon: co2AvoidedKg(totalDistance).toFixed(1),
     speed: location?.speed || 0,
     stability
   };
@@ -1340,7 +1341,7 @@ function App() {
             rideHistory={rideHistory}
             getLocalNearMisses={getLocalNearMisses}
             metrics={{
-              carbonSaved: (profile?.total_distance * 0.2) || 0,
+              carbonSaved: co2AvoidedKg(profile?.total_distance),
               safetyScore: profile?.safety_score || 0,
               hazardReports: historyMetrics.hazardReports || 0,
               safetyStreak: historyMetrics.safetyStreak || 1

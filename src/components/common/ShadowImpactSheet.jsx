@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Share2, Map as MapIcon, Zap, Shield, Cloud, TrendingUp, ChevronRight, AlertTriangle, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { co2AvoidedKg } from '../../config/emissions';
 
 /**
  * ShadowImpactSheet
@@ -83,7 +84,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
         const avgSpeed = recentRides.length > 0
             ? (recentRides.reduce((s, r) => s + (parseFloat(r.top_speed || r.topSpeed) || 0), 0) / recentRides.length)
             : 0;
-        const co2 = totalDist * 0.2;
+        const co2 = co2AvoidedKg(totalDist);
         return {
             rideCount: recentRides.length,
             totalDist: totalDist.toFixed(1),
@@ -570,7 +571,7 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
                                                     </p>
                                                     <p className="text-[8px] text-gray-600">
                                                         {t('si_ride_top', { s: ride.top_speed || ride.topSpeed || 0 })}
-                                                        {' · '}{t('si_ride_co2', { kg: ((parseFloat(ride.distance || 0)) * 0.2).toFixed(1) })}
+                                                        {' · '}{t('si_ride_co2', { kg: co2AvoidedKg(ride.distance).toFixed(1) })}
                                                     </p>
                                                 </div>
                                                 <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
