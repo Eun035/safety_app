@@ -19,9 +19,12 @@ if ('serviceWorker' in navigator) {
 }
 
 // 감지된 언어의 번역 사전을 확보한 뒤 렌더한다.
-// ko는 정적으로 들어 있어 사실상 즉시 resolve되고, 실패해도 ko로 fallback되므로
-// 어떤 경우에도 앱이 그려지지 않는 일은 없다.
+// i18nReady는 타임아웃과 경주하므로 통신이 멈춰도 반드시 끝난다(locales/i18n.js 참고).
+// 사전이 늦게 도착하면 한국어로 먼저 그려진 뒤 자동으로 해당 언어로 전환된다.
+let rendered = false
 const renderApp = () => {
+  if (rendered) return   // 이중 호출 방어 — 루트를 두 번 만들면 화면이 깨진다
+  rendered = true
   createRoot(document.getElementById('root')).render(
     <StrictMode>
       <ErrorBoundary>
@@ -32,3 +35,6 @@ const renderApp = () => {
 }
 
 i18nReady.then(renderApp).catch(renderApp)
+
+// 최후의 안전장치: 위 경로가 어떤 이유로든 실패해도 앱은 떠야 한다.
+setTimeout(renderApp, 5000)

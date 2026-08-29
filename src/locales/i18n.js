@@ -67,13 +67,28 @@ i18n
         }
     });
 
+// 첫 렌더를 붙잡아 둘 수 있는 최대 시간. 이 안에 사전이 오면 해당 언어로
+// 바로 그려지고, 늦으면 일단 한국어로 그린 뒤 도착하는 대로 전환된다.
+const BOOT_LANGUAGE_TIMEOUT_MS = 2500;
+
 // 감지된 언어의 사전을 첫 렌더 전에 확보한다.
 // main.jsx가 이 Promise를 기다린 뒤 앱을 그린다 → 한국어가 깜빡이지 않는다.
 //
 // changeLanguage는 항상 호출한다. init 시점엔 해당 언어의 사전이 아직 없어
 // i18next가 languages를 ['ko']로 굳혀버리므로, 사전을 추가한 뒤 다시
 // 해석시켜야 실제로 그 언어가 적용된다.
-export const i18nReady = ensureLanguage(i18n.language)
-    .then(code => i18n.changeLanguage(code));
+const applyDetectedLanguage = ensureLanguage(i18n.language)
+    .then(code => i18n.changeLanguage(code))
+    .catch(e => console.warn('[C-Safe] 초기 언어 적용 실패 — 한국어로 진행:', e));
+
+// ⚠️ 이 Promise는 반드시 끝나야 한다. import()는 타임아웃이 없어서
+// 통신이 멈추면 resolve도 reject도 되지 않는다(= catch로도 못 잡는다).
+// 그대로 두면 첫 렌더가 영영 오지 않아 화면이 백지로 남는다.
+// 그래서 타임아웃과 경주시킨다. 늦게 도착한 사전은 위 체인이 그대로 살아 있어
+// changeLanguage를 호출하고, react-i18next가 알아서 다시 그린다.
+export const i18nReady = Promise.race([
+    applyDetectedLanguage,
+    new Promise(resolve => setTimeout(resolve, BOOT_LANGUAGE_TIMEOUT_MS)),
+]);
 
 export default i18n;
