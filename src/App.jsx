@@ -9,6 +9,7 @@ import {
 
 
 import ErrorBoundary from './components/common/ErrorBoundary';
+import LazyMount from './components/common/LazyMount';
 import MapContainer from './components/map/MapContainer';
 import SafetyQuiz from './components/quiz/SafetyQuiz';
 import MapSearchBar from './components/map/MapSearchBar';
@@ -19,40 +20,42 @@ import LanguageSelectorScreen from './components/common/LanguageSelectorScreen';
 import DisclaimerModal from './components/common/DisclaimerModal';
 import EmergencyModal from './components/common/EmergencyModal';
 import ParkingVerification from './components/common/ParkingVerification';
-import PersonalInsights from './components/common/PersonalInsights';
-import RideSettings from './components/common/RideSettings';
-import RideSummaryModal from './components/common/RideSummaryModal';
-import FavoriteStations from './components/common/FavoriteStations';
-import PaymentReceiptModal from './components/common/PaymentReceiptModal';
 import HelmetDetectionCamera from './components/common/HelmetDetectionCamera';
 import EarphoneConfirmGate from './components/common/EarphoneConfirmGate';
 import ReferralWelcomeModal from './components/common/ReferralWelcomeModal';
-import ShadowImpactSheet from './components/common/ShadowImpactSheet';
-import UserProfileSheet from './components/common/UserProfileSheet';
-import HelmetStationSelector from './components/common/HelmetStationSelector';
-import HelmetReturnSheet from './components/common/HelmetReturnSheet';
-import RewardWalletSheet from './components/common/RewardWalletSheet';
 // 5순위: AdminDashboard 레이지 로딩 — 초기 번들 ~39KB 절감
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
 // html5-qrcode(수백 KB)를 초기 번들에서 제외 — 스캐너를 열 때만 내려받는다.
 const QRScanner = React.lazy(() => import('./components/common/QRScanner'));
+// 열어야 보이는 무거운 시트들 — 첫 오픈 때 내려받는다 (LazyMount 참고)
+const RideSummaryModal = React.lazy(() => import('./components/common/RideSummaryModal'));
+const ShadowImpactSheet = React.lazy(() => import('./components/common/ShadowImpactSheet'));
+const NavigationLaunchSheet = React.lazy(() => import('./components/common/NavigationLaunchSheet'));
+const DropAndGoModal = React.lazy(() => import('./components/common/DropAndGoModal'));
+const PersonalInsights = React.lazy(() => import('./components/common/PersonalInsights'));
+const UserProfileSheet = React.lazy(() => import('./components/common/UserProfileSheet'));
+const ProfileEditModal = React.lazy(() => import('./components/common/ProfileEditModal'));
+const AccountDeletionModal = React.lazy(() => import('./components/common/AccountDeletionModal'));
+const RewardWalletSheet = React.lazy(() => import('./components/common/RewardWalletSheet'));
+const PaymentReceiptModal = React.lazy(() => import('./components/common/PaymentReceiptModal'));
+const StationRewardModal = React.lazy(() => import('./components/common/StationRewardModal'));
+const AISafetyCoach = React.lazy(() => import('./components/common/AISafetyCoach'));
+const SafeCorridorSheet = React.lazy(() => import('./components/common/SafeCorridorSheet'));
+const FavoriteStations = React.lazy(() => import('./components/common/FavoriteStations'));
+const HelmetStationSelector = React.lazy(() => import('./components/common/HelmetStationSelector'));
+const HelmetReturnSheet = React.lazy(() => import('./components/common/HelmetReturnSheet'));
+const DigitalTwinIndicator = React.lazy(() => import('./components/common/DigitalTwinIndicator'));
+const RideSettings = React.lazy(() => import('./components/common/RideSettings'));
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
 import { useSafetyGrid } from './hooks/useSafetyGrid';
-import StationRewardModal from './components/common/StationRewardModal';
-import DropAndGoModal from './components/common/DropAndGoModal';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useHazardWarning } from './hooks/useHazardWarning';
 import HazardAlertOverlay from './components/common/HazardAlertOverlay';
 import HardwareStatusOverlay from './components/common/HardwareStatusOverlay';
-import ProfileEditModal from './components/common/ProfileEditModal';
-import AccountDeletionModal from './components/common/AccountDeletionModal';
-import AISafetyCoach from './components/common/AISafetyCoach';
 import { useNearMissEngine } from './hooks/useNearMissEngine';
 import { useBeginnerMissions } from './hooks/useBeginnerMissions';
-import SafeCorridorSheet from './components/common/SafeCorridorSheet';
-import NavigationLaunchSheet from './components/common/NavigationLaunchSheet';
 import RideStartScreen from './components/common/RideStartScreen';
 import { useAutoCheckout } from './hooks/useAutoCheckout';
 import { useWakeLock } from './hooks/useWakeLock';
@@ -67,7 +70,6 @@ import { useHaptic } from './hooks/useHaptic';
 import { useRiderBehavior } from './hooks/useRiderBehavior';
 import { captureReferralFromUrl, readPendingReferral, clearPendingReferral, buildReferralCode } from './utils/referral';
 import { calculateStopDistance } from './utils/physics';
-import DigitalTwinIndicator from './components/common/DigitalTwinIndicator';
 import ToastContainer from './components/common/ToastContainer';
 import { supabase } from './lib/supabaseClient';
 import { flush as flushPendingSync } from './lib/pendingSyncQueue';
@@ -1306,72 +1308,86 @@ function App() {
         />
 
         {/* Modals */}
-        <DropAndGoModal
-          isOpen={isDropAndGoOpen}
-          onClose={() => setIsDropAndGoOpen(false)}
-          station={selectedDropStation}
-          onScanStart={() => {
-            setIsDropAndGoOpen(false);
-            setIsParkingOpen(true);
-          }}
-        />
+        <LazyMount when={isDropAndGoOpen}>
+          <DropAndGoModal
+            isOpen={isDropAndGoOpen}
+            onClose={() => setIsDropAndGoOpen(false)}
+            station={selectedDropStation}
+            onScanStart={() => {
+              setIsDropAndGoOpen(false);
+              setIsParkingOpen(true);
+            }}
+          />
+        </LazyMount>
         <EmergencyModal isOpen={isSOSOpen} onClose={() => setIsSOSOpen(false)} />
         <ParkingVerification isOpen={isParkingOpen} onClose={() => setIsParkingOpen(false)} speak={speak} onComplete={handleParkingComplete} />
-        <PersonalInsights
-          isOpen={isDashboardOpen}
-          onClose={() => setIsDashboardOpen(false)}
-          history={rideHistory}
-          onOpenShadowImpact={() => setIsShadowSheetOpen(true)}
-          userId={user?.id}
-        />
-        <ShadowImpactSheet
-          isOpen={isShadowSheetOpen}
-          onClose={() => setIsShadowSheetOpen(false)}
-          userName={profile?.nickname || '라이더'}
-          rideHistory={rideHistory}
-          getLocalNearMisses={getLocalNearMisses}
-          metrics={{
-            carbonSaved: (profile?.total_distance * 0.2) || 0,
-            safetyScore: profile?.safety_score || 0,
-            hazardReports: historyMetrics.hazardReports || 0,
-            safetyStreak: historyMetrics.safetyStreak || 1
-          }}
-        />
-        <UserProfileSheet
-          isOpen={isProfileSheetOpen}
-          onClose={() => setIsProfileSheetOpen(false)}
-          userName={profile?.nickname || '라이더'}
-          userPoints={profile?.points || 0}
-          userScore={profile?.safety_score || 0}
-          profileImage={profile?.profile_image}
-          onAdminOpen={() => {
-            setIsProfileSheetOpen(false);
-            setIsAdminDashboardOpen(true);
-          }}
-          onEditProfile={() => setIsProfileEditOpen(true)}
-          onMissionReward={(missionId, points) => {
-            toast(t('app_mission_done', { p: points.toLocaleString() }), 'success');
-          }}
-          onDeleteAccount={() => {
-            setIsProfileSheetOpen(false);
-            setIsAccountDeletionOpen(true);
-          }}
-        />
-        <ProfileEditModal
-          isOpen={isProfileEditOpen}
-          onClose={() => setIsProfileEditOpen(false)}
-        />
-        <AccountDeletionModal
-          isOpen={isAccountDeletionOpen}
-          onClose={() => setIsAccountDeletionOpen(false)}
-        />
-        <RewardWalletSheet
-          isOpen={isWalletSheetOpen}
-          onClose={() => setIsWalletSheetOpen(false)}
-          userPoints={profile?.points || 0}
-          coupons={coupons}
-          setCoupons={setCoupons}
-        />
+        <LazyMount when={isDashboardOpen}>
+          <PersonalInsights
+            isOpen={isDashboardOpen}
+            onClose={() => setIsDashboardOpen(false)}
+            history={rideHistory}
+            onOpenShadowImpact={() => setIsShadowSheetOpen(true)}
+            userId={user?.id}
+          />
+        </LazyMount>
+        <LazyMount when={isShadowSheetOpen}>
+          <ShadowImpactSheet
+            isOpen={isShadowSheetOpen}
+            onClose={() => setIsShadowSheetOpen(false)}
+            userName={profile?.nickname || '라이더'}
+            rideHistory={rideHistory}
+            getLocalNearMisses={getLocalNearMisses}
+            metrics={{
+              carbonSaved: (profile?.total_distance * 0.2) || 0,
+              safetyScore: profile?.safety_score || 0,
+              hazardReports: historyMetrics.hazardReports || 0,
+              safetyStreak: historyMetrics.safetyStreak || 1
+            }}
+          />
+        </LazyMount>
+        <LazyMount when={isProfileSheetOpen}>
+          <UserProfileSheet
+            isOpen={isProfileSheetOpen}
+            onClose={() => setIsProfileSheetOpen(false)}
+            userName={profile?.nickname || '라이더'}
+            userPoints={profile?.points || 0}
+            userScore={profile?.safety_score || 0}
+            profileImage={profile?.profile_image}
+            onAdminOpen={() => {
+              setIsProfileSheetOpen(false);
+              setIsAdminDashboardOpen(true);
+            }}
+            onEditProfile={() => setIsProfileEditOpen(true)}
+            onMissionReward={(missionId, points) => {
+              toast(t('app_mission_done', { p: points.toLocaleString() }), 'success');
+            }}
+            onDeleteAccount={() => {
+              setIsProfileSheetOpen(false);
+              setIsAccountDeletionOpen(true);
+            }}
+          />
+        </LazyMount>
+        <LazyMount when={isProfileEditOpen}>
+          <ProfileEditModal
+            isOpen={isProfileEditOpen}
+            onClose={() => setIsProfileEditOpen(false)}
+          />
+        </LazyMount>
+        <LazyMount when={isAccountDeletionOpen}>
+          <AccountDeletionModal
+            isOpen={isAccountDeletionOpen}
+            onClose={() => setIsAccountDeletionOpen(false)}
+          />
+        </LazyMount>
+        <LazyMount when={isWalletSheetOpen}>
+          <RewardWalletSheet
+            isOpen={isWalletSheetOpen}
+            onClose={() => setIsWalletSheetOpen(false)}
+            userPoints={profile?.points || 0}
+            coupons={coupons}
+            setCoupons={setCoupons}
+          />
+        </LazyMount>
         {/* 열릴 때만 마운트해야 lazy 청크가 그 시점에 내려받아진다 */}
         {isQRScannerOpen && (
           <Suspense fallback={null}>
@@ -1383,189 +1399,207 @@ function App() {
             />
           </Suspense>
         )}
-        <PaymentReceiptModal
-          isOpen={isPaymentReceiptOpen}
-          // '나중에 결제'/닫기로 결제를 건너뛰어도 뒤 체인(스테이션 보상→라이드 서머리)은
-          // 계속 진행되도록 결제 완료와 동일하게 처리한다. (여기서 멈추면 서머리가 안 뜸)
-          onClose={handlePaymentComplete}
-          metrics={finalRideSummary}
-          pointsUsed={100} // 예시: 보상받은 100P 즉시 사용 할인
-          onPaymentComplete={handlePaymentComplete}
-        />
+        <LazyMount when={isPaymentReceiptOpen}>
+          <PaymentReceiptModal
+            isOpen={isPaymentReceiptOpen}
+            // '나중에 결제'/닫기로 결제를 건너뛰어도 뒤 체인(스테이션 보상→라이드 서머리)은
+            // 계속 진행되도록 결제 완료와 동일하게 처리한다. (여기서 멈추면 서머리가 안 뜸)
+            onClose={handlePaymentComplete}
+            metrics={finalRideSummary}
+            pointsUsed={100} // 예시: 보상받은 100P 즉시 사용 할인
+            onPaymentComplete={handlePaymentComplete}
+          />
+        </LazyMount>
 
-        <StationRewardModal
-          isOpen={isStationRewardOpen}
-          onClose={() => setIsStationRewardOpen(false)}
-          onNext={() => {
-            setIsStationRewardOpen(false);
-            // 사용자가 RideSettings에서 Ride Summary를 꺼두면 마지막 모달 스킵
-            if (rideConfig.showRideSummary === false) {
-              console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary skipped (user opt-out)');
-              helmetOnRef.current = false; // 다음 주행 위해 초기화
-              toast(t('app_arrived'), 'success');
-            } else {
-              console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary open');
-              setIsRideSummaryOpen(true);
-            }
-          }}
-          points={100}
-        />
+        <LazyMount when={isStationRewardOpen}>
+          <StationRewardModal
+            isOpen={isStationRewardOpen}
+            onClose={() => setIsStationRewardOpen(false)}
+            onNext={() => {
+              setIsStationRewardOpen(false);
+              // 사용자가 RideSettings에서 Ride Summary를 꺼두면 마지막 모달 스킵
+              if (rideConfig.showRideSummary === false) {
+                console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary skipped (user opt-out)');
+                helmetOnRef.current = false; // 다음 주행 위해 초기화
+                toast(t('app_arrived'), 'success');
+              } else {
+                console.warn('[C-Safe][chain] step4 → StationReward close, RideSummary open');
+                setIsRideSummaryOpen(true);
+              }
+            }}
+            points={100}
+          />
+        </LazyMount>
 
-        <RideSummaryModal
-          isOpen={isRideSummaryOpen}
-          onClose={() => {
-            setIsRideSummaryOpen(false);
-            // 주행 요약 닫힌 후 AI 코치 카드 표시
-            if (finalRideSummary) {
-              setCoachingData({
-                distance: finalRideSummary.distance,
-                time: finalRideSummary.time,
-                topSpeed: finalRideSummary.topSpeed,
-                suddenBrakeCount: finalRideSummary.suddenBrakeCount || suddenBrakeCount,
-                co2Saved: finalRideSummary.co2Saved,
-                history: rideHistory,
-                helmetOn: helmetOnRef.current
-              });
-              setIsAICoachOpen(true);
-            }
-            // 다음 주행을 위해 헬멧 상태 초기화
-            helmetOnRef.current = false;
-          }}
-          metrics={finalRideSummary}
-          vibeName="Safety Route"
-          suddenBrakeCount={finalRideSummary?.suddenBrakeCount || suddenBrakeCount}
-          userId={user?.id}
-          helmetOn={helmetOnRef.current}
-        />
+        <LazyMount when={isRideSummaryOpen}>
+          <RideSummaryModal
+            isOpen={isRideSummaryOpen}
+            onClose={() => {
+              setIsRideSummaryOpen(false);
+              // 주행 요약 닫힌 후 AI 코치 카드 표시
+              if (finalRideSummary) {
+                setCoachingData({
+                  distance: finalRideSummary.distance,
+                  time: finalRideSummary.time,
+                  topSpeed: finalRideSummary.topSpeed,
+                  suddenBrakeCount: finalRideSummary.suddenBrakeCount || suddenBrakeCount,
+                  co2Saved: finalRideSummary.co2Saved,
+                  history: rideHistory,
+                  helmetOn: helmetOnRef.current
+                });
+                setIsAICoachOpen(true);
+              }
+              // 다음 주행을 위해 헬멧 상태 초기화
+              helmetOnRef.current = false;
+            }}
+            metrics={finalRideSummary}
+            vibeName="Safety Route"
+            suddenBrakeCount={finalRideSummary?.suddenBrakeCount || suddenBrakeCount}
+            userId={user?.id}
+            helmetOn={helmetOnRef.current}
+          />
+        </LazyMount>
 
         {/* 🧠 AI Safety Coach — 주행 후 개인화 피드백 */}
-        <AISafetyCoach
-          isOpen={isAICoachOpen}
-          onClose={() => setIsAICoachOpen(false)}
-          data={coachingData}
-        />
+        <LazyMount when={isAICoachOpen}>
+          <AISafetyCoach
+            isOpen={isAICoachOpen}
+            onClose={() => setIsAICoachOpen(false)}
+            data={coachingData}
+          />
+        </LazyMount>
 
         {/* 🗺️ Safe Corridor — 경로 안전 분석 시트 (도구 패널에서 진입) */}
-        <SafeCorridorSheet
-          isOpen={isSafeCorridorOpen}
-          onClose={() => setIsSafeCorridorOpen(false)}
-          routeOrigin={routeOrigin}
-          routeDestination={routeDestination}
-          locations={locations}
-          stressZones={STRESS_ZONES}
-          onNavigate={() => {
-            // 외부 앱 연동 선택 시에도 주행 설정은 건너뜀
-            setIsSafeCorridorOpen(false);
-            setIsNavLaunchOpen(true);
-          }}
-        />
+        <LazyMount when={isSafeCorridorOpen}>
+          <SafeCorridorSheet
+            isOpen={isSafeCorridorOpen}
+            onClose={() => setIsSafeCorridorOpen(false)}
+            routeOrigin={routeOrigin}
+            routeDestination={routeDestination}
+            locations={locations}
+            stressZones={STRESS_ZONES}
+            onNavigate={() => {
+              // 외부 앱 연동 선택 시에도 주행 설정은 건너뜀
+              setIsSafeCorridorOpen(false);
+              setIsNavLaunchOpen(true);
+            }}
+          />
+        </LazyMount>
 
         {/* 📱 Navigation Launch — 외부 앱 연동 (동의 → 앱선택 → 안전안내) */}
-        <NavigationLaunchSheet
-          isOpen={isNavLaunchOpen}
-          onClose={() => setIsNavLaunchOpen(false)}
-          routeOrigin={routeOrigin}
-          routeDestination={routeDestination}
-          onLaunch={() => {
-            speak(t('app_voice_nav_focus'));
-          }}
-        />
+        <LazyMount when={isNavLaunchOpen}>
+          <NavigationLaunchSheet
+            isOpen={isNavLaunchOpen}
+            onClose={() => setIsNavLaunchOpen(false)}
+            routeOrigin={routeOrigin}
+            routeDestination={routeDestination}
+            onLaunch={() => {
+              speak(t('app_voice_nav_focus'));
+            }}
+          />
+        </LazyMount>
 
 
 
 
-        <FavoriteStations
-          isOpen={isFavoritesOpen}
-          onClose={() => setIsFavoritesOpen(false)}
-          onSelect={(loc) => {
-            setPanToLocation({ ...loc, timestamp: Date.now() });
-            setIsFavoritesOpen(false);
-          }}
-          userLocation={{ lat: 36.833, lng: 127.179 }} // Mock user location
-        />
+        <LazyMount when={isFavoritesOpen}>
+          <FavoriteStations
+            isOpen={isFavoritesOpen}
+            onClose={() => setIsFavoritesOpen(false)}
+            onSelect={(loc) => {
+              setPanToLocation({ ...loc, timestamp: Date.now() });
+              setIsFavoritesOpen(false);
+            }}
+            userLocation={{ lat: 36.833, lng: 127.179 }} // Mock user location
+          />
+        </LazyMount>
 
         {/* 🪖 목적지 근처 헬멧 거점 선택 시트 — route_ready 시 자동 노출, 선택/스킵 후 헬멧 인증으로 진입 */}
-        <HelmetStationSelector
-          isOpen={isHelmetStationOpen}
-          destinationLat={routeDestination?.lat}
-          destinationLng={routeDestination?.lng}
-          onClose={() => {
-            // backdrop/X 닫기 = 선택안함 처리 (헬멧 인증으로 계속 진행)
-            setIsHelmetStationOpen(false);
-            setIsHelmetAIOpen(true);
-          }}
-          onSelect={(station) => {
-            setSelectedHelmetStation(station);
-            toast(t('app_helmet_station_selected', { name: station.name }), 'success');
-            setIsHelmetStationOpen(false);
-            setIsHelmetAIOpen(true);
-          }}
-          onSkip={() => {
-            setSelectedHelmetStation(null);
-            setIsHelmetStationOpen(false);
-            setIsHelmetAIOpen(true);
-          }}
-        />
+        <LazyMount when={isHelmetStationOpen}>
+          <HelmetStationSelector
+            isOpen={isHelmetStationOpen}
+            destinationLat={routeDestination?.lat}
+            destinationLng={routeDestination?.lng}
+            onClose={() => {
+              // backdrop/X 닫기 = 선택안함 처리 (헬멧 인증으로 계속 진행)
+              setIsHelmetStationOpen(false);
+              setIsHelmetAIOpen(true);
+            }}
+            onSelect={(station) => {
+              setSelectedHelmetStation(station);
+              toast(t('app_helmet_station_selected', { name: station.name }), 'success');
+              setIsHelmetStationOpen(false);
+              setIsHelmetAIOpen(true);
+            }}
+            onSkip={() => {
+              setSelectedHelmetStation(null);
+              setIsHelmetStationOpen(false);
+              setIsHelmetAIOpen(true);
+            }}
+          />
+        </LazyMount>
 
         {/* 🪖 헬멧 반납 인증 시트 — 합법 주차 종료 직후, 결제 영수증 진입 직전 */}
-        <HelmetReturnSheet
-          isOpen={isHelmetReturnOpen}
-          selectedStation={selectedHelmetStation}
-          endLat={location?.lat ?? userLat}
-          endLng={location?.lng ?? userLng}
-          rewardPoints={100}
-          onConfirm={(station) => {
-            const HELMET_RETURN_REWARD = 100;
-            // 💰 Supabase profiles.points 서버 영속화 (시작 인증 +100P와 동일 패턴)
-            if (user?.id && !String(user.id).startsWith('guest_')) {
-              supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
-                .then(({ data }) => {
-                  const currentPoints = data?.points || 0;
-                  return supabase.from('profiles')
-                    .upsert({ id: user.id, points: currentPoints + HELMET_RETURN_REWARD })
-                    .then(() => loadUser());
-                })
-                .catch(err => console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', err?.message || err));
+        <LazyMount when={isHelmetReturnOpen}>
+          <HelmetReturnSheet
+            isOpen={isHelmetReturnOpen}
+            selectedStation={selectedHelmetStation}
+            endLat={location?.lat ?? userLat}
+            endLng={location?.lng ?? userLng}
+            rewardPoints={100}
+            onConfirm={(station) => {
+              const HELMET_RETURN_REWARD = 100;
+              // 💰 Supabase profiles.points 서버 영속화 (시작 인증 +100P와 동일 패턴)
+              if (user?.id && !String(user.id).startsWith('guest_')) {
+                supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
+                  .then(({ data }) => {
+                    const currentPoints = data?.points || 0;
+                    return supabase.from('profiles')
+                      .upsert({ id: user.id, points: currentPoints + HELMET_RETURN_REWARD })
+                      .then(() => loadUser());
+                  })
+                  .catch(err => console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', err?.message || err));
 
-              // 🪖 rides.helmet_return_station_id 기록 (이번 주행 row 보강)
-              if (finalRideSummary?.db_ride_id) {
-                supabase.from('rides')
-                  .update({ helmet_return_station_id: station.id })
-                  .eq('id', finalRideSummary.db_ride_id)
-                  .then(({ error }) => {
-                    if (error) console.warn('[C-Safe] helmet_return_station_id UPDATE 실패:', error?.message || error);
-                  });
+                // 🪖 rides.helmet_return_station_id 기록 (이번 주행 row 보강)
+                if (finalRideSummary?.db_ride_id) {
+                  supabase.from('rides')
+                    .update({ helmet_return_station_id: station.id })
+                    .eq('id', finalRideSummary.db_ride_id)
+                    .then(({ error }) => {
+                      if (error) console.warn('[C-Safe] helmet_return_station_id UPDATE 실패:', error?.message || error);
+                    });
+                }
               }
-            }
-            // 로컬 쿠폰에도 흔적 (시작 인증 패턴과 동일)
-            setCoupons(prev => [{
-              id: Date.now(),
-              shopName: `헬멧 반납 인증 (${station.name})`,
-              amount: `+${HELMET_RETURN_REWARD}P`,
-              issuedAt: new Date().toLocaleDateString(),
-              type: '안전 보상',
-              status: 'active'
-            }, ...prev]);
-            toast(t('app_helmet_returned', { name: station.name, p: HELMET_RETURN_REWARD }), 'success');
-            console.warn('[C-Safe][chain] step2a → HelmetReturn confirm, PaymentReceipt open. finalRideSummary:', finalRideSummary);
-            setIsHelmetReturnOpen(false);
-            setSelectedHelmetStation(null);
-            setIsPaymentReceiptOpen(true);
-          }}
-          onSkip={() => {
-            console.warn('[C-Safe][chain] step2b → HelmetReturn skip, PaymentReceipt open. finalRideSummary:', finalRideSummary);
-            setIsHelmetReturnOpen(false);
-            setSelectedHelmetStation(null);
-            setIsPaymentReceiptOpen(true);
-          }}
-          onClose={() => {
-            // backdrop/X 클릭 = 건너뛰기와 동일 처리 (결제 흐름은 계속 진행)
-            console.warn('[C-Safe][chain] step2c → HelmetReturn close, PaymentReceipt open. finalRideSummary:', finalRideSummary);
-            setIsHelmetReturnOpen(false);
-            setSelectedHelmetStation(null);
-            setIsPaymentReceiptOpen(true);
-          }}
-        />
+              // 로컬 쿠폰에도 흔적 (시작 인증 패턴과 동일)
+              setCoupons(prev => [{
+                id: Date.now(),
+                shopName: `헬멧 반납 인증 (${station.name})`,
+                amount: `+${HELMET_RETURN_REWARD}P`,
+                issuedAt: new Date().toLocaleDateString(),
+                type: '안전 보상',
+                status: 'active'
+              }, ...prev]);
+              toast(t('app_helmet_returned', { name: station.name, p: HELMET_RETURN_REWARD }), 'success');
+              console.warn('[C-Safe][chain] step2a → HelmetReturn confirm, PaymentReceipt open. finalRideSummary:', finalRideSummary);
+              setIsHelmetReturnOpen(false);
+              setSelectedHelmetStation(null);
+              setIsPaymentReceiptOpen(true);
+            }}
+            onSkip={() => {
+              console.warn('[C-Safe][chain] step2b → HelmetReturn skip, PaymentReceipt open. finalRideSummary:', finalRideSummary);
+              setIsHelmetReturnOpen(false);
+              setSelectedHelmetStation(null);
+              setIsPaymentReceiptOpen(true);
+            }}
+            onClose={() => {
+              // backdrop/X 클릭 = 건너뛰기와 동일 처리 (결제 흐름은 계속 진행)
+              console.warn('[C-Safe][chain] step2c → HelmetReturn close, PaymentReceipt open. finalRideSummary:', finalRideSummary);
+              setIsHelmetReturnOpen(false);
+              setSelectedHelmetStation(null);
+              setIsPaymentReceiptOpen(true);
+            }}
+          />
+        </LazyMount>
 
         <HelmetDetectionCamera
           isOpen={isHelmetAIOpen}
@@ -1648,21 +1682,25 @@ function App() {
         />
 
         {/* Digital Twin Indicator Modal */}
-        <DigitalTwinIndicator
-          isOpen={isDigitalTwinOpen}
-          onClose={() => setIsDigitalTwinOpen(false)}
-          data={digitalTwinData}
-        />
+        <LazyMount when={isDigitalTwinOpen}>
+          <DigitalTwinIndicator
+            isOpen={isDigitalTwinOpen}
+            onClose={() => setIsDigitalTwinOpen(false)}
+            data={digitalTwinData}
+          />
+        </LazyMount>
 
 
         {/* 주행 환경 설정 시트 — 도구 패널에서 진입 (속도/야간/자전거모드/브랜드 필터) */}
-        <RideSettings
-          isOpen={isRideSettingsOpen}
-          onClose={() => setIsRideSettingsOpen(false)}
-          onNext={() => setIsRideSettingsOpen(false)}
-          config={rideConfig}
-          setConfig={setRideConfig}
-        />
+        <LazyMount when={isRideSettingsOpen}>
+          <RideSettings
+            isOpen={isRideSettingsOpen}
+            onClose={() => setIsRideSettingsOpen(false)}
+            onNext={() => setIsRideSettingsOpen(false)}
+            config={rideConfig}
+            setConfig={setRideConfig}
+          />
+        </LazyMount>
 
 
         {/* Carbon Saved / Eco Badge Modal (New Engagement Feature) */}
