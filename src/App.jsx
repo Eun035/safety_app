@@ -456,15 +456,37 @@ function App() {
         // 본인 코드 = 누군가 데려온 코드면 자기 추천 방지
         if (pending.code !== myCode) {
           try {
-            await supabase.from('referrals')
-              .update({ invitee_user_id: finalUser.id, signed_up_at: new Date().toISOString() })
+            // PostgREST의 UPDATE에는 order/limit이 먹지 않는다. 예전 코드처럼
+            // .order().limit()을 붙이면 조건에 맞는 '모든' 행을 고치려 들어,
+            // 미청구 landing 행이 2개 이상이면 invitee_user_id 유니크 제약에
+            // 걸려 409로 통째 실패한다(= 가입 연결이 조용히 안 됨).
+            // 대상 1건을 먼저 고른 뒤 id로 지정해 수정한다.
+            const { data: target, error: findError } = await supabase
+              .from('referrals')
+              .select('id')
               .eq('inviter_code', pending.code)
               .is('invitee_user_id', null)
               .order('landed_at', { ascending: false })
-              .limit(1);
-            await supabase.from('profiles')
+              .limit(1)
+              .maybeSingle();
+
+            if (findError) {
+              console.warn('[referral] landing 행 조회 실패:', findError.message);
+            } else if (target?.id) {
+              // supabase-js는 예외를 던지지 않는다 — error를 직접 봐야 실패를 안다
+              const { error: linkError } = await supabase.from('referrals')
+                .update({ invitee_user_id: finalUser.id, signed_up_at: new Date().toISOString() })
+                .eq('id', target.id);
+              if (linkError) console.warn('[referral] invitee 연결 실패:', linkError.message);
+            }
+
+            // 보상 RPC는 profiles.referred_by_code를 기준으로 동작하므로
+            // 위 연결이 실패하더라도 이 기록만 남으면 보상은 정상 지급된다.
+            const { error: profileError } = await supabase.from('profiles')
               .update({ referral_code: myCode, referred_by_code: pending.code })
               .eq('id', finalUser.id);
+            if (profileError) console.warn('[referral] profiles 기록 실패:', profileError.message);
+
             clearPendingReferral();
           } catch (e) {
             console.warn('[referral] signup link failed:', e?.message || e);
