@@ -34,7 +34,8 @@ const HelmetStationSelector = ({
         if (destinationLat == null || destinationLng == null) return [];
         const withDistance = helmetStationsData.map(s => ({
             ...s,
-            distanceM: Math.round(calculateDistance(destinationLat, destinationLng, s.lat, s.lng) * 1000)
+            // calculateDistance는 이미 미터를 반환한다 — * 1000 하면 반경 필터가 항상 실패한다
+            distanceM: Math.round(calculateDistance(destinationLat, destinationLng, s.lat, s.lng))
         })).sort((a, b) => a.distanceM - b.distanceM);
 
         // 반경 내가 있으면 그것만, 없으면 가장 가까운 5개 (사용자에게 항상 옵션 제공)
