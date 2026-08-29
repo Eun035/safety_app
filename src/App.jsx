@@ -596,6 +596,8 @@ function App() {
     }
 
     // --- 1. 경로 및 마일리지 추적 (기본 기능) ---
+    // calculateDistance는 '미터'를 반환하는데 totalDistance를 쓰는 쪽은 전부 km 기준이다
+    // (mileage 표시, CO₂ 절감 = 거리 × 0.2kg/km). 여기서 km로 변환해 누적한다.
     let distanceDelta = 0;
     if (lastLocationRef.current) {
       distanceDelta = calculateDistance(
@@ -603,7 +605,7 @@ function App() {
         lastLocationRef.current.lng,
         location.lat,
         location.lng
-      );
+      ) / 1000;
     }
     updateMetrics(distanceDelta, location.speed || 0, false, location);
     lastLocationRef.current = location;

@@ -40,7 +40,8 @@ const HelmetReturnSheet = ({
         return helmetStationsData
             .map(s => ({
                 ...s,
-                distanceM: Math.round(calculateDistance(endLat, endLng, s.lat, s.lng) * 1000)
+                // calculateDistance는 이미 미터를 반환한다 — * 1000 하면 1000배가 된다
+                distanceM: Math.round(calculateDistance(endLat, endLng, s.lat, s.lng))
             }))
             .sort((a, b) => a.distanceM - b.distanceM)
             .slice(0, 3);
@@ -49,7 +50,7 @@ const HelmetReturnSheet = ({
     // selectedStation의 종료 위치까지 거리 (참고용 표시)
     const selectedDistance = useMemo(() => {
         if (!selectedStation || endLat == null || endLng == null) return null;
-        return Math.round(calculateDistance(endLat, endLng, selectedStation.lat, selectedStation.lng) * 1000);
+        return Math.round(calculateDistance(endLat, endLng, selectedStation.lat, selectedStation.lng));
     }, [selectedStation, endLat, endLng]);
 
     const renderStationCard = (station, distanceM, isPrimary = false) => {
