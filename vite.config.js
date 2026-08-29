@@ -117,7 +117,6 @@ export default defineConfig({
           if (id.includes('html5-qrcode') || id.includes('node_modules/qrcode')) return 'vendor-qr';
           if (id.includes('i18next')) return 'vendor-i18n';
           if (id.includes('@supabase')) return 'vendor-supabase';
-          if (id.includes('html-to-image')) return 'vendor-share';
           return 'vendor';
         },
       },
