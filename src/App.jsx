@@ -232,7 +232,7 @@ function App() {
       speak(t('app_voice_shake_hard'), 'L4');
       vibrate('L4');
     }
-  }, [rider.status, rider.isRunning, speak, vibrate]);
+  }, [rider.status, rider.isRunning, speak, vibrate, t]);
 
   // 🛑 라이딩 종료 시 sensor 모니터링 자동 정지 (배터리 보호)
   React.useEffect(() => {
@@ -276,7 +276,7 @@ function App() {
     if (Object.values(stressZoneInsideRef.current).some(Boolean)) {
       sampleZoneSpeed(currentSpeed);
     }
-  }, [location, isRiding, speak, enterZone, exitZone, sampleZoneSpeed, t]);
+  }, [location, isRiding, speak, vibrate, enterZone, exitZone, sampleZoneSpeed, t]);
 
   const [showEcoBadge, setShowEcoBadge] = useState(false);
 
@@ -492,6 +492,9 @@ function App() {
     }, 8000);
 
     return () => clearTimeout(mapTimeout);
+    // 마운트 1회만 도는 부팅 시퀀스(익명 로그인 → 프로필/기록 로드 → 추천 연결).
+    // loadUser/loadHistory/signInAnonymously를 의존성에 넣으면 인증이 반복 실행된다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -633,7 +636,7 @@ function App() {
         userId: user?.id
       });
     }
-  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id, t]);
+  }, [isRiding, location, weatherRisk, activeHazard, rideConfig.speedLimit, rideConfig.isBicycleMode, speak, historyMetrics, updateMetrics, captureNearMiss, user?.id, t, vibrate]);
 
 
 

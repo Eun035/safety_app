@@ -172,7 +172,7 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                 setResults({ key: searchKey, items: [...formattedAddresses, ...formattedPlaces] });
             });
         }
-    }, [uniqueQueries, searchKey, currentRegion, regionMeta.center.lat, regionMeta.center.lng]);
+    }, [uniqueQueries, searchKey, currentRegion, regionMeta.center.lat, regionMeta.center.lng, t]);
 
     // 검색어가 없으면 아무것도 노출하지 않고, 카카오 결과는 현재 검색 조건의 것만 합친다
     const visibleResults = useMemo(() => {
