@@ -21,7 +21,6 @@ import EmergencyModal from './components/common/EmergencyModal';
 import ParkingVerification from './components/common/ParkingVerification';
 import PersonalInsights from './components/common/PersonalInsights';
 import RideSettings from './components/common/RideSettings';
-import QRScanner from './components/common/QRScanner';
 import RideSummaryModal from './components/common/RideSummaryModal';
 import FavoriteStations from './components/common/FavoriteStations';
 import PaymentReceiptModal from './components/common/PaymentReceiptModal';
@@ -35,6 +34,8 @@ import HelmetReturnSheet from './components/common/HelmetReturnSheet';
 import RewardWalletSheet from './components/common/RewardWalletSheet';
 // 5순위: AdminDashboard 레이지 로딩 — 초기 번들 ~39KB 절감
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
+// html5-qrcode(수백 KB)를 초기 번들에서 제외 — 스캐너를 열 때만 내려받는다.
+const QRScanner = React.lazy(() => import('./components/common/QRScanner'));
 import { useSafeData } from './hooks/useSafeData';
 import { useVoiceGuidance } from './hooks/useVoiceGuidance';
 import { useRideSession } from './hooks/useRideSession';
@@ -1346,12 +1347,17 @@ function App() {
           coupons={coupons}
           setCoupons={setCoupons}
         />
-        <QRScanner
-          isOpen={isQRScannerOpen}
-          mode={qrScanMode}
-          onClose={() => setIsQRScannerOpen(false)}
-          onScanSuccess={handleQRScanSuccess}
-        />
+        {/* 열릴 때만 마운트해야 lazy 청크가 그 시점에 내려받아진다 */}
+        {isQRScannerOpen && (
+          <Suspense fallback={null}>
+            <QRScanner
+              isOpen={isQRScannerOpen}
+              mode={qrScanMode}
+              onClose={() => setIsQRScannerOpen(false)}
+              onScanSuccess={handleQRScanSuccess}
+            />
+          </Suspense>
+        )}
         <PaymentReceiptModal
           isOpen={isPaymentReceiptOpen}
           // '나중에 결제'/닫기로 결제를 건너뛰어도 뒤 체인(스테이션 보상→라이드 서머리)은
