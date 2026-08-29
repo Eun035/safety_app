@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Volume2, Vibrate, X, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -16,15 +16,21 @@ const ReferralWelcomeModal = ({ pendingReferral, speak, vibrate, onClose }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [demoStep, setDemoStep] = useState(null); // null | 'L1' | 'L3' | 'L4' | 'done'
 
-    useEffect(() => {
-        if (!pendingReferral?.code) return;
-        if (typeof window === 'undefined') return;
-        if (sessionStorage.getItem(SHOWN_KEY) === '1') return;
-        setIsOpen(true);
-    }, [pendingReferral?.code]);
+    // 추천코드가 새로 잡히면 1회 노출 — effect 대신 렌더 중 조정(React 권장 패턴)
+    const code = pendingReferral?.code ?? null;
+    // 초기값 null: 첫 렌더에 이미 코드가 있으면 그때 바로 열리도록(기존 effect 동작 보존)
+    const [prevCode, setPrevCode] = useState(null);
+    if (prevCode !== code) {
+        setPrevCode(code);
+        if (code && typeof window !== 'undefined') {
+            let shown = '1';
+            try { shown = sessionStorage.getItem(SHOWN_KEY); } catch { /* noop */ }
+            if (shown !== '1') setIsOpen(true);
+        }
+    }
 
     const close = () => {
-        try { sessionStorage.setItem(SHOWN_KEY, '1'); } catch (e) { /* noop */ }
+        try { sessionStorage.setItem(SHOWN_KEY, '1'); } catch { /* noop */ }
         setIsOpen(false);
         onClose?.();
     };

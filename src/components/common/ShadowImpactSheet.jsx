@@ -111,6 +111,8 @@ const ShadowImpactSheet = ({ isOpen, onClose, userName = 'J', rideHistory = [], 
     // P1-2: 최근 14일 RSR 추이 (일별 평균) — Supabase ride_rsr 또는 localStorage rideRsr
     const rsrTrend = useMemo(() => {
         const days = 14;
+        // rideHistory 변경 시점의 '지금' 기준 14일 윈도 — 스냅샷이면 충분
+        // eslint-disable-next-line react-hooks/purity
         const now = Date.now();
         const DAY = 86400000;
         const buckets = {};

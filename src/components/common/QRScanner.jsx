@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { X, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +42,7 @@ const QRScanner = ({ isOpen, onClose, onScanSuccess, mode = 'station' }) => {
                 }
                 onScanSuccessRef.current(decodedText);
             },
-            (err) => {
+            () => {
                 // 매 프레임마다 QR을 찾지 못하면 에러를 뿜어내므로 무시합니다.
             }
         ).catch((err) => {

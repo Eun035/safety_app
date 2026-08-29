@@ -38,10 +38,19 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const scanIntervalRef = useRef(null);
+    const progressRef = useRef({ helmet: 0, face: 0 });
 
     const [phase, setPhase] = useState(PHASE.IDLE);
     const [helmetProgress, setHelmetProgress] = useState(0);
     const [faceProgress, setFaceProgress] = useState(0);
+
+    // 아래 useEffect의 cleanup이 참조하므로 effect보다 먼저 선언 (TDZ 회피)
+    const stopStream = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(t => t.stop());
+            streamRef.current = null;
+        }
+    };
 
     // ─── 카메라 권한·스트림 ──────────────────────────────────────────────
     useEffect(() => {
@@ -75,13 +84,6 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
         };
     }, [isOpen]);
 
-    const stopStream = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(t => t.stop());
-            streamRef.current = null;
-        }
-    };
-
     // ─── 하이브리드 인증 시뮬 ────────────────────────────────────────────
     const startScan = () => {
         if (phase !== PHASE.IDLE && phase !== PHASE.FAILED) return;
@@ -91,20 +93,22 @@ const HelmetDetectionCamera = ({ isOpen, onClose, onSuccess, onSkip }) => {
 
         const helmetStep = 2.8;   // ≈3.6초에 100%
         const faceStep   = 2.2;   // ≈4.5초 (Face Match가 약간 느림)
+        // 진행도를 ref로 함께 추적해, 완료 판정을 타이머 안에서 처리(effect 내 setState 회피)
+        progressRef.current = { helmet: 0, face: 0 };
         scanIntervalRef.current = setInterval(() => {
-            setHelmetProgress(p => Math.min(100, p + helmetStep));
-            setFaceProgress(p => Math.min(100, p + faceStep));
+            const p = progressRef.current;
+            p.helmet = Math.min(100, p.helmet + helmetStep);
+            p.face = Math.min(100, p.face + faceStep);
+            setHelmetProgress(p.helmet);
+            setFaceProgress(p.face);
+
+            // 두 프로그레스 100% 도달 시 완료 처리 (시뮬은 항상 성공)
+            if (p.helmet >= 100 && p.face >= 100) {
+                clearInterval(scanIntervalRef.current);
+                setPhase(PHASE.SUCCESS);
+            }
         }, 100);
     };
-
-    // 두 프로그레스 100% 도달 시 완료 처리 (시뮬은 항상 성공)
-    useEffect(() => {
-        if (phase !== PHASE.SCANNING) return;
-        if (helmetProgress >= 100 && faceProgress >= 100) {
-            clearInterval(scanIntervalRef.current);
-            setPhase(PHASE.SUCCESS);
-        }
-    }, [phase, helmetProgress, faceProgress]);
 
     // ─── 액션 핸들러 ────────────────────────────────────────────────────
     const handleStart = () => {

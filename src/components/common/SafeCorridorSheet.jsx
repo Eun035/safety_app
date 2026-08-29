@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { X, AlertTriangle, CheckCircle2, MapPin, ChevronRight, Shield, Navigation } from 'lucide-react';

@@ -46,7 +46,6 @@ const AdminDashboard = ({ onClose }) => {
     appkey: kakaoApiKey,
     libraries: ['services']
   });
-  const [selectedType, setSelectedType] = useState('ALL');
   const [analysisMode, setAnalysisMode] = useState('NORMAL'); // 'NORMAL' | 'SAFETY' | 'VIBE' | 'STRESS'
   const [receiptData, setReceiptData] = useState(null);
 

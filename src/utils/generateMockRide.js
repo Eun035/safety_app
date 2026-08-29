@@ -41,7 +41,6 @@ export function generateMockRide() {
 
     const N = 45 + Math.floor(Math.random() * 40);           // 45~84 점
     const startTs = Date.now() - durationMin * 60000;
-    const dtMs = (durationMin * 60000) / (N - 1);
 
     const path = [];
     for (let i = 0; i < N; i++) {

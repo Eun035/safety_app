@@ -33,18 +33,17 @@ const queryMicPermission = async () => {
 export const useSpeechRecognition = ({ onResult, onError } = {}) => {
     const { i18n } = useTranslation();
     const [isListening, setIsListening] = useState(false);
-    const [isSupported, setIsSupported] = useState(false);
+    // 브라우저 지원 여부는 마운트 시점에 확정 — effect 없이 lazy 초기화
+    const [isSupported] = useState(() => Boolean(getRecognitionCtor()));
     const recognitionRef = useRef(null);
     const onResultRef = useRef(onResult);
     const onErrorRef = useRef(onError);
 
-    onResultRef.current = onResult;
-    onErrorRef.current = onError;
-
+    // 렌더 중 ref 갱신은 React 19에서 금지 → 커밋 이후로 이동
     useEffect(() => {
-        const Ctor = getRecognitionCtor();
-        setIsSupported(Boolean(Ctor));
-    }, []);
+        onResultRef.current = onResult;
+        onErrorRef.current = onError;
+    }, [onResult, onError]);
 
     const start = useCallback(async () => {
         const Ctor = getRecognitionCtor();

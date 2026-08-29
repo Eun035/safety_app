@@ -138,7 +138,7 @@ export const useSafeData = () => {
   // 실시간 제보 업로드 함수
   const reportHazard = async (newHazard) => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('hazards')
         .insert([
           {

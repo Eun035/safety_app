@@ -32,10 +32,8 @@ const AISafetyCoach = ({ isOpen, onClose, data }) => {
         const result = [];
         const {
             distance = 0,
-            time = 0,
             topSpeed = 0,
             suddenBrakeCount = 0,
-            co2Saved = 0,
             history = [],
             helmetOn = false
         } = data;

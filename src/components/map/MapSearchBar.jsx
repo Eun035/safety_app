@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, X, MapPin, Building, ShieldAlert, Sparkles, Navigation, ChevronDown, Mic } from 'lucide-react';
 import { toast } from '../../hooks/useToast';
@@ -8,6 +8,7 @@ import { REGION_LIST, REGIONS } from '../../config/regions';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 // 🏢 천안·아산 핵심 랜드마크 데이터베이스는 src/data/landmarks.js 단일 소스를 사용
+const EMPTY_RESULTS = [];
 const PRESETS = [
     { label: '🏢 시청', query: '시청' },
     { label: '🚒 소방서', query: '소방서' },
@@ -18,7 +19,8 @@ const PRESETS = [
 const MapSearchBar = ({ onSelectLocation, speak }) => {
     const { t } = useTranslation();
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState([]);
+    // 카카오 비동기 검색 결과 — 어떤 검색 조건(key)의 결과인지 함께 보관
+    const [results, setResults] = useState({ key: '', items: EMPTY_RESULTS });
     const [isOpen, setIsOpen] = useState(false);
     const [isRegionMenuOpen, setIsRegionMenuOpen] = useState(false);
     const [voiceAlternatives, setVoiceAlternatives] = useState([]); // 음성 인식 확률순 후보 (best 제외)
@@ -63,18 +65,17 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
     }, []);
 
     // 검색어 입력에 따른 실시간 하이브리드 검색 실행 — query + voiceAlternatives 동시 조회
-    useEffect(() => {
+    // 검색어가 비면 effect에서 setResults([]) 하는 대신 렌더에서 걸러낸다(effect 내 setState 회피)
+    const uniqueQueries = useMemo(() => {
         const allQueries = [query, ...voiceAlternatives]
             .map(q => (q || '').trim())
             .filter(q => q.length > 0);
-        const uniqueQueries = [...new Set(allQueries)];
+        return [...new Set(allQueries)];
+    }, [query, voiceAlternatives]);
 
-        if (uniqueQueries.length === 0) {
-            setResults([]);
-            return;
-        }
-
-        // 1. 사전 지정 랜드마크 필터링 — 모든 후보에 대해 검색, dedup
+    // 1. 사전 지정 랜드마크 필터링 — 순수 계산이므로 렌더에서 파생
+    const matchedLandmarks = useMemo(() => {
+        if (uniqueQueries.length === 0) return EMPTY_RESULTS;
         const matchedLandmarksSet = new Map();
         uniqueQueries.forEach(q => {
             const trimmed = q.toLowerCase();
@@ -86,14 +87,22 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                 )
                 .forEach(l => { if (!matchedLandmarksSet.has(l.id)) matchedLandmarksSet.set(l.id, l); });
         });
-        const matchedLandmarks = [...matchedLandmarksSet.values()].sort((a, b) => {
+        return [...matchedLandmarksSet.values()].sort((a, b) => {
             const aSame = (a.region || 'cheonan') === currentRegion ? 0 : 1;
             const bSame = (b.region || 'cheonan') === currentRegion ? 0 : 1;
             return aSame - bSame;
         });
+    }, [uniqueQueries, currentRegion]);
+
+    // 이 검색 조건에 대한 결과인지 식별하는 키 — 응답이 역전돼도 옛 결과를 쓰지 않는다
+    const searchKey = `${currentRegion}|${uniqueQueries.join('')}`;
+
+    useEffect(() => {
+        if (uniqueQueries.length === 0) return;
 
         // 2. 카카오 키워드 + 주소 동시 검색 — uniqueQueries 전부에 대해 병렬 발사
-        if (window.kakao?.maps?.services) {
+        if (!window.kakao?.maps?.services) return;
+        {
             const placeOptions = {
                 location: new window.kakao.maps.LatLng(regionMeta.center.lat, regionMeta.center.lng),
                 radius: 10000
@@ -160,12 +169,17 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
                     });
                 });
 
-                setResults([...matchedLandmarks, ...formattedAddresses, ...formattedPlaces].slice(0, 15));
+                setResults({ key: searchKey, items: [...formattedAddresses, ...formattedPlaces] });
             });
-        } else {
-            setResults(matchedLandmarks);
         }
-    }, [query, voiceAlternatives, currentRegion, regionMeta.center.lat, regionMeta.center.lng]);
+    }, [uniqueQueries, searchKey, currentRegion, regionMeta.center.lat, regionMeta.center.lng]);
+
+    // 검색어가 없으면 아무것도 노출하지 않고, 카카오 결과는 현재 검색 조건의 것만 합친다
+    const visibleResults = useMemo(() => {
+        if (uniqueQueries.length === 0) return EMPTY_RESULTS;
+        const kakaoItems = results.key === searchKey ? results.items : EMPTY_RESULTS;
+        return [...matchedLandmarks, ...kakaoItems].slice(0, 15);
+    }, [uniqueQueries, matchedLandmarks, results, searchKey]);
 
     const handleSelect = (item) => {
         setQuery(item.title);
@@ -297,10 +311,10 @@ const MapSearchBar = ({ onSelectLocation, speak }) => {
             </div>
 
             {/* 실시간 하이브리드 검색 결과 리스트 */}
-            {isOpen && (query || results.length > 0) && (
+            {isOpen && (query || visibleResults.length > 0) && (
                 <div className="absolute top-[130px] left-0 right-0 max-h-[300px] overflow-y-auto bg-gray-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-[200] divide-y divide-white/5 scrollbar-thin">
-                    {results.length > 0 ? (
-                        results.map((item) => {
+                    {visibleResults.length > 0 ? (
+                        visibleResults.map((item) => {
                             const isLandmark = item.type !== 'kakao_place';
                             return (
                                 <div

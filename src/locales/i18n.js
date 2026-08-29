@@ -945,7 +945,7 @@ const resources = {
             "아산소방서": "牙山消防署",
             "🏢 시청 우선": "🏢 市役所優先",
             "🚒 소방서 우선": "🚒 消防署優先",
-            "🏫 대학교": "🏫 大学",
+            // "🏫 대학교" 배지는 위 MapSearchBar 칩과 동일 키 — 중복 정의 제거
             "🚉 교통거점": "🚉 交通拠点",
 
             // HelmetStationSelector (ヘルメット受取)
@@ -1719,7 +1719,7 @@ const resources = {
             "아산소방서": "牙山消防局",
             "🏢 시청 우선": "🏢 市政厅优先",
             "🚒 소방서 우선": "🚒 消防局优先",
-            "🏫 대학교": "🏫 大学",
+            // "🏫 대학교" 배지는 위 MapSearchBar 칩과 동일 키 — 중복 정의 제거
             "🚉 교통거점": "🚉 交通枢纽",
 
             // HelmetStationSelector (头盔领取)
@@ -2493,7 +2493,7 @@ const resources = {
             "아산소방서": "Asan Fire Station",
             "🏢 시청 우선": "🏢 City Hall",
             "🚒 소방서 우선": "🚒 Fire Station",
-            "🏫 대학교": "🏫 University",
+            // "🏫 대학교" 배지는 위 MapSearchBar 칩과 동일 키 — 중복 정의 제거
             "🚉 교통거점": "🚉 Transit Hub",
 
             // HelmetStationSelector

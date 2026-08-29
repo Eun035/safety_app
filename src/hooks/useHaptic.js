@@ -31,7 +31,7 @@ export const useHaptic = () => {
 
     const stop = useCallback(() => {
         if (!isSupported) return;
-        try { navigator.vibrate(0); } catch (e) { /* noop */ }
+        try { navigator.vibrate(0); } catch { /* noop */ }
     }, [isSupported]);
 
     return { vibrate, stop, isSupported };
