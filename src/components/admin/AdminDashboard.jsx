@@ -35,6 +35,9 @@ const AdminDashboard = ({ onClose }) => {
   const [recentRides, setRecentRides] = useState([]);
   const [hazards, setHazards] = useState([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  // 지표별 출처: 'server'(실측) | 'empty'(서버는 응답했으나 데이터 없음)
+  // | 'error'(조회 실패) | 'assumed'(가정값). 실패를 성공처럼 보여주지 않기 위함이다.
+  const [dataHealth, setDataHealth] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   // P2-A: 위험 클러스터(get_near_miss_clusters) + hazards 정책 효과(get_hazard_policy_effect)
   const [nearMissClusters, setNearMissClusters] = useState([]);
@@ -148,22 +151,41 @@ const AdminDashboard = ({ onClose }) => {
           console.warn('[C-Safe] get_hazard_policy_effect RPC 실패:', err?.message || err);
         }
 
-        const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        const { count: rideCount } = await supabase.from('rides').select('*', { count: 'exact', head: true });
-        const { data: hazardsData } = await supabase.from('hazards').select('*');
+        // 어떤 지표가 실측이고 어떤 게 추정인지 기록한다.
+        // 예전에는 조회가 실패해도 하드코딩 폴백으로 화면이 채워져 고장이 드러나지
+        // 않았다(hazards RLS가 막혀 있던 걸 오래 못 알아챈 이유가 이것이다).
+        const health = {};
+        const mark = (key, error, hasData) => {
+          health[key] = error ? 'error' : (hasData ? 'server' : 'empty');
+          if (error) console.warn(`[C-Safe Admin] ${key} 조회 실패:`, error.message || error);
+        };
+
+        // profiles는 RLS로 본인 행만 보이므로 집계 전용 RPC를 쓴다.
+        // 관리자에게도 개별 프로필 행은 주지 않는다(최소 권한).
+        const { data: profileStats, error: profileStatsError } =
+          await supabase.rpc('get_admin_profile_stats');
+        mark('profiles', profileStatsError, !!profileStats);
+
+        const { count: rideCount, error: rideCountError } =
+          await supabase.from('rides').select('*', { count: 'exact', head: true });
+        mark('rides', rideCountError, typeof rideCount === 'number');
+
+        const { data: hazardsData, error: hazardsError } = await supabase.from('hazards').select('*');
+        mark('hazards', hazardsError, (hazardsData?.length || 0) > 0);
 
         const pedestrianCount = hazardsData?.filter(h => h.type === 'PEDESTRIAN' || h.type === 'PARKING').length || 0;
 
-        const { data: profileData } = await supabase.from('profiles').select('points, safety_score');
-        const pointsTotal = profileData?.reduce((acc, curr) => acc + (curr.points || 0), 0) || 0;
-        const avgScore = profileData?.length > 0
-          ? profileData.reduce((acc, curr) => acc + (curr.safety_score || 0), 0) / profileData.length
-          : 0;
+        const userCount = profileStats?.user_count ?? 0;
+        const pointsTotal = Number(profileStats?.points_total ?? 0);
+        const avgScore = Number(profileStats?.avg_safety_score ?? 0);
 
         const localRides = JSON.parse(localStorage.getItem('csafe_ride_history') || '[]');
         const totalRidesVal = (rideCount || 0) + localRides.length;
         const totalHazardsVal = hazardsData?.length || 0;
-        const avgSafetyScoreVal = Math.round(avgScore) || 85;
+        // 실측이 없으면 85로 채우던 것을 유지하되, 그 사실을 health에 남긴다.
+        const hasRealScore = avgScore > 0;
+        const avgSafetyScoreVal = hasRealScore ? Math.round(avgScore) : 85;
+        if (!hasRealScore) health.profiles = health.profiles === 'server' ? 'assumed' : health.profiles;
 
         // 1. 사고 감소 목표: (1 - (C-Safe 경로 사고수 / 일반 경로 평균 사고수)) * 100
         const csafeAccidents = totalHazardsVal;
@@ -366,6 +388,7 @@ const AdminDashboard = ({ onClose }) => {
         const R = avgSafetyScoreVal; // 안전 경로 준수율 연동 -> hazard_avoidance_rate, nudge_response_time 반영 시뮬레이션
         const vibeSafetyScore = Math.round((w1 * H) + (w2 * S) + (w3 * B) + (w4 * R));
 
+        setDataHealth(health);
         setStats({
           totalUsers: userCount || 1,
           totalRides: totalRidesVal,
@@ -373,6 +396,8 @@ const AdminDashboard = ({ onClose }) => {
           totalHazards: totalHazardsVal,
           pedestrianReports: pedestrianCount,
           avgSafetyScore: avgSafetyScoreVal,
+          // ⚠️ 증감률은 실측이 아니다. 이전 기간 스냅샷을 저장하지 않아 계산할 수
+          // 없고, 지금은 데모용 고정값이다. UI에서 '가정값'으로 표시한다.
           trends: {
             users: 12,
             rides: 24,
@@ -416,20 +441,39 @@ const AdminDashboard = ({ onClose }) => {
     fetchAdminData();
   }, []);
 
-  const StatCard = ({ icon: Icon, label, value, trend, color }) => (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-900/50 backdrop-blur-xl border border-white/5 p-5 rounded-3xl">
-      <div className="flex justify-between items-start mb-4">
-        <div className={`p-3 rounded-2xl bg-${color}-500/10 text-${color}-400`}>
-          <Icon size={20} />
+  // 값의 출처를 숨기지 않는다. 실측이 아니면 카드에 그대로 표시한다.
+  const SOURCE_BADGE = {
+    error:   { text: '조회 실패', cls: 'bg-rose-500/15 text-rose-300 border-rose-500/30' },
+    empty:   { text: '데이터 없음', cls: 'bg-gray-500/15 text-gray-400 border-white/10' },
+    assumed: { text: '가정값', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
+  };
+
+  const StatCard = ({ icon: Icon, label, value, trend, color, source }) => {
+    const badge = SOURCE_BADGE[source];
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-900/50 backdrop-blur-xl border border-white/5 p-5 rounded-3xl">
+        <div className="flex justify-between items-start mb-4">
+          <div className={`p-3 rounded-2xl bg-${color}-500/10 text-${color}-400`}>
+            <Icon size={20} />
+          </div>
+          {/* 증감률은 실측이 아니다(이전 기간 스냅샷 미보관) — '가정' 표기를 함께 둔다 */}
+          <div className="text-right">
+            <div className={`text-[10px] font-bold ${trend >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} title="이전 기간 데이터를 보관하지 않아 계산된 값이 아닙니다">
+              {trend >= 0 ? '+' : ''}{trend}%
+            </div>
+            <div className="text-[8px] text-gray-600 font-bold uppercase tracking-wider">가정</div>
+          </div>
         </div>
-        <div className={`text-[10px] font-bold ${trend >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-          {trend >= 0 ? '+' : ''}{trend}%
+        <p className="text-gray-400 text-xs font-medium mb-1">{label}</p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="text-2xl font-black text-white italic">{typeof value === 'number' ? value.toLocaleString() : value}</h3>
+          {badge && (
+            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${badge.cls}`}>{badge.text}</span>
+          )}
         </div>
-      </div>
-      <p className="text-gray-400 text-xs font-medium mb-1">{label}</p>
-      <h3 className="text-2xl font-black text-white italic">{typeof value === 'number' ? value.toLocaleString() : value}</h3>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-[1000] bg-black text-white overflow-y-auto font-pretendard">
@@ -476,12 +520,30 @@ const AdminDashboard = ({ onClose }) => {
           </div>
         </div>
 
+        {/* 데이터 신뢰도 배너 — 실패를 조용히 넘기지 않는다.
+            대외 시연에서 가짜 수치가 실적처럼 보이는 상황을 막기 위한 것이다. */}
+        {(() => {
+          const failed = Object.entries(dataHealth).filter(([, v]) => v === 'error').map(([k]) => k);
+          const empty = Object.entries(dataHealth).filter(([, v]) => v === 'empty' || v === 'assumed').map(([k]) => k);
+          if (failed.length === 0 && empty.length === 0) return null;
+          return (
+            <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-3.5">
+              <p className="text-[11px] font-black text-amber-200 mb-1">일부 지표가 실측값이 아닙니다</p>
+              <p className="text-[10px] text-amber-100/70 font-medium leading-relaxed">
+                {failed.length > 0 && <>조회 실패: <b>{failed.join(', ')}</b>. </>}
+                {empty.length > 0 && <>데이터 없음·가정값: <b>{empty.join(', ')}</b>. </>}
+                증감률(%)은 이전 기간 스냅샷을 보관하지 않아 계산된 값이 아닙니다.
+              </p>
+            </div>
+          );
+        })()}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <StatCard icon={Users} label="Total Riders" value={stats.totalUsers} trend={stats.trends.users} color="blue" />
-          <StatCard icon={Footprints} label="Pedestrian Reports" value={stats.pedestrianReports} trend={stats.trends.stress} color="orange" />
-          <StatCard icon={ShieldAlert} label="Safety Incidents" value={stats.totalHazards} trend={stats.trends.hazards} color="rose" />
-          <StatCard icon={HeartPulse} label="Avg Safety Score" value={`${stats.avgSafetyScore}%`} trend={2} color="emerald" />
+          <StatCard icon={Users} label="Total Riders" value={stats.totalUsers} trend={stats.trends.users} color="blue" source={dataHealth.profiles} />
+          <StatCard icon={Footprints} label="Pedestrian Reports" value={stats.pedestrianReports} trend={stats.trends.stress} color="orange" source={dataHealth.hazards} />
+          <StatCard icon={ShieldAlert} label="Safety Incidents" value={stats.totalHazards} trend={stats.trends.hazards} color="rose" source={dataHealth.hazards} />
+          <StatCard icon={HeartPulse} label="Avg Safety Score" value={`${stats.avgSafetyScore}%`} trend={2} color="emerald" source={dataHealth.profiles} />
         </div>
 
         {/* B2G KPI Safety Analysis Grid */}

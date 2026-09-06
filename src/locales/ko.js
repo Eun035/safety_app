@@ -711,5 +711,13 @@ export default {
     "sd_fb2_tip": "좌우 합류 차량을 확인하고 일시 정지 후 출발하세요.",
     "sd_fb3_title": "상명대 정문 보도 파손",
     "sd_fb3_desc": "보도블록 돌출 주의",
-    "sd_fb3_tip": "바퀴 끼임 사고 위험이 있으니 우회하거나 서행하세요."
+    "sd_fb3_tip": "바퀴 끼임 사고 위험이 있으니 우회하거나 서행하세요.",
+
+    // 관리자 로그인 (AdminLoginModal)
+    "adm_login_title": "관리자 로그인",
+    "adm_login_email": "이메일",
+    "adm_login_password": "비밀번호",
+    "adm_login_submit": "로그인",
+    "adm_login_failed": "로그인에 실패했습니다. 계정 또는 권한을 확인해 주세요.",
+    "adm_login_note": "운영자 전용입니다. 계정은 별도로 발급되며 자가 가입은 지원하지 않습니다."
 };

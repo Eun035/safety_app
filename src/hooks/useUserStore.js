@@ -45,6 +45,22 @@ export const useUserStore = create((set, get) => ({
     profile: null,
     isLoading: true,
     error: null,
+    // 관리자 여부는 서버(is_admin RPC)가 판정한다. 클라이언트가 이 값을 true로
+    // 바꿔봐야 대시보드 데이터는 RLS/RPC가 막으므로 의미가 없다 — 이 상태는
+    // 버튼을 보여줄지 말지에만 쓰는 UX용이다.
+    isAdmin: false,
+
+    // 로그인 직후 1회 호출. 실패하면 관리자가 아닌 것으로 간주한다(안전한 기본값).
+    refreshAdminFlag: async () => {
+        try {
+            const { data, error } = await supabase.rpc('is_admin');
+            if (error) throw error;
+            set({ isAdmin: data === true });
+        } catch (e) {
+            console.warn('[C-Safe] 관리자 여부 확인 실패 — 비관리자로 처리:', e?.message || e);
+            set({ isAdmin: false });
+        }
+    },
 
     // 사용자 세션 로딩 및 프로필 가져오기
     loadUser: async () => {
@@ -57,8 +73,9 @@ export const useUserStore = create((set, get) => ({
             if (session?.user) {
                 set({ user: session.user });
                 await get().fetchProfile(session.user.id);
+                await get().refreshAdminFlag();
             } else {
-                set({ user: null, profile: null });
+                set({ user: null, profile: null, isAdmin: false });
             }
         } catch (error) {
             console.error('Error loading user session:', error);
@@ -177,8 +194,35 @@ export const useUserStore = create((set, get) => ({
         }
     },
 
+    /**
+     * 관리자 이메일 로그인.
+     *
+     * 일반 사용자는 익명 로그인만 쓴다. 이메일 자가 가입은 막혀 있고
+     * (config.toml [auth.email] enable_signup = false), 계정은 Supabase
+     * 대시보드에서 만든 뒤 그 uid를 public.admin_users에 넣어야 실제 권한이 생긴다.
+     *
+     * ⚠️ 로그인하면 기존 익명 세션이 대체된다. 로그아웃 시 새 익명 uid가
+     *    발급되어 이전 익명 계정의 주행 기록과는 분리된다(운영자 기기 전제).
+     */
+    signInAsAdmin: async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { ok: false, error: error.message };
+
+        set({ user: data.user });
+        await get().fetchProfile(data.user.id);
+        await get().refreshAdminFlag();
+
+        // 로그인은 됐지만 admin_users에 없는 계정일 수 있다 — 그 경우도 실패로 알린다.
+        if (!get().isAdmin) {
+            await supabase.auth.signOut();
+            set({ user: null, profile: null, isAdmin: false });
+            return { ok: false, error: 'not_admin' };
+        }
+        return { ok: true };
+    },
+
     signOut: async () => {
         await supabase.auth.signOut();
-        set({ user: null, profile: null });
+        set({ user: null, profile: null, isAdmin: false });
     }
 }));

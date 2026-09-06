@@ -219,7 +219,14 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = true
+#
+# 이메일 로그인은 '관리자 전용' 통로다. 일반 사용자는 익명 로그인만 쓴다
+# (enable_anonymous_sign_ins = true, 위 [auth] 섹션).
+# 자가 가입을 열어두면 누구나 이메일 계정을 만들 수 있으므로 false로 둔다.
+# 관리자 계정은 Supabase 대시보드(service_role)에서 직접 생성하고,
+# 그 uid를 public.admin_users에 INSERT해야 실제 권한이 생긴다.
+# ⚠️ 상위 [auth] 의 enable_signup 은 건드리지 말 것 — 익명 로그인까지 막힌다.
+enable_signup = false
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true

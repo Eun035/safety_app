@@ -76,6 +76,15 @@ export const useSafeData = () => {
 
       if (error) throw error;
 
+      // ⚠️ RLS 거부는 SELECT에서 에러가 아니라 '빈 결과'로 온다.
+      // 예전에 hazards 정책이 통째로 사라졌을 때 여기서 0행을 정상으로 받아
+      // 지도에 위험구역이 하나도 안 떴는데, 폴백은 catch에만 있어 발동하지
+      // 않았다. 그래서 고장이 오래 드러나지 않았다. 0행도 이상 신호로 다룬다.
+      if (!data || data.length === 0) {
+        console.warn('[C-Safe] hazards 0행 — RLS 차단이거나 데이터가 비어 있습니다. 폴백을 사용합니다.');
+        throw new Error('hazards returned no rows');
+      }
+
       // DB 필드를 UI 컴포넌트 형식에 맞게 맵핑 (snake_case -> camelCase)
       const mappedData = data.map(item => ({
         ...item,

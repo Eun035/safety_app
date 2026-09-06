@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2, Trash2 } from 'lucide-react';
 import BeginnerMissionCard from './BeginnerMissionCard';
+import { useUserStore } from '../../hooks/useUserStore';
 
 // Radar Chart (Spider Web) component using SVG
 const RadarChart = ({ data }) => {
@@ -134,6 +135,7 @@ const badges = [
 
 const UserProfileSheet = ({ isOpen, onClose, userName, userScore = 92, profileImage, onAdminOpen, onEditProfile, onMissionReward, onDeleteAccount }) => {
     const { t } = useTranslation();
+    const isAdmin = useUserStore(s => s.isAdmin);
     const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'missions'
 
     return (
@@ -298,20 +300,21 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userScore = 92, profileIm
                                     </div>
                                 </div>
 
-                                {/* === Section 5: Admin Entry === */}
+                                {/* === Section 5: Admin Entry ===
+                                    관리자 판별은 서버(is_admin RPC)가 한다. 예전엔 여기서
+                                    prompt() 결과를 소스에 박힌 비밀번호와 비교했는데,
+                                    번들만 열면 보이는 데다 서버는 관리자 여부를 몰라
+                                    RLS 판단에 쓸 수 없었다.
+                                    아래 숨김 처리는 UX용일 뿐이고, 실제 방어는 RLS와
+                                    관리자 전용 RPC다. 이 버튼을 억지로 눌러도 대시보드에
+                                    데이터가 채워지지 않는다. */}
                                 <div className="pt-2 border-t border-white/5 mt-4">
                                     <button
-                                        onClick={() => {
-                                            const pwd = prompt(t('pf_admin_prompt'));
-                                            if (pwd === "admin1234") {
-                                                onAdminOpen();
-                                            } else if (pwd !== null) {
-                                                alert(t('pf_admin_wrong'));
-                                            }
-                                        }}
+                                        onClick={onAdminOpen}
                                         className="w-full bg-white/5 hover:bg-white/10 text-gray-500 py-3 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-2 border border-white/5"
                                     >
-                                        <Settings size={12} /> B2G ADMIN CONSOLE
+                                        <Settings size={12} />
+                                        {isAdmin ? 'B2G ADMIN CONSOLE' : t('adm_login_title')}
                                     </button>
                                 </div>
 
