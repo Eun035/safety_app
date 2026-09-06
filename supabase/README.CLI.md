@@ -161,6 +161,64 @@ env 변경 후 `npm run dev` 재시작.
 
 ---
 
+## 7. 관리자 계정 설정 (2026-09-06 도입)
+
+관리자 권한은 **DB의 `public.admin_users` 테이블에 uid가 있는지**로만 판정한다.
+클라이언트에 비밀번호를 두지 않는다(예전 `admin1234` 하드코딩은 제거됐다).
+
+권한 부여는 2단계다. **둘 다 해야 한다** — 계정만 만들면 로그인은 되지만
+대시보드는 열리지 않는다(로그인 직후 자동 로그아웃되며 실패로 표시된다).
+
+### 1) 관리자 계정 만들기 (Supabase 대시보드)
+
+이메일 **자가 가입은 막혀 있다**(`config.toml [auth.email] enable_signup = false`).
+운영자가 직접 만들어야 한다.
+
+```
+Supabase 대시보드 → Authentication → Users → Add user
+  · Email / Password 입력
+  · "Auto Confirm User" 체크 (확인 메일 없이 바로 사용)
+```
+
+### 2) admin_users에 등록 (SQL 편집기)
+
+```sql
+-- 방금 만든 계정의 uid 확인
+SELECT id, email FROM auth.users WHERE email = '<관리자이메일>';
+
+-- 관리자로 등록
+INSERT INTO public.admin_users (user_id, note)
+VALUES ('<위에서 나온 uid>', 'C-Safe 운영자')
+ON CONFLICT DO NOTHING;
+
+-- 확인 (true가 나와야 한다)
+SELECT public.is_admin('<uid>');
+```
+
+### 3) 앱에서 확인
+
+프로필 시트 → 하단 버튼이 **"관리자 로그인"** 으로 보이면 비관리자 상태다.
+로그인에 성공하면 대시보드가 열리고, 이후 버튼이 **"B2G ADMIN CONSOLE"** 로 바뀐다.
+
+### 권한 회수
+
+```sql
+DELETE FROM public.admin_users WHERE user_id = '<uid>';
+```
+
+### ⚠️ 알아둘 것
+
+- **관리자 계정을 잃으면 대시보드에 못 들어간다.** 복구 수단은 위 SQL 재실행뿐이므로
+  계정 정보를 안전한 곳에 보관할 것. `admin_users`는 클라이언트 GRANT가 전혀 없어
+  앱에서는 조회·수정이 불가능하다(service_role 전용).
+- **관리자로 로그인하면 기존 익명 세션이 대체된다.** 로그아웃하면 새 익명 uid가
+  발급되어 이전 익명 계정의 주행 기록과는 분리된다. 운영자 기기에서만 로그인할 것.
+- 로그인만 하고 `admin_users`에 없으면 즉시 로그아웃된다. 계정 존재 여부를 흘리지
+  않으려고 실패 메시지는 한 가지로만 표시한다.
+- 대시보드가 `profiles`를 직접 읽지 않는다. 집계 전용 RPC(`get_admin_profile_stats`)만
+  쓰며, **관리자에게도 개별 프로필 행은 주지 않는다**(최소 권한).
+
+
 ## 관련
 - 오프라인 백업 스택(수동 compose): `infra/supabase/` (→ `infra/supabase/DEPRECATED.md`)
 - 옛 수작업 SQL 보관: `supabase/migrations_legacy/` (현재 스키마의 원본)
