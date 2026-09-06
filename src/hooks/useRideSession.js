@@ -438,9 +438,13 @@ export const useRideSession = create((set, get) => ({
             }
 
             // 🔗 추천 보상 — 첫 라이딩 완료 시 양방향 +500P (멱등성은 RPC가 보장)
+            //
+            // 인자를 넘기지 않는다. 예전 시그니처는 대상 uid를 인자로 받으면서
+            // auth.uid()와 대조하지 않아, 임의 UUID로 호출해 남의 보상 플래그를
+            // 미리 소진시킬 수 있었다. 이제 RPC가 호출자 본인만 처리한다.
             try {
                 const { data: rewardResult, error: rewardError } = await supabase
-                    .rpc('grant_referral_reward', { p_invitee_user_id: userId });
+                    .rpc('grant_referral_reward');
                 if (!rewardError && rewardResult?.ok) {
                     console.log('[C-Safe] 추천 보상 적립:', rewardResult);
                 }

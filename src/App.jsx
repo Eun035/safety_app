@@ -27,6 +27,7 @@ import ReferralWelcomeModal from './components/common/ReferralWelcomeModal';
 const AdminDashboard = React.lazy(() => import('./components/admin/AdminDashboard'));
 // html5-qrcode(수백 KB)를 초기 번들에서 제외 — 스캐너를 열 때만 내려받는다.
 const QRScanner = React.lazy(() => import('./components/common/QRScanner'));
+const AdminLoginModal = React.lazy(() => import('./components/common/AdminLoginModal'));
 // 열어야 보이는 무거운 시트들 — 첫 오픈 때 내려받는다 (LazyMount 참고)
 const RideSummaryModal = React.lazy(() => import('./components/common/RideSummaryModal'));
 const ShadowImpactSheet = React.lazy(() => import('./components/common/ShadowImpactSheet'));
@@ -89,7 +90,7 @@ const STRESS_ZONES = [
 function App() {
   const { t } = useTranslation();
   const { locations, tagoPms, weatherRisk, currentTemp, isLoading: mapLoading } = useSafeData();
-  const { user, profile, isLoading: authLoading, signInAnonymously, loadUser } = useUserStore();
+  const { user, profile, isLoading: authLoading, signInAnonymously, loadUser, isAdmin } = useUserStore();
 
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false); // New: FAB Menu State
@@ -300,6 +301,7 @@ function App() {
   // Phase Digital Twin: Indicator State
   const [isDigitalTwinOpen, setIsDigitalTwinOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [digitalTwinData, setDigitalTwinData] = useState(null);
   // 사용자 선호도 영속화 — 토글들이 새로고침 후에도 유지되도록 localStorage 백킹
   const [rideConfig, setRideConfig] = useLocalStorage('csafe_ride_config', {
@@ -1358,7 +1360,10 @@ function App() {
             profileImage={profile?.profile_image}
             onAdminOpen={() => {
               setIsProfileSheetOpen(false);
-              setIsAdminDashboardOpen(true);
+              // 관리자면 바로 콘솔, 아니면 로그인부터. 이 분기는 UX용이고
+              // 실제 방어는 RLS와 관리자 전용 RPC다.
+              if (isAdmin) setIsAdminDashboardOpen(true);
+              else setIsAdminLoginOpen(true);
             }}
             onEditProfile={() => setIsProfileEditOpen(true)}
             onMissionReward={(missionId, points) => {
@@ -1777,6 +1782,17 @@ function App() {
             </div>
           </div>
         )}
+
+        <LazyMount when={isAdminLoginOpen}>
+          <AdminLoginModal
+            isOpen={isAdminLoginOpen}
+            onClose={() => setIsAdminLoginOpen(false)}
+            onSuccess={() => {
+              setIsAdminLoginOpen(false);
+              setIsAdminDashboardOpen(true);
+            }}
+          />
+        </LazyMount>
 
         {/* 5순위: Suspense로 감싸 레이지 로딩 처리 */}
         {isAdminDashboardOpen && (

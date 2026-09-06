@@ -772,5 +772,13 @@ export default {
     "sd_fb3_desc": "Watch for raised pavement blocks",
     "sd_fb3_tip": "Risk of wheel entrapment—detour or ride slowly.",
     "안전": "Safe", "양호": "Good", "주의": "Caution", "위험": "Risky", "고위험": "High Risk",
-    "보행자 보호구역": "Pedestrian zone", "급경사": "Steep slope", "사고 다발": "Accident-prone", "결빙 위험": "Ice risk", "침수 위험": "Flood risk", "도로 파손": "Road damage", "위험 구역": "Hazard zone"
+    "보행자 보호구역": "Pedestrian zone", "급경사": "Steep slope", "사고 다발": "Accident-prone", "결빙 위험": "Ice risk", "침수 위험": "Flood risk", "도로 파손": "Road damage", "위험 구역": "Hazard zone",
+
+    // 관리자 로그인 (AdminLoginModal)
+    "adm_login_title": "Admin Sign In",
+    "adm_login_email": "Email",
+    "adm_login_password": "Password",
+    "adm_login_submit": "Sign In",
+    "adm_login_failed": "Sign-in failed. Check your account or permissions.",
+    "adm_login_note": "Operators only. Accounts are issued separately; self sign-up is not supported."
 };
