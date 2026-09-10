@@ -183,12 +183,12 @@ function App() {
   const { progressMission } = useBeginnerMissions({
     onReward: (missionId, points) => {
       toast(t('app_mission_done', { p: points.toLocaleString() }), 'success');
-      if (user?.id) {
-        supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
-          .then(({ data }) => {
-            const currentPoints = data?.points || 0;
-            supabase.from('profiles').upsert({ id: user.id, points: currentPoints + points })
-              .then(() => loadUser());
+      if (user?.id && !String(user.id).startsWith('guest_')) {
+        // 💰 서버 권위 적립: points 직접 UPDATE는 트리거로 봉인되어 있어 RPC로만 가능
+        supabase.rpc('award_points', { amount_in: points })
+          .then(({ error }) => {
+            if (error) return console.warn('[C-Safe] 미션 보상 적립 실패:', error.message);
+            loadUser();
           });
       }
     }
@@ -694,17 +694,13 @@ function App() {
     }
 
     // Supabase 연동 (QR 제휴 장소 보너스 300P)
-    if (user?.id) {
+    if (user?.id && !String(user.id).startsWith('guest_')) {
       const earnedPoints = 300;
-      supabase.from('profiles').select('points').eq('id', user.id).single()
-        .then(({ data }) => {
-          if (data) {
-            supabase.from('profiles').update({ points: (data.points || 0) + earnedPoints }).eq('id', user.id)
-              .then(() => {
-                toast(t('app_quiz_done', { p: earnedPoints }), 'success');
-                loadUser(); // 프로필 새로고침
-              });
-          }
+      supabase.rpc('award_points', { amount_in: earnedPoints })
+        .then(({ error }) => {
+          if (error) return console.warn('[C-Safe] QR 제휴 보상 적립 실패:', error.message);
+          toast(t('app_quiz_done', { p: earnedPoints }), 'success');
+          loadUser(); // 프로필 새로고침
         });
     }
 
@@ -897,12 +893,11 @@ function App() {
             setIsRideSettingsOpen(true);
             localStorage.setItem('hasSeenInitialRideSettings', 'true');
           }
-          if (user?.id) {
-            supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
-              .then(({ data }) => {
-                const currentPoints = data?.points || 0;
-                supabase.from('profiles').upsert({ id: user.id, points: currentPoints + 500 })
-                  .then(() => loadUser());
+          if (user?.id && !String(user.id).startsWith('guest_')) {
+            supabase.rpc('award_points', { amount_in: 500 })
+              .then(({ error }) => {
+                if (error) return console.warn('[C-Safe] 퀴즈 보상 적립 실패:', error.message);
+                loadUser();
               });
           }
         }} />
@@ -1559,14 +1554,11 @@ function App() {
               const HELMET_RETURN_REWARD = 100;
               // 💰 Supabase profiles.points 서버 영속화 (시작 인증 +100P와 동일 패턴)
               if (user?.id && !String(user.id).startsWith('guest_')) {
-                supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
-                  .then(({ data }) => {
-                    const currentPoints = data?.points || 0;
-                    return supabase.from('profiles')
-                      .upsert({ id: user.id, points: currentPoints + HELMET_RETURN_REWARD })
-                      .then(() => loadUser());
-                  })
-                  .catch(err => console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', err?.message || err));
+                supabase.rpc('award_points', { amount_in: HELMET_RETURN_REWARD })
+                  .then(({ error }) => {
+                    if (error) console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', error.message);
+                    else loadUser();
+                  });
 
                 // 🪖 rides.helmet_return_station_id 기록 (이번 주행 row 보강)
                 if (finalRideSummary?.db_ride_id) {
@@ -1628,14 +1620,11 @@ function App() {
 
             // 💰 Supabase profiles.points 서버 영속화 (퀴즈/주행종료와 동일 패턴)
             if (user?.id && !String(user.id).startsWith('guest_')) {
-              supabase.from('profiles').select('points').eq('id', user.id).maybeSingle()
-                .then(({ data }) => {
-                  const currentPoints = data?.points || 0;
-                  return supabase.from('profiles')
-                    .upsert({ id: user.id, points: currentPoints + HYBRID_REWARD })
-                    .then(() => loadUser());
-                })
-                .catch(err => console.warn('[C-Safe] 하이브리드 인증 보상 적립 실패:', err?.message || err));
+              supabase.rpc('award_points', { amount_in: HYBRID_REWARD })
+                .then(({ error }) => {
+                  if (error) console.warn('[C-Safe] 하이브리드 인증 보상 적립 실패:', error.message);
+                  else loadUser();
+                });
             }
             toast(t('app_identity_verified', { p: HYBRID_REWARD }), 'success');
 

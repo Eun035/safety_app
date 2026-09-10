@@ -410,28 +410,16 @@ export const useRideSession = create((set, get) => ({
                 // 합법 주차(100P) + 스테이션 반납 보상(50P)
                 const earnedPoints = (isLegalPark ? 100 : 0) + stationIncentive;
 
+                // points/total_distance는 트리거로 봉인되어 클라 직접 UPDATE가 불가.
+                // 서버 SECURITY DEFINER RPC만이 유일한 적립 경로다(폴백 없음).
                 const { error: profileError } = await supabase.rpc('increment_user_stats', {
                     user_id_in: userId,
                     inc_points: earnedPoints,
                     inc_distance: finalDistance
                 });
-                
-                // 만약 rpc가 없다면 일반 update 시도
-                if (profileError) {
-                    console.warn('[C-Safe] RPC increment_user_stats 실패, 일반 update 시도');
-                    // 현재 점수를 가져와서 더하는 방식 (maybeSingle 사용으로 406 방지)
-                    const { data: profile, error: fetchError } = await supabase
-                        .from('profiles')
-                        .select('points, total_distance')
-                        .eq('id', userId)
-                        .maybeSingle();
 
-                    if (!fetchError && profile) {
-                        await supabase.from('profiles').update({
-                            points: (profile.points || 0) + earnedPoints,
-                            total_distance: (profile.total_distance || 0) + finalDistance
-                        }).eq('id', userId);
-                    }
+                if (profileError) {
+                    console.warn('[C-Safe] increment_user_stats RPC 실패:', profileError.message);
                 }
             } catch (err) {
                 console.error('[C-Safe] Supabase 연동 오류:', err);
