@@ -9,7 +9,7 @@ import {
   MapPin, Info, BrainCircuit, ShieldAlert,
   Route, Waves, Zap, Landmark, Trees,
   Navigation2, CheckCircle2, HeartPulse,
-  Footprints, Sliders, Copy
+  Footprints, Sliders, Copy, Trash2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabaseClient';
@@ -34,6 +34,8 @@ const AdminDashboard = ({ onClose }) => {
   });
   const [recentRides, setRecentRides] = useState([]);
   const [hazards, setHazards] = useState([]);
+  // hazard_id → reporter_id (관리자 전용 조회, get_hazard_reporters RPC)
+  const [hazardReporters, setHazardReporters] = useState({});
   const [isMapOpen, setIsMapOpen] = useState(false);
   // 지표별 출처: 'server'(실측) | 'empty'(서버는 응답했으나 데이터 없음)
   // | 'error'(조회 실패) | 'assumed'(가정값). 실패를 성공처럼 보여주지 않기 위함이다.
@@ -72,6 +74,19 @@ const AdminDashboard = ({ onClose }) => {
       toast(t('adm_hash_copied'), 'success');
     } catch (err) {
       console.error('Copy failed:', err);
+    }
+  };
+
+  // 제보 삭제 (모더레이션) — RLS상 admin만 hazards DELETE 가능.
+  const handleDeleteHazard = async (id) => {
+    try {
+      const { error } = await supabase.from('hazards').delete().eq('id', id);
+      if (error) throw error;
+      setHazards((prev) => prev.filter((h) => h.id !== id));
+      toast(t('adm_hazard_deleted'), 'success');
+    } catch (err) {
+      console.error('[C-Safe Admin] hazard 삭제 실패:', err?.message || err);
+      toast(t('adm_hazard_delete_fail'), 'error');
     }
   };
 
@@ -172,6 +187,16 @@ const AdminDashboard = ({ onClose }) => {
 
         const { data: hazardsData, error: hazardsError } = await supabase.from('hazards').select('*');
         mark('hazards', hazardsError, (hazardsData?.length || 0) > 0);
+
+        // 제보자(reporter_id) 조회 — 관리자 전용 RPC. 실패해도 목록은 표시(모더레이션 부가정보).
+        try {
+          const { data: reporters } = await supabase.rpc('get_hazard_reporters');
+          if (Array.isArray(reporters)) {
+            setHazardReporters(Object.fromEntries(reporters.map((r) => [r.hazard_id, r.reporter_id])));
+          }
+        } catch (err) {
+          console.warn('[C-Safe Admin] get_hazard_reporters RPC 실패:', err?.message || err);
+        }
 
         const pedestrianCount = hazardsData?.filter(h => h.type === 'PEDESTRIAN' || h.type === 'PARKING').length || 0;
 
@@ -887,6 +912,52 @@ const AdminDashboard = ({ onClose }) => {
               hazard 좌표 반경 200m 이내 아차사고. 표본 부족 시 감소율 산출 생략.
             </p>
           </div>
+        </div>
+
+        {/* ── 제보 모더레이션: 제보 목록 + 제보자 + 삭제 ── */}
+        <div className="mt-8 bg-gray-900/50 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <ShieldAlert size={18} className="text-amber-400" />
+              <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">
+                {t('adm_reported_hazards')}
+              </h2>
+            </div>
+            <span className="text-[10px] text-gray-500 font-bold">{hazards.length}건</span>
+          </div>
+          {hazards.length === 0 ? (
+            <div className="py-12 text-center text-xs text-gray-500 bg-black/30 rounded-2xl border border-white/5">
+              <Info size={20} className="text-gray-600 mx-auto mb-2" />
+              {t('adm_no_hazards')}
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pr-2">
+              {hazards.map((h) => {
+                const reporter = hazardReporters[h.id];
+                return (
+                  <div key={h.id} className="flex items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/5">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{h.title || '(제목 없음)'}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        {h.type} · {h.created_at ? new Date(h.created_at).toLocaleDateString('ko-KR') : '-'}
+                        {reporter && (
+                          <span className="ml-2 font-mono text-gray-600">· {t('adm_reporter')}: {String(reporter).slice(0, 8)}</span>
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteHazard(h.id)}
+                      title={t('adm_delete')}
+                      className="shrink-0 w-10 h-10 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center active:scale-90 transition-transform"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <p className="mt-3 text-[10px] text-gray-600">{t('adm_reporter_note')}</p>
         </div>
       </div>
 

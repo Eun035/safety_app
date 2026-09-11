@@ -45,6 +45,7 @@ const SafeCorridorSheet = React.lazy(() => import('./components/common/SafeCorri
 const FavoriteStations = React.lazy(() => import('./components/common/FavoriteStations'));
 const HelmetStationSelector = React.lazy(() => import('./components/common/HelmetStationSelector'));
 const HelmetReturnSheet = React.lazy(() => import('./components/common/HelmetReturnSheet'));
+const ReportHazardSheet = React.lazy(() => import('./components/common/ReportHazardSheet'));
 const DigitalTwinIndicator = React.lazy(() => import('./components/common/DigitalTwinIndicator'));
 const RideSettings = React.lazy(() => import('./components/common/RideSettings'));
 import { useSafeData } from './hooks/useSafeData';
@@ -89,7 +90,7 @@ const STRESS_ZONES = [
 
 function App() {
   const { t } = useTranslation();
-  const { locations, tagoPms, weatherRisk, currentTemp, isLoading: mapLoading } = useSafeData();
+  const { locations, tagoPms, weatherRisk, currentTemp, isLoading: mapLoading, reportHazard } = useSafeData();
   const { user, profile, isLoading: authLoading, signInAnonymously, loadUser, isAdmin } = useUserStore();
 
   const [isSOSOpen, setIsSOSOpen] = useState(false);
@@ -363,6 +364,7 @@ function App() {
   const [qrScanMode] = useState('station');
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [isRideStartOpen, setIsRideStartOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
 
 
@@ -1201,6 +1203,21 @@ function App() {
                     ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     : <span className="text-2xl leading-none">🎲</span>}
                 </button>
+
+                {/* ⚠️ 위험 제보 — 현재 GPS 위치 기준 제보 시트 오픈 */}
+                <button
+                  onClick={() => {
+                    if (!user?.id || String(user.id).startsWith('guest_')) {
+                      toast(t('rpt_login_required'), 'warning');
+                      return;
+                    }
+                    setIsReportOpen(true);
+                  }}
+                  title={t('rpt_heading')}
+                  className="pointer-events-auto shrink-0 w-14 h-14 rounded-2xl bg-amber-500/90 text-black flex items-center justify-center active:scale-95 transition-all shadow-lg border border-amber-300/40"
+                >
+                  <AlertTriangle size={22} />
+                </button>
               </div>
             )}
           </div>
@@ -1298,6 +1315,28 @@ function App() {
             </button>
           </div>
         </footer>
+
+        {/* ⚠️ 위험 제보 시트 — 현재 GPS 위치 기준, report_hazard RPC 경유 */}
+        <LazyMount when={isReportOpen}>
+          <ReportHazardSheet
+            isOpen={isReportOpen}
+            onClose={() => setIsReportOpen(false)}
+            lat={userLat}
+            lng={userLng}
+            onReport={async (payload) => {
+              const res = await reportHazard(payload);
+              if (res?.success) {
+                toast(t('rpt_success'), 'success');
+                setIsReportOpen(false);
+              } else if (res?.error === 'rate_limited') {
+                toast(t('rpt_rate_limited'), 'warning');
+              } else {
+                toast(t('rpt_failed'), 'error');
+              }
+              return res;
+            }}
+          />
+        </LazyMount>
 
         {/* 🗺️ RideStartScreen — 주행 시작 & 목적지 설정 (Step 1) */}
         <RideStartScreen
