@@ -746,6 +746,7 @@ export default {
     "app_reward_failed": "Failed to add points. Please try again shortly.",
     "rpt_heading": "Report Hazard",
     "rpt_location_current": "Reporting at your current location",
+    "rpt_location_waiting": "Getting your location… please allow location access.",
     "rpt_type_label": "Hazard type",
     "rpt_type_parking": "Illegal parking",
     "rpt_type_pedestrian": "Pedestrian congestion",

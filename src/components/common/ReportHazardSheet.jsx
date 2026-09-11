@@ -23,7 +23,7 @@ export default function ReportHazardSheet({ isOpen, onClose, lat, lng, onReport 
     if (lat == null || lng == null) return;
     setSubmitting(true);
     try {
-      await onReport({
+      const res = await onReport({
         title: finalTitle,
         lat,
         lng,
@@ -31,9 +31,11 @@ export default function ReportHazardSheet({ isOpen, onClose, lat, lng, onReport 
         desc: desc.trim() || null,
         safetyTip: null
       });
-      // 성공/실패 토스트와 닫힘은 부모가 처리한다. 폼만 초기화.
-      setTitle('');
-      setDesc('');
+      // 성공/실패 토스트와 닫힘은 부모가 처리한다. 성공했을 때만 폼 초기화.
+      if (res?.success) {
+        setTitle('');
+        setDesc('');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -69,11 +71,15 @@ export default function ReportHazardSheet({ isOpen, onClose, lat, lng, onReport 
             {/* 위치 (현재 GPS) */}
             <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
               <MapPin size={14} className="text-cyber-cyan" />
-              {t('rpt_location_current')}
-              {lat != null && lng != null && (
-                <span className="ml-auto font-mono text-[10px] text-gray-500">
-                  {lat.toFixed(5)}, {lng.toFixed(5)}
-                </span>
+              {lat != null && lng != null ? (
+                <>
+                  {t('rpt_location_current')}
+                  <span className="ml-auto font-mono text-[10px] text-gray-500">
+                    {lat.toFixed(5)}, {lng.toFixed(5)}
+                  </span>
+                </>
+              ) : (
+                <span className="text-amber-400">{t('rpt_location_waiting')}</span>
               )}
             </div>
 

@@ -684,6 +684,7 @@ export default {
     "app_reward_failed": "적립에 실패했어요. 잠시 후 다시 시도해 주세요.",
     "rpt_heading": "위험 제보",
     "rpt_location_current": "현재 위치에서 제보",
+    "rpt_location_waiting": "현재 위치를 확인하고 있어요… 위치 권한을 허용해 주세요.",
     "rpt_type_label": "위험 유형",
     "rpt_type_parking": "불법주차",
     "rpt_type_pedestrian": "보행자 혼잡",

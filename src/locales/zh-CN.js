@@ -746,6 +746,7 @@ export default {
     "app_reward_failed": "积分累积失败，请稍后重试。",
     "rpt_heading": "上报危险",
     "rpt_location_current": "在当前位置上报",
+    "rpt_location_waiting": "正在获取当前位置…请允许位置权限。",
     "rpt_type_label": "危险类型",
     "rpt_type_parking": "违规停车",
     "rpt_type_pedestrian": "行人拥挤",

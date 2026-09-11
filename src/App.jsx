@@ -1321,8 +1321,8 @@ function App() {
           <ReportHazardSheet
             isOpen={isReportOpen}
             onClose={() => setIsReportOpen(false)}
-            lat={userLat}
-            lng={userLng}
+            lat={location?.lat ?? null}
+            lng={location?.lng ?? null}
             onReport={async (payload) => {
               const res = await reportHazard(payload);
               if (res?.success) {

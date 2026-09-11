@@ -119,7 +119,7 @@ export const useSafeData = () => {
       setLocations(fallbackHazards.map(item => ({
         ...item,
         desc: item.description,
-        safetyTip: item.safety_tip
+        safetyTip: item.safetyTip
       })));
     }
   };

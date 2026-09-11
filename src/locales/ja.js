@@ -746,6 +746,7 @@ export default {
     "app_reward_failed": "ポイントの付与に失敗しました。しばらくしてからもう一度お試しください。",
     "rpt_heading": "危険を報告",
     "rpt_location_current": "現在地から報告します",
+    "rpt_location_waiting": "現在地を取得しています… 位置情報の許可をお願いします。",
     "rpt_type_label": "危険の種類",
     "rpt_type_parking": "違法駐車",
     "rpt_type_pedestrian": "歩行者混雑",
