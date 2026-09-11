@@ -88,7 +88,7 @@ const InfoCard = ({ location, onClose, onSetOrigin, onSetDestination }) => {
                         <div>
                             <div className="text-[10px] font-black text-cyber-green uppercase tracking-widest mb-1">Safety Tip</div>
                             <p className="text-xs font-medium text-gray-200 leading-relaxed">
-                                {location.safetyTip || '안전한 라이딩을 위해 헬멧을 꼭 착용하세요.'}
+                                {t(location.safetyTip || '안전한 라이딩을 위해 헬멧을 꼭 착용하세요.', { defaultValue: location.safetyTip || '안전한 라이딩을 위해 헬멧을 꼭 착용하세요.' })}
                             </p>
                         </div>
                     </div>

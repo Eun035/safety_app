@@ -227,6 +227,9 @@ export default {
     "순천향대학교": "Soonchunhyang University",
     "온양온천역": "Onyang Oncheon Station",
     "아산소방서": "Asan Fire Station",
+    "안전한 라이딩을 위해 헬멧을 꼭 착용하세요.": "Always wear a helmet for a safe ride.",
+    "주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.": "Address-based destination. On arrival, be sure to park correctly in a designated legal parking zone (P).",
+    "일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.": "General destination. On arrival, be sure to park correctly in a designated legal parking zone (P).",
     "🏢 시청 우선": "🏢 City Hall",
     "🚒 소방서 우선": "🚒 Fire Station",
     // "🏫 대학교" 배지는 위 MapSearchBar 칩과 동일 키 — 중복 정의 제거
