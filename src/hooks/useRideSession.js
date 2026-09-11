@@ -421,6 +421,21 @@ export const useRideSession = create((set, get) => ({
                 if (profileError) {
                     console.warn('[C-Safe] increment_user_stats RPC 실패:', profileError.message);
                 }
+
+                // 🛡️ 안전점수 변동 (서버 권위·이력 기록). safety_score는 트리거로 봉인돼
+                //    있어 이 RPC로만 변경된다. 규칙: 급브레이크 없음 +2 / 있음 -3,
+                //    헬멧 착용 +1, 합법주차 +1. 서버에서 [0,100]로 클램프.
+                const scoreDelta = (isSafe ? 2 : -3) + (helmetOn ? 1 : 0) + (isLegalPark ? 1 : 0);
+                if (scoreDelta !== 0) {
+                    try {
+                        await supabase.rpc('adjust_safety_score', {
+                            delta_in: scoreDelta,
+                            reason_in: `ride_complete: ${isSafe ? 'safe' : 'hard_brake'}${helmetOn ? '+helmet' : ''}${isLegalPark ? '+legal_park' : ''}`
+                        });
+                    } catch (err) {
+                        console.warn('[C-Safe] adjust_safety_score RPC 실패:', err?.message || err);
+                    }
+                }
             } catch (err) {
                 console.error('[C-Safe] Supabase 연동 오류:', err);
             }
