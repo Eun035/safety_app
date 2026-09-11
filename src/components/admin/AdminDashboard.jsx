@@ -9,7 +9,7 @@ import {
   MapPin, Info, BrainCircuit, ShieldAlert,
   Route, Waves, Zap, Landmark, Trees,
   Navigation2, CheckCircle2, HeartPulse,
-  Footprints, Sliders, Copy, Trash2
+  Footprints, Sliders, Copy, Eye, EyeOff
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabaseClient';
@@ -77,16 +77,17 @@ const AdminDashboard = ({ onClose }) => {
     }
   };
 
-  // 제보 삭제 (모더레이션) — RLS상 admin만 hazards DELETE 가능.
-  const handleDeleteHazard = async (id) => {
+  // 제보 숨김/복구 (소프트 삭제) — RLS상 admin만 hazards UPDATE 가능.
+  // 숨김 제보는 공개 지도·음성경고·목록에서 제외되지만 행은 보존(복구 가능).
+  const handleToggleHidden = async (id, nextHidden) => {
     try {
-      const { error } = await supabase.from('hazards').delete().eq('id', id);
+      const { error } = await supabase.from('hazards').update({ hidden: nextHidden }).eq('id', id);
       if (error) throw error;
-      setHazards((prev) => prev.filter((h) => h.id !== id));
-      toast(t('adm_hazard_deleted'), 'success');
+      setHazards((prev) => prev.map((h) => (h.id === id ? { ...h, hidden: nextHidden } : h)));
+      toast(t(nextHidden ? 'adm_hazard_hidden' : 'adm_hazard_shown'), 'success');
     } catch (err) {
-      console.error('[C-Safe Admin] hazard 삭제 실패:', err?.message || err);
-      toast(t('adm_hazard_delete_fail'), 'error');
+      console.error('[C-Safe Admin] hazard 숨김 토글 실패:', err?.message || err);
+      toast(t('adm_hazard_toggle_fail'), 'error');
     }
   };
 
@@ -192,7 +193,9 @@ const AdminDashboard = ({ onClose }) => {
         try {
           const { data: reporters } = await supabase.rpc('get_hazard_reporters');
           if (Array.isArray(reporters)) {
-            setHazardReporters(Object.fromEntries(reporters.map((r) => [r.hazard_id, r.reporter_id])));
+            setHazardReporters(Object.fromEntries(
+              reporters.map((r) => [r.hazard_id, { id: r.reporter_id, nickname: r.reporter_nickname }])
+            ));
           }
         } catch (err) {
           console.warn('[C-Safe Admin] get_hazard_reporters RPC 실패:', err?.message || err);
@@ -934,23 +937,27 @@ const AdminDashboard = ({ onClose }) => {
             <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pr-2">
               {hazards.map((h) => {
                 const reporter = hazardReporters[h.id];
+                const reporterText = reporter?.nickname || (reporter?.id ? String(reporter.id).slice(0, 8) : null);
                 return (
-                  <div key={h.id} className="flex items-center justify-between gap-3 bg-white/5 rounded-2xl p-4 border border-white/5">
+                  <div key={h.id} className={`flex items-center justify-between gap-3 rounded-2xl p-4 border ${h.hidden ? 'bg-white/[0.02] border-white/5 opacity-60' : 'bg-white/5 border-white/5'}`}>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{h.title || '(제목 없음)'}</p>
+                      <p className="text-sm font-bold text-white truncate">
+                        {h.hidden && <span className="text-[9px] font-black text-gray-500 bg-white/5 border border-white/10 rounded px-1 py-0.5 mr-1.5 align-middle">{t('adm_hidden_badge')}</span>}
+                        {h.title || '(제목 없음)'}
+                      </p>
                       <p className="text-[10px] text-gray-500 mt-0.5">
                         {h.type} · {h.created_at ? new Date(h.created_at).toLocaleDateString('ko-KR') : '-'}
-                        {reporter && (
-                          <span className="ml-2 font-mono text-gray-600">· {t('adm_reporter')}: {String(reporter).slice(0, 8)}</span>
+                        {reporterText && (
+                          <span className="ml-2 text-gray-600">· {t('adm_reporter')}: {reporterText}</span>
                         )}
                       </p>
                     </div>
                     <button
-                      onClick={() => handleDeleteHazard(h.id)}
-                      title={t('adm_delete')}
-                      className="shrink-0 w-10 h-10 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center active:scale-90 transition-transform"
+                      onClick={() => handleToggleHidden(h.id, !h.hidden)}
+                      title={t(h.hidden ? 'adm_unhide' : 'adm_hide')}
+                      className={`shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center active:scale-90 transition-transform ${h.hidden ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}
                     >
-                      <Trash2 size={16} />
+                      {h.hidden ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
                   </div>
                 );

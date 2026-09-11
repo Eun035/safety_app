@@ -72,6 +72,7 @@ export const useSafeData = () => {
       const { data, error } = await supabase
         .from('hazards')
         .select('*')
+        .eq('hidden', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

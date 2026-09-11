@@ -6,6 +6,8 @@ import { co2AvoidedKg } from '../config/emissions';
 import { useUserStore } from './useUserStore';
 import { enqueue } from '../lib/pendingSyncQueue';
 import { generateMockRide } from '../utils/generateMockRide';
+import { toast } from './useToast';
+import i18n from '../locales/i18n';
 
 export const useRideSession = create((set, get) => ({
     isRiding: false,
@@ -420,6 +422,7 @@ export const useRideSession = create((set, get) => ({
 
                 if (profileError) {
                     console.warn('[C-Safe] increment_user_stats RPC 실패:', profileError.message);
+                    toast(i18n.t('app_reward_failed'), 'error');
                 }
 
                 // 🛡️ 안전점수 변동 (서버 권위·이력 기록). safety_score는 트리거로 봉인돼
