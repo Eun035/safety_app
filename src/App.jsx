@@ -187,7 +187,11 @@ function App() {
         // 💰 서버 권위 적립: points 직접 UPDATE는 트리거로 봉인되어 있어 RPC로만 가능
         supabase.rpc('award_points', { amount_in: points })
           .then(({ error }) => {
-            if (error) return console.warn('[C-Safe] 미션 보상 적립 실패:', error.message);
+            if (error) {
+              console.warn('[C-Safe] 미션 보상 적립 실패:', error.message);
+              toast(t('app_reward_failed'), 'error');
+              return;
+            }
             loadUser();
           });
       }
@@ -698,7 +702,11 @@ function App() {
       const earnedPoints = 300;
       supabase.rpc('award_points', { amount_in: earnedPoints })
         .then(({ error }) => {
-          if (error) return console.warn('[C-Safe] QR 제휴 보상 적립 실패:', error.message);
+          if (error) {
+            console.warn('[C-Safe] QR 제휴 보상 적립 실패:', error.message);
+            toast(t('app_reward_failed'), 'error');
+            return;
+          }
           toast(t('app_quiz_done', { p: earnedPoints }), 'success');
           loadUser(); // 프로필 새로고침
         });
@@ -896,7 +904,11 @@ function App() {
           if (user?.id && !String(user.id).startsWith('guest_')) {
             supabase.rpc('award_points', { amount_in: 500 })
               .then(({ error }) => {
-                if (error) return console.warn('[C-Safe] 퀴즈 보상 적립 실패:', error.message);
+                if (error) {
+                  console.warn('[C-Safe] 퀴즈 보상 적립 실패:', error.message);
+                  toast(t('app_reward_failed'), 'error');
+                  return;
+                }
                 loadUser();
               });
           }
@@ -1556,8 +1568,10 @@ function App() {
               if (user?.id && !String(user.id).startsWith('guest_')) {
                 supabase.rpc('award_points', { amount_in: HELMET_RETURN_REWARD })
                   .then(({ error }) => {
-                    if (error) console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', error.message);
-                    else loadUser();
+                    if (error) {
+                      console.warn('[C-Safe] 헬멧 반납 보상 적립 실패:', error.message);
+                      toast(t('app_reward_failed'), 'error');
+                    } else loadUser();
                   });
 
                 // 🪖 rides.helmet_return_station_id 기록 (이번 주행 row 보강)
@@ -1622,8 +1636,10 @@ function App() {
             if (user?.id && !String(user.id).startsWith('guest_')) {
               supabase.rpc('award_points', { amount_in: HYBRID_REWARD })
                 .then(({ error }) => {
-                  if (error) console.warn('[C-Safe] 하이브리드 인증 보상 적립 실패:', error.message);
-                  else loadUser();
+                  if (error) {
+                    console.warn('[C-Safe] 하이브리드 인증 보상 적립 실패:', error.message);
+                    toast(t('app_reward_failed'), 'error');
+                  } else loadUser();
                 });
             }
             toast(t('app_identity_verified', { p: HYBRID_REWARD }), 'success');

@@ -740,6 +740,7 @@ export default {
     "app_install_unsupported": "当前环境不支持安装，或已安装。",
     "app_helmet_confirmed": "✅ 已确认佩戴头盔！预发里程50P累积完成",
     "app_quiz_done": "🎉 安全知识测试完成！{{p}}P 累积",
+    "app_reward_failed": "积分累积失败，请稍后重试。",
     "app_store_done": "🎁 保管完成！天安爱心卡500P累积",
     "app_link_copied": "🔗 应用链接已复制到剪贴板。",
     "app_arrived": "🛴 已安全到达！",

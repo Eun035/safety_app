@@ -681,6 +681,7 @@ export default {
     "app_install_unsupported": "설치를 지원하지 않는 환경이거나 이미 설치되어 있습니다.",
     "app_helmet_confirmed": "✅ 안전모 착용 확인! 선지급 마일리지 50P 적립 완료",
     "app_quiz_done": "🎉 안전 지식 테스트 완료! {{p}}P 적립",
+    "app_reward_failed": "적립에 실패했어요. 잠시 후 다시 시도해 주세요.",
     "app_store_done": "🎁 보관 완료! 천안사랑카드 500P 적립",
     "app_link_copied": "🔗 앱 링크가 클립보드에 복사되었습니다.",
     "app_arrived": "🛴 안전하게 도착했어요!",

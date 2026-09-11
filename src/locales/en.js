@@ -740,6 +740,7 @@ export default {
     "app_install_unsupported": "Install isn't supported here, or it's already installed.",
     "app_helmet_confirmed": "✅ Helmet confirmed! 50P advance mileage earned",
     "app_quiz_done": "🎉 Safety quiz complete! {{p}}P earned",
+    "app_reward_failed": "Failed to add points. Please try again shortly.",
     "app_store_done": "🎁 Stored! 500P on your Cheonan Love Card",
     "app_link_copied": "🔗 App link copied to clipboard.",
     "app_arrived": "🛴 You've arrived safely!",

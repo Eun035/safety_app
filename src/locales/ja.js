@@ -740,6 +740,7 @@ export default {
     "app_install_unsupported": "インストール非対応の環境か、既にインストール済みです。",
     "app_helmet_confirmed": "✅ ヘルメット着用確認！先行マイレージ50P付与完了",
     "app_quiz_done": "🎉 安全知識テスト完了！{{p}}P 付与",
+    "app_reward_failed": "ポイントの付与に失敗しました。しばらくしてからもう一度お試しください。",
     "app_store_done": "🎁 保管完了！天安サランカード500P付与",
     "app_link_copied": "🔗 アプリのリンクをクリップボードにコピーしました。",
     "app_arrived": "🛴 安全に到着しました！",
