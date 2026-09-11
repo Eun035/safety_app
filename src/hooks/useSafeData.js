@@ -168,23 +168,24 @@ export const useSafeData = () => {
   };
 
   // 실시간 제보 업로드 함수
+  // 서버 RPC 경유: reporter_id(auth.uid())를 서버에서 비공개로 기록하고
+  // 제보자별 24h 레이트 리밋을 건다. hazards 직접 INSERT는 봉인되어 있다.
   const reportHazard = async (newHazard) => {
     try {
-      const { error } = await supabase
-        .from('hazards')
-        .insert([
-          {
-            title: newHazard.title,
-            lat: newHazard.lat,
-            lng: newHazard.lng,
-            type: newHazard.type,
-            description: newHazard.desc,
-            safety_tip: newHazard.safetyTip
-          }
-        ]);
+      const { data, error } = await supabase.rpc('report_hazard', {
+        p_title: newHazard.title,
+        p_lat: newHazard.lat,
+        p_lng: newHazard.lng,
+        p_type: newHazard.type,
+        p_description: newHazard.desc ?? null,
+        p_safety_tip: newHazard.safetyTip ?? null
+      });
 
       if (error) throw error;
-      return { success: true };
+      if (!data?.ok) {
+        return { success: false, error: data?.reason || 'report_failed' };
+      }
+      return { success: true, hazardId: data.hazard_id };
     } catch (error) {
       console.error("[C-Safe] 제보 업로드 실패:", error.message);
       return { success: false, error: error.message };
