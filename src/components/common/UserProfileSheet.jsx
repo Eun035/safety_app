@@ -1,9 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Shield, Star, Zap, Award, TrendingUp, Gift, Settings, Edit2, Trash2 } from 'lucide-react';
 import BeginnerMissionCard from './BeginnerMissionCard';
 import { useUserStore } from '../../hooks/useUserStore';
+import { supabase } from '../../lib/supabaseClient';
+
+// 안전점수 이력 라인차트 (순수 SVG). points: [{ score }] 시간 오름차순.
+const ScoreHistoryChart = ({ points }) => {
+    const W = 240, H = 64, PAD = 6;
+    if (!points || points.length < 2) return null;
+    const n = points.length;
+    const xAt = (i) => PAD + (i / (n - 1)) * (W - PAD * 2);
+    // y축은 점수 0~100 고정 스케일 (변화 폭이 과장되지 않도록)
+    const yAt = (s) => PAD + (1 - Math.max(0, Math.min(100, s)) / 100) * (H - PAD * 2);
+    const line = points.map((p, i) => `${xAt(i).toFixed(1)},${yAt(p.score).toFixed(1)}`).join(' ');
+    const area = `${PAD},${H - PAD} ${line} ${(W - PAD).toFixed(1)},${H - PAD}`;
+    return (
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: H }} preserveAspectRatio="none">
+            <polygon points={area} fill="rgba(64,255,220,0.08)" />
+            <polyline points={line} fill="none" stroke="#40ffdc" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+            {points.map((p, i) => (
+                <circle key={i} cx={xAt(i)} cy={yAt(p.score)} r={i === n - 1 ? 2.6 : 1.6} fill={i === n - 1 ? '#40ffdc' : 'rgba(64,255,220,0.6)'} />
+            ))}
+        </svg>
+    );
+};
 
 // Radar Chart (Spider Web) component using SVG
 const RadarChart = ({ data }) => {
@@ -137,6 +159,35 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userScore = 92, profileIm
     const { t } = useTranslation();
     const isAdmin = useUserStore(s => s.isAdmin);
     const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'missions'
+    const [scoreHistory, setScoreHistory] = useState([]); // [{ score }] 시간 오름차순
+
+    // 안전점수 변동 이력 조회 — RLS가 본인 행만 반환. change_amount(반영분)만 저장돼
+    // 있으므로 현재 점수(userScore)에서 역산해 시점별 누적 점수를 복원한다.
+    useEffect(() => {
+        if (!isOpen) return;
+        let alive = true;
+        (async () => {
+            const { data, error } = await supabase
+                .from('safety_score_logs')
+                .select('change_amount, created_at')
+                .order('created_at', { ascending: false });
+            if (!alive || error || !Array.isArray(data) || data.length === 0) {
+                if (alive && !error) setScoreHistory([]);
+                return;
+            }
+            // data는 최신순. 최신 이후 점수 = userScore. 역산하며 각 시점 점수 복원.
+            let running = Number(userScore) || 0;
+            const desc = data.map((row) => {
+                const after = running;                       // 이 로그 적용 직후 점수
+                running = after - (Number(row.change_amount) || 0); // 이전 점수
+                return { score: after };
+            });
+            const asc = desc.reverse();          // 오름차순(각 로그 적용 후 점수)
+            asc.unshift({ score: running });     // 첫 로그 직전 baseline 점수를 시작점으로
+            setScoreHistory(asc);
+        })();
+        return () => { alive = false; };
+    }, [isOpen, userScore]);
 
     return (
         <AnimatePresence>
@@ -238,6 +289,15 @@ const UserProfileSheet = ({ isOpen, onClose, userName, userScore = 92, profileIm
                                             />
                                         </div>
                                         <span className="text-xs font-black text-cyber-cyan shrink-0">{userScore}</span>
+                                    </div>
+                                    {/* 안전점수 이력 그래프 */}
+                                    <div className="mt-3">
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1">{t('pf_score_history')}</p>
+                                        {scoreHistory.length >= 2 ? (
+                                            <ScoreHistoryChart points={scoreHistory} />
+                                        ) : (
+                                            <p className="text-[10px] text-gray-600 py-3 text-center">{t('pf_score_history_empty')}</p>
+                                        )}
                                     </div>
                                 </div>
 

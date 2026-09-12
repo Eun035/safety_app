@@ -544,6 +544,8 @@ export default {
     "pf_tab_missions": "ミッション",
     "pf_top_pct": "上位5%",
     "pf_safety_score": "安全スコア",
+    "pf_score_history": "安全スコアの推移",
+    "pf_score_history_empty": "まだ変動履歴がありません。ライドを完了すると記録されます。",
     "pf_insurance_label": "保険加入案内",
     "pf_insurance_title": "天安市民専用 安全保険",
     "pf_insurance_desc1": "走行中の事故発生時に補償内容を確認し",

@@ -508,6 +508,8 @@ export default {
     "pf_tab_missions": "미션",
     "pf_top_pct": "상위 5%",
     "pf_safety_score": "안전점수",
+    "pf_score_history": "안전점수 변동 이력",
+    "pf_score_history_empty": "아직 변동 이력이 없어요. 주행을 완료하면 기록돼요.",
     "pf_insurance_label": "보험 가입 안내",
     "pf_insurance_title": "천안시민 전용 안전 보험",
     "pf_insurance_desc1": "라이딩 중 사고 발생 시 보장 내역을 확인하고",

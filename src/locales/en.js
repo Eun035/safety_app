@@ -544,6 +544,8 @@ export default {
     "pf_tab_missions": "Missions",
     "pf_top_pct": "Top 5%",
     "pf_safety_score": "Safety Score",
+    "pf_score_history": "Safety Score History",
+    "pf_score_history_empty": "No changes yet. Complete a ride to start tracking.",
     "pf_insurance_label": "Insurance Info",
     "pf_insurance_title": "Cheonan Citizen Safety Insurance",
     "pf_insurance_desc1": "Check your coverage for ride accidents",

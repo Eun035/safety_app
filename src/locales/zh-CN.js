@@ -544,6 +544,8 @@ export default {
     "pf_tab_missions": "任务",
     "pf_top_pct": "前5%",
     "pf_safety_score": "安全评分",
+    "pf_score_history": "安全评分变动记录",
+    "pf_score_history_empty": "暂无变动记录。完成骑行后开始记录。",
     "pf_insurance_label": "保险投保须知",
     "pf_insurance_title": "天安市民专属安全保险",
     "pf_insurance_desc1": "骑行中发生事故时可查看保障内容",
