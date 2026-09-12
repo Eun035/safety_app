@@ -164,8 +164,8 @@ const MapContainer = ({
                                 desc: roadName ? lotName : t('rss_addr_lot'),
                                 lat, lng,
                                 type: 'kakao_address',
-                                badge: '🏠 주소',
-                                safetyTip: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                                badge: t('🏠 주소', { defaultValue: '🏠 주소' }),
+                                safetyTip: t('주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.', { defaultValue: '주소 기반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.' })
                             });
                         } else {
                             const dup = LANDMARKS.some(l =>
@@ -178,8 +178,8 @@ const MapContainer = ({
                                 desc: item.road_address_name || item.address_name,
                                 lat, lng,
                                 type: 'kakao_place',
-                                badge: '📍 일반 장소',
-                                safetyTip: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.'
+                                badge: t('📍 일반 장소', { defaultValue: '📍 일반 장소' }),
+                                safetyTip: t('일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.', { defaultValue: '일반 목적지입니다. 도착 후 반드시 합법 주차구역(P)을 찾아 올바르게 세워두세요.' })
                             });
                         }
                     });
