@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildReferralCode } from './referral';
+import { buildReferralCode, buildReferralUrl } from './referral';
 
 describe('buildReferralCode', () => {
   it('falsy 입력은 CSAFE0', () => {
@@ -19,5 +19,22 @@ describe('buildReferralCode', () => {
 
   it('항상 6자 이하', () => {
     expect(buildReferralCode('someverylonguseridentifier').length).toBeLessThanOrEqual(6);
+  });
+});
+
+describe('buildReferralUrl', () => {
+  // node 환경(window 없음)에서는 폴백 origin을 사용한다.
+  it('?ref=CODE 쿼리와 UTM 파라미터를 붙인다', () => {
+    const url = buildReferralUrl('ABC123');
+    expect(url).toContain('/?ref=ABC123');
+    expect(url).toContain('utm_source=instagram');
+    expect(url).toContain('utm_medium=ride_card');
+    expect(url).toContain('utm_campaign=user_share');
+  });
+
+  it('서버 라우팅 의존 경로(/r/:code)가 아니라 루트 쿼리 방식', () => {
+    const url = buildReferralUrl('XYZ');
+    expect(url).not.toContain('/r/');
+    expect(url.startsWith('http')).toBe(true);
   });
 });
